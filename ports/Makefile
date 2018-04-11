@@ -64,7 +64,7 @@ CFLAGS+=-g -Wall -DNDEBUG -DSC_INCLUDE_DYNAMIC_PROCESSES \
 ifeq (,$(findstring clang,$(CC)))
 CFLAGS+= -Wlogical-op
 # if GCC is newer than 4.8/4.9 you may use:
-CFLAGS:=$(CFLAGS) -fsanitize=address -fstack-protector -fstack-check -fsanitize=undefined -fno-sanitize=alignment
+#CFLAGS:=$(CFLAGS) -fsanitize=address -fstack-protector -fstack-check -fsanitize=undefined -fno-sanitize=alignment
 else
 # we cannot sanitize alignment on x86-64 targets because clang wants 64 bit alignment
 CFLAGS+= -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -Wdocumentation
