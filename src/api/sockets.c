@@ -45,7 +45,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/sockets.h"
@@ -186,95 +186,95 @@ static void sockaddr_to_ipaddr_port(const struct sockaddr* sockaddr, ip_addr_t* 
   ((struct timeval *)(optval))->tv_usec = ((loc) % 1000U) * 1000U; }while(0)
 #define LWIP_SO_SNDRCVTIMEO_GET_MS(optval) ((((const struct timeval *)(optval))->tv_sec * 1000U) + (((const struct timeval *)(optval))->tv_usec / 1000U))
 #endif
-
-#define NUM_SOCKETS MEMP_NUM_NETCONN
+//Comment out to be included globally in the lwip_ctxt.h file //HCSim
+//#define NUM_SOCKETS MEMP_NUM_NETCONN
 
 /** This is overridable for the rare case where more than 255 threads
  * select on the same socket...
  */
-#ifndef SELWAIT_T
-#define SELWAIT_T u8_t
-#endif
+//#ifndef SELWAIT_T
+//#define SELWAIT_T u8_t
+//#endif
 
 /** Contains all internal pointers and states used for a socket */
-struct lwip_sock {
+//struct lwip_sock {
   /** sockets currently are built on netconns, each socket has one netconn */
-  struct netconn *conn;
+  //struct netconn *conn;
   /** data that was left from the previous read */
-  void *lastdata;
+  //void *lastdata;
   /** offset in the data that was left from the previous read */
-  u16_t lastoffset;
+  //u16_t lastoffset;
   /** number of times data was received, set by event_callback(),
       tested by the receive and select functions */
-  s16_t rcvevent;
+  //s16_t rcvevent;
   /** number of times data was ACKed (free send buffer), set by event_callback(),
       tested by select */
-  u16_t sendevent;
+  //u16_t sendevent;
   /** error happened for this socket, set by event_callback(), tested by select */
-  u16_t errevent;
+  //u16_t errevent;
   /** last error that occurred on this socket (in fact, all our errnos fit into an u8_t) */
-  u8_t err;
+  //u8_t err;
   /** counter of how many threads are waiting for this socket using select */
-  SELWAIT_T select_waiting;
-};
+  //SELWAIT_T select_waiting;
+//};
 
-#if LWIP_NETCONN_SEM_PER_THREAD
-#define SELECT_SEM_T        sys_sem_t*
-#define SELECT_SEM_PTR(sem) (sem)
-#else /* LWIP_NETCONN_SEM_PER_THREAD */
-#define SELECT_SEM_T        sys_sem_t
-#define SELECT_SEM_PTR(sem) (&(sem))
-#endif /* LWIP_NETCONN_SEM_PER_THREAD */
+//#if LWIP_NETCONN_SEM_PER_THREAD
+//#define SELECT_SEM_T        sys_sem_t*
+//#define SELECT_SEM_PTR(sem) (sem)
+//#else /* LWIP_NETCONN_SEM_PER_THREAD */
+//#define SELECT_SEM_T        sys_sem_t
+//#define SELECT_SEM_PTR(sem) (&(sem))
+//#endif /* LWIP_NETCONN_SEM_PER_THREAD */
 
 /** Description for a task waiting in select */
-struct lwip_select_cb {
+//struct lwip_select_cb {
   /** Pointer to the next waiting task */
-  struct lwip_select_cb *next;
+  //struct lwip_select_cb *next;
   /** Pointer to the previous waiting task */
-  struct lwip_select_cb *prev;
+  //struct lwip_select_cb *prev;
   /** readset passed to select */
-  fd_set *readset;
+  //fd_set *readset;
   /** writeset passed to select */
-  fd_set *writeset;
+  //fd_set *writeset;
   /** unimplemented: exceptset passed to select */
-  fd_set *exceptset;
+  //fd_set *exceptset;
   /** don't signal the same semaphore twice: set to 1 when signalled */
-  int sem_signalled;
+  //int sem_signalled;
   /** semaphore to wake up a task waiting for select */
-  SELECT_SEM_T sem;
-};
+  //SELECT_SEM_T sem;
+//};
 
 /** A struct sockaddr replacement that has the same alignment as sockaddr_in/
  *  sockaddr_in6 if instantiated.
  */
-union sockaddr_aligned {
-   struct sockaddr sa;
-#if LWIP_IPV6
-   struct sockaddr_in6 sin6;
-#endif /* LWIP_IPV6 */
-#if LWIP_IPV4
-   struct sockaddr_in sin;
-#endif /* LWIP_IPV4 */
-};
+//union sockaddr_aligned {
+   //struct sockaddr sa;
+//#if LWIP_IPV6
+   //struct sockaddr_in6 sin6;
+//#endif /* LWIP_IPV6 */
+//#if LWIP_IPV4
+   //struct sockaddr_in sin;
+//#endif /* LWIP_IPV4 */
+//};
 
 #if LWIP_IGMP
 /* Define the number of IPv4 multicast memberships, default is one per socket */
-#ifndef LWIP_SOCKET_MAX_MEMBERSHIPS
-#define LWIP_SOCKET_MAX_MEMBERSHIPS NUM_SOCKETS
-#endif
+//#ifndef LWIP_SOCKET_MAX_MEMBERSHIPS
+//#define LWIP_SOCKET_MAX_MEMBERSHIPS NUM_SOCKETS
+//#endif
 
 /* This is to keep track of IP_ADD_MEMBERSHIP calls to drop the membership when
    a socket is closed */
-struct lwip_socket_multicast_pair {
+//struct lwip_socket_multicast_pair {
   /** the socket */
-  struct lwip_sock* sock;
+  //struct lwip_sock* sock;
   /** the interface address */
-  ip4_addr_t if_addr;
+  //ip4_addr_t if_addr;
   /** the group address */
-  ip4_addr_t multi_addr;
-};
+  //ip4_addr_t multi_addr;
+//};
 
-struct lwip_socket_multicast_pair socket_ipv4_multicast_memberships[LWIP_SOCKET_MAX_MEMBERSHIPS];
+//struct lwip_socket_multicast_pair socket_ipv4_multicast_memberships[LWIP_SOCKET_MAX_MEMBERSHIPS];
 
 static int  lwip_socket_register_membership(int s, const ip4_addr_t *if_addr, const ip4_addr_t *multi_addr);
 static void lwip_socket_unregister_membership(int s, const ip4_addr_t *if_addr, const ip4_addr_t *multi_addr);
@@ -282,12 +282,12 @@ static void lwip_socket_drop_registered_memberships(int s);
 #endif /* LWIP_IGMP */
 
 /** The global array of available sockets */
-static struct lwip_sock sockets[NUM_SOCKETS];
+//static struct lwip_sock sockets[NUM_SOCKETS];
 /** The global list of tasks waiting for select */
-static struct lwip_select_cb *select_cb_list;
+//static struct lwip_select_cb *select_cb_list;
 /** This counter is increased from lwip_select when the list is changed
     and checked in event_callback to see if it has changed. */
-static volatile int select_cb_ctr;
+//static volatile int select_cb_ctr;
 
 #if LWIP_SOCKET_SET_ERRNO
 #ifndef set_errno
@@ -350,7 +350,8 @@ static struct lwip_sock *
 get_socket(int s)
 {
   struct lwip_sock *sock;
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   s -= LWIP_SOCKET_OFFSET;
 
   if ((s < 0) || (s >= NUM_SOCKETS)) {
@@ -359,7 +360,7 @@ get_socket(int s)
     return NULL;
   }
 
-  sock = &sockets[s];
+  sock = &(((LwipCntxt*)ctxt)->sockets)[s];//HCSim
 
   if (!sock->conn) {
     LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(%d): not active\n", s + LWIP_SOCKET_OFFSET));
@@ -379,14 +380,16 @@ get_socket(int s)
 static struct lwip_sock *
 tryget_socket(int s)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   s -= LWIP_SOCKET_OFFSET;
   if ((s < 0) || (s >= NUM_SOCKETS)) {
     return NULL;
   }
-  if (!sockets[s].conn) {
+  if (!(((LwipCntxt*)ctxt)->sockets)[s].conn) {//HCSim
     return NULL;
   }
-  return &sockets[s];
+  return &(((LwipCntxt*)ctxt)->sockets)[s];//HCSim
 }
 
 /**
@@ -402,24 +405,25 @@ alloc_socket(struct netconn *newconn, int accepted)
 {
   int i;
   SYS_ARCH_DECL_PROTECT(lev);
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   /* allocate a new socket identifier */
   for (i = 0; i < NUM_SOCKETS; ++i) {
     /* Protect socket array */
     SYS_ARCH_PROTECT(lev);
-    if (!sockets[i].conn && (sockets[i].select_waiting == 0)) {
-      sockets[i].conn       = newconn;
+    if (!(((LwipCntxt*)ctxt)->sockets)[i].conn && ((((LwipCntxt*)ctxt)->sockets)[i].select_waiting == 0)) {//HCSim
+      (((LwipCntxt*)ctxt)->sockets)[i].conn       = newconn;//HCSim
       /* The socket is not yet known to anyone, so no need to protect
          after having marked it as used. */
       SYS_ARCH_UNPROTECT(lev);
-      sockets[i].lastdata   = NULL;
-      sockets[i].lastoffset = 0;
-      sockets[i].rcvevent   = 0;
+      (((LwipCntxt*)ctxt)->sockets)[i].lastdata   = NULL;//HCSim
+      (((LwipCntxt*)ctxt)->sockets)[i].lastoffset = 0;//HCSim
+      (((LwipCntxt*)ctxt)->sockets)[i].rcvevent   = 0;//HCSim
       /* TCP sendbuf is empty, but the socket is not yet writable until connected
        * (unless it has been created by accept()). */
-      sockets[i].sendevent  = (NETCONNTYPE_GROUP(newconn->type) == NETCONN_TCP ? (accepted != 0) : 1);
-      sockets[i].errevent   = 0;
-      sockets[i].err        = 0;
+      (((LwipCntxt*)ctxt)->sockets)[i].sendevent  = (NETCONNTYPE_GROUP(newconn->type) == NETCONN_TCP ? (accepted != 0) : 1);//HCSim
+      (((LwipCntxt*)ctxt)->sockets)[i].errevent   = 0;//HCSim
+      (((LwipCntxt*)ctxt)->sockets)[i].err        = 0;//HCSim
       return i + LWIP_SOCKET_OFFSET;
     }
     SYS_ARCH_UNPROTECT(lev);
@@ -471,6 +475,9 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   u16_t port = 0;
   int newsock;
   err_t err;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
   SYS_ARCH_DECL_PROTECT(lev);
 
   LWIP_DEBUGF(SOCKETS_DEBUG, ("lwip_accept(%d)...\n", s));
@@ -508,7 +515,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   }
   LWIP_ASSERT("invalid socket index", (newsock >= LWIP_SOCKET_OFFSET) && (newsock < NUM_SOCKETS + LWIP_SOCKET_OFFSET));
   LWIP_ASSERT("newconn->callback == event_callback", newconn->callback == event_callback);
-  nsock = &sockets[newsock - LWIP_SOCKET_OFFSET];
+  nsock = &(((LwipCntxt*)ctxt)->sockets)[newsock - LWIP_SOCKET_OFFSET];//HCSim
 
   /* See event_callback: If data comes in right away after an accept, even
    * though the server task might not have created a new socket yet.
@@ -1378,6 +1385,9 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
   struct lwip_select_cb select_cb;
   int i;
   int maxfdp2;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
 #if LWIP_NETCONN_SEM_PER_THREAD
   int waited = 0;
 #endif
@@ -1426,13 +1436,13 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
     SYS_ARCH_PROTECT(lev);
 
     /* Put this select_cb on top of list */
-    select_cb.next = select_cb_list;
-    if (select_cb_list != NULL) {
-      select_cb_list->prev = &select_cb;
+    select_cb.next = (((LwipCntxt*)ctxt)->select_cb_list);//HCSim
+    if ((((LwipCntxt*)ctxt)->select_cb_list) != NULL) {//HCSim
+      (((LwipCntxt*)ctxt)->select_cb_list)->prev = &select_cb;//HCSim
     }
-    select_cb_list = &select_cb;
+    (((LwipCntxt*)ctxt)->select_cb_list) = &select_cb;//HCSim
     /* Increasing this counter tells event_callback that the list has changed. */
-    select_cb_ctr++;
+    (((LwipCntxt*)ctxt)->select_cb_ctr)++;//HCSim
 
     /* Now we can safely unprotect */
     SYS_ARCH_UNPROTECT(lev);
@@ -1510,15 +1520,15 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
     if (select_cb.next != NULL) {
       select_cb.next->prev = select_cb.prev;
     }
-    if (select_cb_list == &select_cb) {
+    if ((((LwipCntxt*)ctxt)->select_cb_list) == &select_cb) {//HCSim
       LWIP_ASSERT("select_cb.prev == NULL", select_cb.prev == NULL);
-      select_cb_list = select_cb.next;
+      (((LwipCntxt*)ctxt)->select_cb_list) = select_cb.next;//HCSim
     } else {
       LWIP_ASSERT("select_cb.prev != NULL", select_cb.prev != NULL);
       select_cb.prev->next = select_cb.next;
     }
     /* Increasing this counter tells event_callback that the list has changed. */
-    select_cb_ctr++;
+    (((LwipCntxt*)ctxt)->select_cb_ctr)++;//HCSim
     SYS_ARCH_UNPROTECT(lev);
 
 #if LWIP_NETCONN_SEM_PER_THREAD
@@ -1574,6 +1584,9 @@ event_callback(struct netconn *conn, enum netconn_evt evt, u16_t len)
   struct lwip_sock *sock;
   struct lwip_select_cb *scb;
   int last_select_cb_ctr;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
   SYS_ARCH_DECL_PROTECT(lev);
 
   LWIP_UNUSED_ARG(len);
@@ -1643,9 +1656,9 @@ event_callback(struct netconn *conn, enum netconn_evt evt, u16_t len)
 
   /* At this point, SYS_ARCH is still protected! */
 again:
-  for (scb = select_cb_list; scb != NULL; scb = scb->next) {
+  for (scb = (((LwipCntxt*)ctxt)->select_cb_list); scb != NULL; scb = scb->next) {//HCSim
     /* remember the state of select_cb_list to detect changes */
-    last_select_cb_ctr = select_cb_ctr;
+    last_select_cb_ctr = (((LwipCntxt*)ctxt)->select_cb_ctr);//HCSim
     if (scb->sem_signalled == 0) {
       /* semaphore not signalled yet */
       int do_signal = 0;
@@ -1676,7 +1689,7 @@ again:
     SYS_ARCH_UNPROTECT(lev);
     /* this makes sure interrupt protection time is short */
     SYS_ARCH_PROTECT(lev);
-    if (last_select_cb_ctr != select_cb_ctr) {
+    if (last_select_cb_ctr != (((LwipCntxt*)ctxt)->select_cb_ctr)) {//HCSim
       /* someone has changed select_cb_list, restart at the beginning */
       goto again;
     }
@@ -2753,16 +2766,18 @@ lwip_socket_register_membership(int s, const ip4_addr_t *if_addr, const ip4_addr
 {
   struct lwip_sock *sock = get_socket(s);
   int i;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 
   if (!sock) {
     return 0;
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if (socket_ipv4_multicast_memberships[i].sock == NULL) {
-      socket_ipv4_multicast_memberships[i].sock = sock;
-      ip4_addr_copy(socket_ipv4_multicast_memberships[i].if_addr, *if_addr);
-      ip4_addr_copy(socket_ipv4_multicast_memberships[i].multi_addr, *multi_addr);
+    if ((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == NULL) {//HCSim
+      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = sock;//HCSim
+      ip4_addr_copy((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, *if_addr);//HCSim
+      ip4_addr_copy((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, *multi_addr);//HCSim
       return 1;
     }
   }
@@ -2779,18 +2794,20 @@ lwip_socket_unregister_membership(int s, const ip4_addr_t *if_addr, const ip4_ad
 {
   struct lwip_sock *sock = get_socket(s);
   int i;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 
   if (!sock) {
     return;
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if ((socket_ipv4_multicast_memberships[i].sock == sock) &&
-        ip4_addr_cmp(&socket_ipv4_multicast_memberships[i].if_addr, if_addr) &&
-        ip4_addr_cmp(&socket_ipv4_multicast_memberships[i].multi_addr, multi_addr)) {
-      socket_ipv4_multicast_memberships[i].sock = NULL;
-      ip4_addr_set_zero(&socket_ipv4_multicast_memberships[i].if_addr);
-      ip4_addr_set_zero(&socket_ipv4_multicast_memberships[i].multi_addr);
+    if (((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) &&//HCSim
+        ip4_addr_cmp(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, if_addr) &&//HCSim
+        ip4_addr_cmp(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, multi_addr)) {//HCSim
+      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
+      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
       return;
     }
   }
@@ -2805,19 +2822,21 @@ lwip_socket_drop_registered_memberships(int s)
 {
   struct lwip_sock *sock = get_socket(s);
   int i;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 
   if (!sock) {
     return;
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if (socket_ipv4_multicast_memberships[i].sock == sock) {
+    if ((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) {//HCSim
       ip_addr_t multi_addr, if_addr;
-      ip_addr_copy_from_ip4(multi_addr, socket_ipv4_multicast_memberships[i].multi_addr);
-      ip_addr_copy_from_ip4(if_addr, socket_ipv4_multicast_memberships[i].if_addr);
-      socket_ipv4_multicast_memberships[i].sock = NULL;
-      ip4_addr_set_zero(&socket_ipv4_multicast_memberships[i].if_addr);
-      ip4_addr_set_zero(&socket_ipv4_multicast_memberships[i].multi_addr);
+      ip_addr_copy_from_ip4(multi_addr, (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
+      ip_addr_copy_from_ip4(if_addr, (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
+      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
 
       netconn_join_leave_group(sock->conn, &multi_addr, &if_addr, NETCONN_LEAVE);
     }

@@ -39,7 +39,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_TCP /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/priv/tcp_priv.h"
@@ -996,6 +996,8 @@ tcp_output(struct tcp_pcb *pcb)
   u32_t wnd, snd_nxt;
   err_t err;
   struct netif *netif;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 #if TCP_CWND_DEBUG
   s16_t i = 0;
 #endif /* TCP_CWND_DEBUG */
@@ -1008,7 +1010,7 @@ tcp_output(struct tcp_pcb *pcb)
      code. If so, we do not output anything. Instead, we rely on the
      input processing code to call us when input processing is done
      with. */
-  if (tcp_input_pcb == pcb) {
+  if ((((LwipCntxt*)ctxt)->tcp_input_pcb) == pcb) {
     return ERR_OK;
   }
 
@@ -1192,6 +1194,9 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
   u16_t len;
   u32_t *opts;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   if (seg->p->ref != 1) {
     /* This can happen if the pbuf of this segment is still referenced by the
        netif driver due to deferred transmission. Since this function modifies
@@ -1253,7 +1258,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
   }
 
   if (pcb->rttest == 0) {
-    pcb->rttest = tcp_ticks;
+    pcb->rttest = (((LwipCntxt*)ctxt)->tcp_ticks);
     pcb->rtseq = lwip_ntohl(seg->tcphdr->seqno);
 
     LWIP_DEBUGF(TCP_RTO_DEBUG, ("tcp_output_segment: rtseq %"U32_F"\n", pcb->rtseq));
@@ -1535,12 +1540,15 @@ tcp_keepalive(struct tcp_pcb *pcb)
   struct pbuf *p;
   struct netif *netif;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: sending KEEPALIVE probe to "));
   ip_addr_debug_print(TCP_DEBUG, &pcb->remote_ip);
   LWIP_DEBUGF(TCP_DEBUG, ("\n"));
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: tcp_ticks %"U32_F"   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\n",
-                          tcp_ticks, pcb->tmr, (u16_t)pcb->keep_cnt_sent));
+                          (((LwipCntxt*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
 
   p = tcp_output_alloc_header(pcb, 0, 0, lwip_htonl(pcb->snd_nxt - 1));
   if (p == NULL) {
@@ -1594,6 +1602,9 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
   u32_t snd_nxt;
   struct netif *netif;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_zero_window_probe: sending ZERO WINDOW probe to "));
   ip_addr_debug_print(TCP_DEBUG, &pcb->remote_ip);
   LWIP_DEBUGF(TCP_DEBUG, ("\n"));
@@ -1601,7 +1612,7 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
   LWIP_DEBUGF(TCP_DEBUG,
               ("tcp_zero_window_probe: tcp_ticks %"U32_F
                "   pcb->tmr %"U32_F" pcb->keep_cnt_sent %"U16_F"\n",
-               tcp_ticks, pcb->tmr, (u16_t)pcb->keep_cnt_sent));
+               (((LwipCntxt*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
 
   seg = pcb->unacked;
 

@@ -81,7 +81,7 @@ Steve Reynolds
  *----------------------------------------------------------------------------*/
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV4 && LWIP_IGMP /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/igmp.h"
@@ -450,13 +450,15 @@ igmp_joingroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
 {
   err_t err = ERR_VAL; /* no matching interface */
   struct netif *netif;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   /* make sure it is multicast address */
   LWIP_ERROR("igmp_joingroup: attempt to join non-multicast address", ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
   LWIP_ERROR("igmp_joingroup: attempt to join allsystems address", (!ip4_addr_cmp(groupaddr, &allsystems)), return ERR_VAL;);
 
   /* loop through netif's */
-  netif = netif_list;
+  netif =  (((LwipCntxt*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we join this interface ? */
     if ((netif->flags & NETIF_FLAG_IGMP) && ((ip4_addr_isany(ifaddr) || ip4_addr_cmp(netif_ip4_addr(netif), ifaddr)))) {
@@ -546,13 +548,15 @@ igmp_leavegroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
 {
   err_t err = ERR_VAL; /* no matching interface */
   struct netif *netif;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   /* make sure it is multicast address */
   LWIP_ERROR("igmp_leavegroup: attempt to leave non-multicast address", ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
   LWIP_ERROR("igmp_leavegroup: attempt to leave allsystems address", (!ip4_addr_cmp(groupaddr, &allsystems)), return ERR_VAL;);
 
   /* loop through netif's */
-  netif = netif_list;
+  netif = (((LwipCntxt*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we leave this interface ? */
     if ((netif->flags & NETIF_FLAG_IGMP) && ((ip4_addr_isany(ifaddr) || ip4_addr_cmp(netif_ip4_addr(netif), ifaddr)))) {
@@ -638,7 +642,9 @@ igmp_leavegroup_netif(struct netif *netif, const ip4_addr_t *groupaddr)
 void
 igmp_tmr(void)
 {
-  struct netif *netif = netif_list;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
 
   while (netif != NULL) {
     struct igmp_group *group = netif_igmp_data(netif);

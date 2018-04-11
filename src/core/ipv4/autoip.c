@@ -57,7 +57,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV4 && LWIP_AUTOIP /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/mem.h"
@@ -364,7 +364,10 @@ autoip_stop(struct netif *netif)
 void
 autoip_tmr(void)
 {
-  struct netif *netif = netif_list;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
+  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
   /* loop through netif's */
   while (netif != NULL) {
     struct autoip* autoip = netif_autoip_data(netif);

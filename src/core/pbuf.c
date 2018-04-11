@@ -110,7 +110,7 @@ void eth_rx_irq()
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #include "lwip/stats.h"
 #include "lwip/def.h"
 #include "lwip/mem.h"
@@ -141,7 +141,7 @@ void eth_rx_irq()
 #define PBUF_POOL_FREE_OOSEQ_QUEUE_CALL()  do { \
   if (tcpip_callback_with_block(pbuf_free_ooseq_callback, NULL, 0) != ERR_OK) { \
       SYS_ARCH_PROTECT(old_level); \
-      pbuf_free_ooseq_pending = 0; \
+      (((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending) = 0; \
       SYS_ARCH_UNPROTECT(old_level); \
   } } while(0)
 #endif /* PBUF_POOL_FREE_OOSEQ_QUEUE_CALL */
@@ -164,10 +164,12 @@ static
 void
 pbuf_free_ooseq(void)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   struct tcp_pcb* pcb;
-  SYS_ARCH_SET(pbuf_free_ooseq_pending, 0);
+  SYS_ARCH_SET((((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending), 0);
 
-  for (pcb = tcp_active_pcbs; NULL != pcb; pcb = pcb->next) {
+  for (pcb = (((LwipCntxt*)ctxt)->tcp_active_pcbs); NULL != pcb; pcb = pcb->next) {
     if (NULL != pcb->ooseq) {
       /** Free the ooseq pbufs of one PCB only */
       LWIP_DEBUGF(PBUF_DEBUG | LWIP_DBG_TRACE, ("pbuf_free_ooseq: freeing out-of-sequence pbufs\n"));
@@ -194,14 +196,16 @@ pbuf_free_ooseq_callback(void *arg)
 static void
 pbuf_pool_is_empty(void)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 #ifndef PBUF_POOL_FREE_OOSEQ_QUEUE_CALL
-  SYS_ARCH_SET(pbuf_free_ooseq_pending, 1);
+  SYS_ARCH_SET((((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending), 1);
 #else /* PBUF_POOL_FREE_OOSEQ_QUEUE_CALL */
   u8_t queued;
   SYS_ARCH_DECL_PROTECT(old_level);
   SYS_ARCH_PROTECT(old_level);
-  queued = pbuf_free_ooseq_pending;
-  pbuf_free_ooseq_pending = 1;
+  queued = (((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending);
+  (((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending) = 1;
   SYS_ARCH_UNPROTECT(old_level);
 
   if (!queued) {

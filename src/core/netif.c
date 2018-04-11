@@ -49,7 +49,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #include <string.h>
 
 #include "lwip/def.h"
@@ -248,6 +248,9 @@ netif_add(struct netif *netif,
   s8_t i;
 #endif
 
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
   LWIP_ASSERT("No init function given", init != NULL);
 
   /* reset new interface configuration state */
@@ -294,7 +297,7 @@ netif_add(struct netif *netif,
 
   /* remember netif specific state information data */
   netif->state = state;
-  netif->num = netif_num++;
+  netif->num = (((LwipCntxt*)ctxt)->netif_num)++;//HCSim
   netif->input = input;
 
   NETIF_SET_HWADDRHINT(netif, NULL);
@@ -312,8 +315,8 @@ netif_add(struct netif *netif,
   }
 
   /* add this netif to the list */
-  netif->next = netif_list;
-  netif_list = netif;
+  netif->next = (((LwipCntxt*)ctxt)->netif_list);//HCSim
+  (((LwipCntxt*)ctxt)->netif_list) = netif;//HCSim
   mib2_netif_added(netif);
 
 #if LWIP_IGMP
@@ -380,6 +383,9 @@ netif_remove(struct netif *netif)
   int i;
 #endif
 
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
   if (netif == NULL) {
     return;
   }
@@ -432,17 +438,17 @@ netif_remove(struct netif *netif)
   mib2_remove_ip4(netif);
 
   /* this netif is default? */
-  if (netif_default == netif) {
+  if ((((LwipCntxt*)ctxt)->netif_default) == netif) {//HCSim
     /* reset default netif */
     netif_set_default(NULL);
   }
   /*  is it the first netif? */
-  if (netif_list == netif) {
-    netif_list = netif->next;
+  if ((((LwipCntxt*)ctxt)->netif_list) == netif) {//HCSim
+    (((LwipCntxt*)ctxt)->netif_list) = netif->next;//HCSim
   } else {
     /*  look for netif further down the list */
     struct netif * tmp_netif;
-    for (tmp_netif = netif_list; tmp_netif != NULL; tmp_netif = tmp_netif->next) {
+    for (tmp_netif = (((LwipCntxt*)ctxt)->netif_list); tmp_netif != NULL; tmp_netif = tmp_netif->next) {//HCSim
       if (tmp_netif->next == netif) {
         tmp_netif->next = netif->next;
         break;
@@ -474,13 +480,16 @@ netif_find(const char *name)
   struct netif *netif;
   u8_t num;
 
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
   if (name == NULL) {
     return NULL;
   }
 
   num = (u8_t)(name[2] - '0');
 
-  for (netif = netif_list; netif != NULL; netif = netif->next) {
+  for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {//HCSim
     if (num == netif->num &&
        name[0] == netif->name[0] &&
        name[1] == netif->name[1]) {
@@ -603,6 +612,8 @@ netif_set_netmask(struct netif *netif, const ip4_addr_t *netmask)
 void
 netif_set_default(struct netif *netif)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   if (netif == NULL) {
     /* remove default route */
     mib2_remove_route_ip4(1, netif);
@@ -610,7 +621,7 @@ netif_set_default(struct netif *netif)
     /* install default route */
     mib2_add_route_ip4(1, netif);
   }
-  netif_default = netif;
+  (((LwipCntxt*)ctxt)->netif_default) = netif;//HCSim
   LWIP_DEBUGF(NETIF_DEBUG, ("netif: setting default interface %c%c\n",
            netif ? netif->name[0] : '\'', netif ? netif->name[1] : '\''));
 }
@@ -972,7 +983,10 @@ netif_poll(struct netif *netif)
 void
 netif_poll_all(void)
 {
-  struct netif *netif = netif_list;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
+  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);//HCSim
   /* loop through netifs */
   while (netif != NULL) {
     netif_poll(netif);
@@ -993,8 +1007,11 @@ netif_poll_all(void)
 u8_t
 netif_alloc_client_data_id(void)
 {
-  u8_t result = netif_client_id;
-  netif_client_id++;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
+  u8_t result = (((LwipCntxt*)ctxt)->netif_client_id);//HCSim
+  (((LwipCntxt*)ctxt)->netif_client_id)++;//HCSim
 
   LWIP_ASSERT("Increase LWIP_NUM_NETIF_CLIENT_DATA in lwipopts.h", result < LWIP_NUM_NETIF_CLIENT_DATA);
   return result + LWIP_NETIF_CLIENT_DATA_INDEX_MAX;

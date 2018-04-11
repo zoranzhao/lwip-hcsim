@@ -37,7 +37,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if !NO_SYS /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/priv/tcpip_priv.h"
@@ -89,8 +89,11 @@ tcpip_thread(void *arg)
   struct tcpip_msg *msg;
   LWIP_UNUSED_ARG(arg);
 
-  if (tcpip_init_done != NULL) {
-    tcpip_init_done(tcpip_init_done_arg);
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+
+  if ((((LwipCntxt*)ctxt)->tcpip_init_done ) != NULL) {//HCSim
+    (((LwipCntxt*)ctxt)->tcpip_init_done )( (((LwipCntxt*)ctxt)->tcpip_init_done_arg ) );//HCSim
   }
 
   LOCK_TCPIP_CORE();
@@ -98,7 +101,7 @@ tcpip_thread(void *arg)
     UNLOCK_TCPIP_CORE();
     LWIP_TCPIP_THREAD_ALIVE();
     /* wait for a message, timeouts are processed while waiting */
-    TCPIP_MBOX_FETCH(&mbox, (void **)&msg);
+    TCPIP_MBOX_FETCH(&(((LwipCntxt*)ctxt)->mbox), (void **)&msg);//HCSim
     LOCK_TCPIP_CORE();
     if (msg == NULL) {
       LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_thread: invalid message: NULL\n"));
@@ -168,6 +171,8 @@ tcpip_thread(void *arg)
 err_t
 tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 #if LWIP_TCPIP_CORE_LOCKING_INPUT
   err_t ret;
   LWIP_DEBUGF(TCPIP_DEBUG, ("tcpip_inpkt: PACKET %p/%p\n", (void *)p, (void *)inp));
@@ -178,7 +183,7 @@ tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
 #else /* LWIP_TCPIP_CORE_LOCKING_INPUT */
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_INPKT);
   if (msg == NULL) {
@@ -189,7 +194,7 @@ tcpip_inpkt(struct pbuf *p, struct netif *inp, netif_input_fn input_fn)
   msg->msg.inp.p = p;
   msg->msg.inp.netif = inp;
   msg->msg.inp.input_fn = input_fn;
-  if (sys_mbox_trypost(&mbox, msg) != ERR_OK) {
+  if (sys_mbox_trypost(&(((LwipCntxt*)ctxt)->mbox), msg) != ERR_OK) {//HCSim
     memp_free(MEMP_TCPIP_MSG_INPKT, msg);
     return ERR_MEM;
   }
@@ -233,9 +238,11 @@ tcpip_input(struct pbuf *p, struct netif *inp)
 err_t
 tcpip_callback_with_block(tcpip_callback_fn function, void *ctx, u8_t block)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -246,9 +253,9 @@ tcpip_callback_with_block(tcpip_callback_fn function, void *ctx, u8_t block)
   msg->msg.cb.function = function;
   msg->msg.cb.ctx = ctx;
   if (block) {
-    sys_mbox_post(&mbox, msg);
+    sys_mbox_post(&(((LwipCntxt*)ctxt)->mbox), msg);//HCSim
   } else {
-    if (sys_mbox_trypost(&mbox, msg) != ERR_OK) {
+    if (sys_mbox_trypost(&(((LwipCntxt*)ctxt)->mbox), msg) != ERR_OK) {//HCSim
       memp_free(MEMP_TCPIP_MSG_API, msg);
       return ERR_MEM;
     }
@@ -268,9 +275,11 @@ tcpip_callback_with_block(tcpip_callback_fn function, void *ctx, u8_t block)
 err_t
 tcpip_timeout(u32_t msecs, sys_timeout_handler h, void *arg)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -281,7 +290,7 @@ tcpip_timeout(u32_t msecs, sys_timeout_handler h, void *arg)
   msg->msg.tmo.msecs = msecs;
   msg->msg.tmo.h = h;
   msg->msg.tmo.arg = arg;
-  sys_mbox_post(&mbox, msg);
+  sys_mbox_post(&(((LwipCntxt*)ctxt)->mbox), msg);//HCSim
   return ERR_OK;
 }
 
@@ -295,9 +304,11 @@ tcpip_timeout(u32_t msecs, sys_timeout_handler h, void *arg)
 err_t
 tcpip_untimeout(sys_timeout_handler h, void *arg)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct tcpip_msg *msg;
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   msg = (struct tcpip_msg *)memp_malloc(MEMP_TCPIP_MSG_API);
   if (msg == NULL) {
@@ -307,7 +318,7 @@ tcpip_untimeout(sys_timeout_handler h, void *arg)
   msg->type = TCPIP_MSG_UNTIMEOUT;
   msg->msg.tmo.h = h;
   msg->msg.tmo.arg = arg;
-  sys_mbox_post(&mbox, msg);
+  sys_mbox_post(&(((LwipCntxt*)ctxt)->mbox), msg);//HCSim
   return ERR_OK;
 }
 #endif /* LWIP_TCPIP_TIMEOUT && LWIP_TIMERS */
@@ -328,6 +339,8 @@ tcpip_untimeout(sys_timeout_handler h, void *arg)
 err_t
 tcpip_send_msg_wait_sem(tcpip_callback_fn fn, void *apimsg, sys_sem_t* sem)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 #if LWIP_TCPIP_CORE_LOCKING
   LWIP_UNUSED_ARG(sem);
   LOCK_TCPIP_CORE();
@@ -338,13 +351,13 @@ tcpip_send_msg_wait_sem(tcpip_callback_fn fn, void *apimsg, sys_sem_t* sem)
   TCPIP_MSG_VAR_DECLARE(msg);
 
   LWIP_ASSERT("semaphore not initialized", sys_sem_valid(sem));
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   TCPIP_MSG_VAR_ALLOC(msg);
   TCPIP_MSG_VAR_REF(msg).type = TCPIP_MSG_API;
   TCPIP_MSG_VAR_REF(msg).msg.api_msg.function = fn;
   TCPIP_MSG_VAR_REF(msg).msg.api_msg.msg = apimsg;
-  sys_mbox_post(&mbox, &TCPIP_MSG_VAR_REF(msg));
+  sys_mbox_post(&(((LwipCntxt*)ctxt)->mbox), &TCPIP_MSG_VAR_REF(msg));//HCSim
   sys_arch_sem_wait(sem, 0);
   TCPIP_MSG_VAR_FREE(msg);
   return ERR_OK;
@@ -364,6 +377,8 @@ tcpip_send_msg_wait_sem(tcpip_callback_fn fn, void *apimsg, sys_sem_t* sem)
 err_t
 tcpip_api_call(tcpip_api_call_fn fn, struct tcpip_api_call_data *call)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 #if LWIP_TCPIP_CORE_LOCKING
   err_t err;
   LOCK_TCPIP_CORE();
@@ -380,7 +395,7 @@ tcpip_api_call(tcpip_api_call_fn fn, struct tcpip_api_call_data *call)
   }
 #endif /* LWIP_NETCONN_SEM_PER_THREAD */
 
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
 
   TCPIP_MSG_VAR_ALLOC(msg);
   TCPIP_MSG_VAR_REF(msg).type = TCPIP_MSG_API_CALL;
@@ -391,7 +406,7 @@ tcpip_api_call(tcpip_api_call_fn fn, struct tcpip_api_call_data *call)
 #else /* LWIP_NETCONN_SEM_PER_THREAD */
   TCPIP_MSG_VAR_REF(msg).msg.api_call.sem = &call->sem;
 #endif /* LWIP_NETCONN_SEM_PER_THREAD */
-  sys_mbox_post(&mbox, &TCPIP_MSG_VAR_REF(msg));
+  sys_mbox_post(&(((LwipCntxt*)ctxt)->mbox), &TCPIP_MSG_VAR_REF(msg));//HCSim
   sys_arch_sem_wait(TCPIP_MSG_VAR_REF(msg).msg.api_call.sem, 0);
   TCPIP_MSG_VAR_FREE(msg);
 
@@ -445,8 +460,10 @@ tcpip_callbackmsg_delete(struct tcpip_callback_msg* msg)
 err_t
 tcpip_trycallback(struct tcpip_callback_msg* msg)
 {
-  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val(mbox));
-  return sys_mbox_trypost(&mbox, msg);
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  LWIP_ASSERT("Invalid mbox", sys_mbox_valid_val((((LwipCntxt*)ctxt)->mbox)));//HCSim
+  return sys_mbox_trypost(&(((LwipCntxt*)ctxt)->mbox), msg);//HCSim
 }
 
 /**
@@ -463,13 +480,15 @@ tcpip_init(tcpip_init_done_fn initfunc, void *arg)
 {
   lwip_init();
 
-  tcpip_init_done = initfunc;
-  tcpip_init_done_arg = arg;
-  if (sys_mbox_new(&mbox, TCPIP_MBOX_SIZE) != ERR_OK) {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ((LwipCntxt*)ctxt)->tcpip_init_done = initfunc;//HCSim
+  ((LwipCntxt*)ctxt)->tcpip_init_done_arg = arg;//HCSim
+  if (sys_mbox_new(&(((LwipCntxt*)ctxt)->mbox), TCPIP_MBOX_SIZE) != ERR_OK) {//HCSim
     LWIP_ASSERT("failed to create tcpip_thread mbox", 0);
   }
 #if LWIP_TCPIP_CORE_LOCKING
-  if (sys_mutex_new(&lock_tcpip_core) != ERR_OK) {
+  if (sys_mutex_new(&(((LwipCntxt*)ctxt)->lock_tcpip_core)) != ERR_OK) {//HCSim
     LWIP_ASSERT("failed to create lock_tcpip_core", 0);
   }
 #endif /* LWIP_TCPIP_CORE_LOCKING */

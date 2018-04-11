@@ -39,7 +39,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV4
 
 #include "lwip/ip.h"
@@ -116,7 +116,9 @@ static struct netif* ip4_default_multicast_netif;
 void
 ip4_set_default_multicast_netif(struct netif* default_multicast_netif)
 {
-  ip4_default_multicast_netif = default_multicast_netif;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  (((LwipCntxt*)ctxt)->ip4_default_multicast_netif) = default_multicast_netif;
 }
 #endif /* LWIP_MULTICAST_TX_OPTIONS */
 
@@ -152,16 +154,17 @@ struct netif *
 ip4_route(const ip4_addr_t *dest)
 {
   struct netif *netif;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 #if LWIP_MULTICAST_TX_OPTIONS
   /* Use administratively selected interface for multicast by default */
-  if (ip4_addr_ismulticast(dest) && ip4_default_multicast_netif) {
-    return ip4_default_multicast_netif;
+  if (ip4_addr_ismulticast(dest) && (((LwipCntxt*)ctxt)->ip4_default_multicast_netif)) {
+    return (((LwipCntxt*)ctxt)->ip4_default_multicast_netif);
   }
 #endif /* LWIP_MULTICAST_TX_OPTIONS */
 
   /* iterate through netifs */
-  for (netif = netif_list; netif != NULL; netif = netif->next) {
+  for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
     /* is the netif up, does it have a link and a valid address? */
     if (netif_is_up(netif) && netif_is_link_up(netif) && !ip4_addr_isany_val(*netif_ip4_addr(netif))) {
       /* network mask matches? */
@@ -181,11 +184,11 @@ ip4_route(const ip4_addr_t *dest)
   /* loopif is disabled, looopback traffic is passed through any netif */
   if (ip4_addr_isloopback(dest)) {
     /* don't check for link on loopback traffic */
-    if (netif_default != NULL && netif_is_up(netif_default)) {
-      return netif_default;
+    if ((((LwipCntxt*)ctxt)->netif_default) != NULL && netif_is_up((((LwipCntxt*)ctxt)->netif_default))) {
+      return (((LwipCntxt*)ctxt)->netif_default);
     }
     /* default netif is not up, just use any netif for loopback traffic */
-    for (netif = netif_list; netif != NULL; netif = netif->next) {
+    for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
       if (netif_is_up(netif)) {
         return netif;
       }
@@ -206,8 +209,8 @@ ip4_route(const ip4_addr_t *dest)
   }
 #endif
 
-  if ((netif_default == NULL) || !netif_is_up(netif_default) || !netif_is_link_up(netif_default) ||
-      ip4_addr_isany_val(*netif_ip4_addr(netif_default))) {
+  if (((((LwipCntxt*)ctxt)->netif_default) == NULL) || !netif_is_up((((LwipCntxt*)ctxt)->netif_default)) || !netif_is_link_up((((LwipCntxt*)ctxt)->netif_default)) ||
+      ip4_addr_isany_val(*netif_ip4_addr((((LwipCntxt*)ctxt)->netif_default)))) {
     /* No matching netif found and default netif is not usable.
        If this is not good enough for you, use LWIP_HOOK_IP4_ROUTE() */
     LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("ip4_route: No route to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
@@ -217,7 +220,7 @@ ip4_route(const ip4_addr_t *dest)
     return NULL;
   }
 
-  return netif_default;
+  return (((LwipCntxt*)ctxt)->netif_default);
 }
 
 #if IP_FORWARD
@@ -380,6 +383,8 @@ ip4_input(struct pbuf *p, struct netif *inp)
 #if IP_ACCEPT_LINK_LAYER_ADDRESSING || LWIP_IGMP
   int check_ip_src = 1;
 #endif /* IP_ACCEPT_LINK_LAYER_ADDRESSING || LWIP_IGMP */
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   IP_STATS_INC(ip.recv);
   MIB2_STATS_INC(mib2.ipinreceives);
@@ -457,8 +462,8 @@ ip4_input(struct pbuf *p, struct netif *inp)
 #endif
 
   /* copy IP addresses to aligned ip_addr_t */
-  ip_addr_copy_from_ip4(ip_data.current_iphdr_dest, iphdr->dest);
-  ip_addr_copy_from_ip4(ip_data.current_iphdr_src, iphdr->src);
+  ip_addr_copy_from_ip4((((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest, iphdr->dest);
+  ip_addr_copy_from_ip4((((LwipCntxt*)ctxt)->ip_data).current_iphdr_src, iphdr->src);
 
   /* match packet against an interface, i.e. is this packet for us? */
   if (ip4_addr_ismulticast(ip4_current_dest_addr())) {
@@ -532,7 +537,7 @@ ip4_input(struct pbuf *p, struct netif *inp)
         }
 #endif /* !LWIP_NETIF_LOOPBACK || LWIP_HAVE_LOOPIF */
         first = 0;
-        netif = netif_list;
+        netif = (((LwipCntxt*)ctxt)->netif_list);
       } else {
         netif = netif->next;
       }
@@ -656,10 +661,10 @@ ip4_input(struct pbuf *p, struct netif *inp)
   ip4_debug_print(p);
   LWIP_DEBUGF(IP_DEBUG, ("ip4_input: p->len %"U16_F" p->tot_len %"U16_F"\n", p->len, p->tot_len));
 
-  ip_data.current_netif = netif;
-  ip_data.current_input_netif = inp;
-  ip_data.current_ip4_header = iphdr;
-  ip_data.current_ip_header_tot_len = IPH_HL(iphdr) * 4;
+  (((LwipCntxt*)ctxt)->ip_data).current_netif = netif;
+  (((LwipCntxt*)ctxt)->ip_data).current_input_netif = inp;
+  (((LwipCntxt*)ctxt)->ip_data).current_ip4_header = iphdr;
+  (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len = IPH_HL(iphdr) * 4;
 
 #if LWIP_RAW
   /* raw input did not eat the packet? */
@@ -716,10 +721,10 @@ ip4_input(struct pbuf *p, struct netif *inp)
   }
 
   /* @todo: this is not really necessary... */
-  ip_data.current_netif = NULL;
-  ip_data.current_input_netif = NULL;
-  ip_data.current_ip4_header = NULL;
-  ip_data.current_ip_header_tot_len = 0;
+  (((LwipCntxt*)ctxt)->ip_data).current_netif = NULL;
+  (((LwipCntxt*)ctxt)->ip_data).current_input_netif = NULL;
+  (((LwipCntxt*)ctxt)->ip_data).current_ip4_header = NULL;
+  (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len = 0;
   ip4_addr_set_any(ip4_current_src_addr());
   ip4_addr_set_any(ip4_current_dest_addr());
 
@@ -815,7 +820,8 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
 #if CHECKSUM_GEN_IP_INLINE
   u32_t chk_sum = 0;
 #endif /* CHECKSUM_GEN_IP_INLINE */
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p);
 
   MIB2_STATS_INC(mib2.ipoutrequests);
@@ -887,11 +893,11 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
     chk_sum += iphdr->_len;
 #endif /* CHECKSUM_GEN_IP_INLINE */
     IPH_OFFSET_SET(iphdr, 0);
-    IPH_ID_SET(iphdr, lwip_htons(ip_id));
+    IPH_ID_SET(iphdr, lwip_htons((((LwipCntxt*)ctxt)->ip_id)));
 #if CHECKSUM_GEN_IP_INLINE
     chk_sum += iphdr->_id;
 #endif /* CHECKSUM_GEN_IP_INLINE */
-    ++ip_id;
+    ++(((LwipCntxt*)ctxt)->ip_id);
 
     if (src == NULL) {
       ip4_addr_copy(iphdr->src, *IP4_ADDR_ANY4);

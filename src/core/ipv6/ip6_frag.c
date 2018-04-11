@@ -38,7 +38,7 @@
  * Please coordinate changes and requests with Ivan Delamer
  * <delamer@inicotech.com>
  */
-
+#include "lwip_ctxt.h"//HCSim
 #include "lwip/opt.h"
 #include "lwip/ip6_frag.h"
 #include "lwip/ip6.h"
@@ -111,13 +111,15 @@ void
 ip6_reass_tmr(void)
 {
   struct ip6_reassdata *r, *tmp;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
 #if !IPV6_FRAG_COPYHEADER
   LWIP_ASSERT("sizeof(struct ip6_reass_helper) <= IP6_FRAG_HLEN, set IPV6_FRAG_COPYHEADER to 1",
     sizeof(struct ip6_reass_helper) <= IP6_FRAG_HLEN);
 #endif /* !IPV6_FRAG_COPYHEADER */
 
-  r = reassdatagrams;
+  r = (((LwipCntxt*)ctxt)->reassdatagrams6);
   while (r != NULL) {
     /* Decrement the timer. Once it reaches 0,
      * clean up the incomplete fragment assembly */
@@ -150,7 +152,8 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   u16_t clen;
   struct pbuf *p;
   struct ip6_reass_helper *iprh;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 #if LWIP_ICMP6
   iprh = (struct ip6_reass_helper *)ipr->p->payload;
   if (iprh->start == 0) {
@@ -189,10 +192,10 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   }
 
   /* Then, unchain the struct ip6_reassdata from the list and free it. */
-  if (ipr == reassdatagrams) {
-    reassdatagrams = ipr->next;
+  if (ipr == (((LwipCntxt*)ctxt)->reassdatagrams6)) {
+    (((LwipCntxt*)ctxt)->reassdatagrams6) = ipr->next;
   } else {
-    prev = reassdatagrams;
+    prev = (((LwipCntxt*)ctxt)->reassdatagrams6);
     while (prev != NULL) {
       if (prev->next == ipr) {
         break;
@@ -206,8 +209,8 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   memp_free(MEMP_IP6_REASSDATA, ipr);
 
   /* Finally, update number of pbufs in reassembly queue */
-  LWIP_ASSERT("ip_reass_pbufcount >= clen", ip6_reass_pbufcount >= pbufs_freed);
-  ip6_reass_pbufcount -= pbufs_freed;
+  LWIP_ASSERT("ip_reass_pbufcount >= clen", (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) >= pbufs_freed);
+  (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) -= pbufs_freed;
 }
 
 #if IP_REASS_FREE_OLDEST
@@ -223,11 +226,12 @@ static void
 ip6_reass_remove_oldest_datagram(struct ip6_reassdata *ipr, int pbufs_needed)
 {
   struct ip6_reassdata *r, *oldest;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* Free datagrams until being allowed to enqueue 'pbufs_needed' pbufs,
    * but don't free the current datagram! */
   do {
-    r = oldest = reassdatagrams;
+    r = oldest = (((LwipCntxt*)ctxt)->reassdatagrams6);
     while (r != NULL) {
       if (r != ipr) {
         if (r->timer <= oldest->timer) {
@@ -244,7 +248,7 @@ ip6_reass_remove_oldest_datagram(struct ip6_reassdata *ipr, int pbufs_needed)
     if (oldest != NULL) {
       ip6_reass_free_complete_datagram(oldest);
     }
-  } while (((ip6_reass_pbufcount + pbufs_needed) > IP_REASS_MAX_PBUFS) && (reassdatagrams != NULL));
+  } while ((((((LwipCntxt*)ctxt)->ip6_reass_pbufcount) + pbufs_needed) > IP_REASS_MAX_PBUFS) && ((((LwipCntxt*)ctxt)->reassdatagrams6) != NULL));
 }
 #endif /* IP_REASS_FREE_OLDEST */
 
@@ -265,6 +269,9 @@ ip6_reass(struct pbuf *p)
   u16_t clen;
   u8_t valid = 1;
   struct pbuf *q;
+
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   IP6_FRAG_STATS_INC(ip6_frag.recv);
 

@@ -37,6 +37,7 @@
  */
 
 #include "lwip/opt.h"
+#include "lwip_ctxt.h"//HCSim
 
 #if LWIP_NETCONN /* don't build if not configured for use in lwipopts.h */
 
@@ -169,6 +170,8 @@ recv_udp(void *arg, struct udp_pcb *pcb, struct pbuf *p,
   struct netbuf *buf;
   struct netconn *conn;
   u16_t len;
+
+
 #if LWIP_SO_RCVBUF
   int recv_avail;
 #endif /* LWIP_SO_RCVBUF */
@@ -476,6 +479,8 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
 {
   struct netconn *newconn;
   struct netconn *conn = (struct netconn *)arg;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
 
   if (conn == NULL) {
     return ERR_VAL;
@@ -487,7 +492,7 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
 
   if (newpcb == NULL) {
     /* out-of-pcbs during connect: pass on this error to the application */
-    if (sys_mbox_trypost(&conn->acceptmbox, &netconn_aborted) == ERR_OK) {
+    if (sys_mbox_trypost(&conn->acceptmbox, &(((LwipCntxt*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
       /* Register event with callback */
       API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
     }
@@ -501,7 +506,7 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
   newconn = netconn_alloc(conn->type, conn->callback);
   if (newconn == NULL) {
     /* outof netconns: pass on this error to the application */
-    if (sys_mbox_trypost(&conn->acceptmbox, &netconn_aborted) == ERR_OK) {
+    if (sys_mbox_trypost(&conn->acceptmbox, &(((LwipCntxt*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
       /* Register event with callback */
       API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
     }
@@ -764,7 +769,8 @@ netconn_drain(struct netconn *conn)
 #if LWIP_TCP
   struct pbuf *p;
 #endif /* LWIP_TCP */
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   /* This runs in tcpip_thread, so we don't need to lock against rx packets */
 
   /* Delete and drain the recvmbox. */
@@ -794,7 +800,7 @@ netconn_drain(struct netconn *conn)
 #if LWIP_TCP
   if (sys_mbox_valid(&conn->acceptmbox)) {
     while (sys_mbox_tryfetch(&conn->acceptmbox, &mem) != SYS_MBOX_EMPTY) {
-      if (mem != &netconn_aborted) {
+      if (mem != &(((LwipCntxt*)ctxt)->netconn_aborted)) {//HCSim
         struct netconn *newconn = (struct netconn *)mem;
         /* Only tcp pcbs have an acceptmbox, so no need to check conn->type */
         /* pcb might be set to NULL already by err_tcp() */

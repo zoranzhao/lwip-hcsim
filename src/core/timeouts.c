@@ -40,6 +40,7 @@
  */
 
 #include "lwip/opt.h"
+#include "lwip_ctxt.h"//HCSim
 
 #include "lwip/timeouts.h"
 #include "lwip/priv/tcp_priv.h"
@@ -125,16 +126,18 @@ static void
 tcpip_tcp_timer(void *arg)
 {
   LWIP_UNUSED_ARG(arg);
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   /* call TCP timer handler */
   tcp_tmr();
   /* timer still needed? */
-  if (tcp_active_pcbs || tcp_tw_pcbs) {
+  if ((((LwipCntxt*)ctxt)->tcp_active_pcbs) || (((LwipCntxt*)ctxt)->tcp_tw_pcbs)) {
     /* restart timer */
     sys_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
   } else {
     /* disable timer */
-    tcpip_tcp_timer_active = 0;
+    (((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) = 0;
   }
 }
 
@@ -146,10 +149,12 @@ tcpip_tcp_timer(void *arg)
 void
 tcp_timer_needed(void)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* timer is off but needed again? */
-  if (!tcpip_tcp_timer_active && (tcp_active_pcbs || tcp_tw_pcbs)) {
+  if (!(((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) && ((((LwipCntxt*)ctxt)->tcp_active_pcbs) || (((LwipCntxt*)ctxt)->tcp_tw_pcbs))) {
     /* enable and start timer */
-    tcpip_tcp_timer_active = 1;
+    (((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) = 1;
     sys_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
   }
 }
@@ -176,6 +181,9 @@ void sys_timeouts_init(void)
 {
   size_t i;
   /* tcp_tmr() at index 0 is started on demand */
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   for (i = (LWIP_TCP ? 1 : 0); i < LWIP_ARRAYSIZE(lwip_cyclic_timers); i++) {
     /* we have to cast via size_t to get rid of const warning
       (this is OK as cyclic_timer() casts back to const* */
@@ -183,7 +191,7 @@ void sys_timeouts_init(void)
   }
 
   /* Initialise timestamp for sys_check_timeouts */
-  timeouts_last_time = sys_now();
+  (((LwipCntxt*)ctxt)->timeouts_last_time) = sys_now();
 }
 
 /**
@@ -207,6 +215,9 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
   struct sys_timeo *timeout, *t;
   u32_t now, diff;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   timeout = (struct sys_timeo *)memp_malloc(MEMP_SYS_TIMEOUT);
   if (timeout == NULL) {
     LWIP_ASSERT("sys_timeout: timeout != NULL, pool MEMP_SYS_TIMEOUT is empty", timeout != NULL);
@@ -214,11 +225,11 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
   }
 
   now = sys_now();
-  if (next_timeout == NULL) {
+  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
     diff = 0;
-    timeouts_last_time = now;
+    (((LwipCntxt*)ctxt)->timeouts_last_time) = now;
   } else {
-    diff = now - timeouts_last_time;
+    diff = now - (((LwipCntxt*)ctxt)->timeouts_last_time);
   }
 
   timeout->next = NULL;
@@ -231,17 +242,17 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
     (void *)timeout, msecs, handler_name, (void *)arg));
 #endif /* LWIP_DEBUG_TIMERNAMES */
 
-  if (next_timeout == NULL) {
-    next_timeout = timeout;
+  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
+    (((LwipCntxt*)ctxt)->next_timeout) = timeout;
     return;
   }
 
-  if (next_timeout->time > msecs) {
-    next_timeout->time -= msecs;
-    timeout->next = next_timeout;
-    next_timeout = timeout;
+  if ((((LwipCntxt*)ctxt)->next_timeout)->time > msecs) {
+    (((LwipCntxt*)ctxt)->next_timeout)->time -= msecs;
+    timeout->next = (((LwipCntxt*)ctxt)->next_timeout);
+    (((LwipCntxt*)ctxt)->next_timeout) = timeout;
   } else {
-    for (t = next_timeout; t != NULL; t = t->next) {
+    for (t = (((LwipCntxt*)ctxt)->next_timeout); t != NULL; t = t->next) {
       timeout->time -= t->time;
       if (t->next == NULL || t->next->time > timeout->time) {
         if (t->next != NULL) {
@@ -251,7 +262,7 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
              This can be due to sys_check_timeouts() not being called at the right
              times, but also when stopping in a breakpoint. Anyway, let's assume
              this is not wanted, so add the first timer's time instead of 'diff' */
-          timeout->time = msecs + next_timeout->time;
+          timeout->time = msecs + (((LwipCntxt*)ctxt)->next_timeout)->time;
         }
         timeout->next = t->next;
         t->next = timeout;
@@ -273,17 +284,19 @@ void
 sys_untimeout(sys_timeout_handler handler, void *arg)
 {
   struct sys_timeo *prev_t, *t;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
-  if (next_timeout == NULL) {
+  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
     return;
   }
 
-  for (t = next_timeout, prev_t = NULL; t != NULL; prev_t = t, t = t->next) {
+  for (t = (((LwipCntxt*)ctxt)->next_timeout), prev_t = NULL; t != NULL; prev_t = t, t = t->next) {
     if ((t->h == handler) && (t->arg == arg)) {
       /* We have a match */
       /* Unlink from previous in list */
       if (prev_t == NULL) {
-        next_timeout = t->next;
+        (((LwipCntxt*)ctxt)->next_timeout) = t->next;
       } else {
         prev_t->next = t->next;
       }
@@ -312,7 +325,10 @@ static
 void
 sys_check_timeouts(void)
 {
-  if (next_timeout) {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
+  if ((((LwipCntxt*)ctxt)->next_timeout)) {
     struct sys_timeo *tmptimeout;
     u32_t diff;
     sys_timeout_handler handler;
@@ -322,17 +338,17 @@ sys_check_timeouts(void)
 
     now = sys_now();
     /* this cares for wraparounds */
-    diff = now - timeouts_last_time;
+    diff = now - (((LwipCntxt*)ctxt)->timeouts_last_time);
     do {
       PBUF_CHECK_FREE_OOSEQ();
       had_one = 0;
-      tmptimeout = next_timeout;
+      tmptimeout = (((LwipCntxt*)ctxt)->next_timeout);
       if (tmptimeout && (tmptimeout->time <= diff)) {
         /* timeout has expired */
         had_one = 1;
-        timeouts_last_time += tmptimeout->time;
+        (((LwipCntxt*)ctxt)->timeouts_last_time) += tmptimeout->time;
         diff -= tmptimeout->time;
-        next_timeout = tmptimeout->next;
+        (((LwipCntxt*)ctxt)->next_timeout) = tmptimeout->next;
         handler = tmptimeout->h;
         arg = tmptimeout->arg;
 #if LWIP_DEBUG_TIMERNAMES
@@ -368,7 +384,10 @@ sys_check_timeouts(void)
 void
 sys_restart_timeouts(void)
 {
-  timeouts_last_time = sys_now();
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
+  (((LwipCntxt*)ctxt)->timeouts_last_time) = sys_now();
 }
 
 /** Return the time left before the next timeout is due. If no timeouts are
@@ -380,15 +399,17 @@ static
 u32_t
 sys_timeouts_sleeptime(void)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   u32_t diff;
-  if (next_timeout == NULL) {
+  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
     return 0xffffffff;
   }
-  diff = sys_now() - timeouts_last_time;
-  if (diff > next_timeout->time) {
+  diff = sys_now() - (((LwipCntxt*)ctxt)->timeouts_last_time);
+  if (diff > (((LwipCntxt*)ctxt)->next_timeout)->time) {
     return 0;
   } else {
-    return next_timeout->time - diff;
+    return (((LwipCntxt*)ctxt)->next_timeout)->time - diff;
   }
 }
 
@@ -405,9 +426,11 @@ void
 sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
 {
   u32_t sleeptime;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
 again:
-  if (!next_timeout) {
+  if (!(((LwipCntxt*)ctxt)->next_timeout)) {
     sys_arch_mbox_fetch(mbox, msg, 0);
     return;
   }

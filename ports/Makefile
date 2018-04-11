@@ -32,7 +32,7 @@
 # Include SystemC lib.
 SYSTEMC_LIB=/home/slam/OMNET/systemc-2.3.1/lib-linux64
 SYSTEMC_INC=/home/slam/OMNET/systemc-2.3.1
-HCOS_DIR=/home/slam/OMNET/HCSim
+HCSIM_DIR=/home/slam/OMNET/HCSim
 #HELPER_DIR = ../helper_multiprof
 #INS_LIB = ../InstrumentLLVM/build/FunctionInstr/libLLVMFunctionInstr.so
 #LLVM_INSTR_PASS = -functionInstr
@@ -45,7 +45,7 @@ CC=g++
 COPTS=-emit-llvm
 LLVM_CC=clang++
 ARFLAGS=rs
-LFLAGS=-L$(SYSTEMC_LIB) -lsystemc -L$(HCOS_DIR)/lib -lhcsim -Wl,-rpath,$(SYSTEMC_LIB) 
+LFLAGS=-L$(SYSTEMC_LIB) -lsystemc -L$(HCSIM_DIR)/lib -lhcsim -Wl,-rpath,$(SYSTEMC_LIB) 
 
 
 
@@ -70,15 +70,15 @@ endif
 
 
 
-LWIPARCH=./LwipArch
-APPLWIP=./LwipNode
+LWIPPORT=./port
+APPLWIP=./hcsim
 LWIPDIR=./lwip/src
 
 CFLAGS:=$(CFLAGS) \
-	-I$(LWIPDIR)/include -I$(LWIPARCH)/include -I$(LWIPDIR)/include/ipv4 \
-	-I$(LWIPDIR) -I$(LWIPARCH)/include -I$(APPLWIP)\
+	-I$(LWIPDIR)/include -I$(LWIPPORT)/include -I$(LWIPDIR)/include/ipv4 \
+	-I$(LWIPDIR) -I$(LWIPPORT)/include -I$(APPLWIP)\
 	-I$(SYSTEMC_INC)/include\
-	-I$(HCOS_DIR)/include -I$(HELPER_DIR)
+	-I$(HCSIM_DIR)/include -I$(HELPER_DIR)
 
 
 
@@ -133,8 +133,8 @@ NETIFFILES=$(LWIPDIR)/netif/ethernet.c
 SIXLOWPAN=$(LWIPDIR)/netif/lowpan6.c \
 
 
-ARCHFILES=$(wildcard $(LWIPARCH)/*.c $(LWIPARCH)/netif/hcsim_if.c)
-APPFILES=$(APPLWIP)/image_file.c 
+ARCHFILES=$(wildcard $(LWIPPORT)/*.c $(LWIPPORT)/netif/hcsim_if.c)
+APPFILES=$(APPLWIP)/app_utils.c 
 LWIPFILES=$(COREFILES) $(CORE4FILES) $(CORE6FILES) $(APIFILES) $(NETIFFILES) $(SIXLOWPAN)
 
 
