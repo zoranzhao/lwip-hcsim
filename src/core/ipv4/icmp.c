@@ -40,7 +40,7 @@
    is not implemented. */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV4 && LWIP_ICMP /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/icmp.h"
@@ -79,6 +79,8 @@ static void icmp_send_response(struct pbuf *p, u8_t type, u8_t code);
 void
 icmp_input(struct pbuf *p, struct netif *inp)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   u8_t type;
 #ifdef LWIP_DEBUG
   u8_t code;

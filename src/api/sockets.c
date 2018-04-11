@@ -1801,6 +1801,8 @@ lwip_getsockname(int s, struct sockaddr *name, socklen_t *namelen)
 int
 lwip_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   u8_t err;
   struct lwip_sock *sock = get_socket(s);
 #if !LWIP_TCPIP_CORE_LOCKING
@@ -2207,6 +2209,8 @@ lwip_getsockopt_impl(int s, int level, int optname, void *optval, socklen_t *opt
 int
 lwip_setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   u8_t err = 0;
   struct lwip_sock *sock = get_socket(s);
 #if !LWIP_TCPIP_CORE_LOCKING

@@ -40,7 +40,7 @@
  */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_ICMP6 && LWIP_IPV6 /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/icmp6.h"
@@ -80,6 +80,8 @@ static void icmp6_send_response(struct pbuf *p, u8_t code, u32_t data, u8_t type
 void
 icmp6_input(struct pbuf *p, struct netif *inp)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct icmp6_hdr *icmp6hdr;
   struct pbuf *r;
   const ip6_addr_t *reply_src;
@@ -278,7 +280,8 @@ icmp6_send_response(struct pbuf *p, u8_t code, u32_t data, u8_t type)
   ip6_addr_t reply_src_local, reply_dest_local;
   struct ip6_hdr *ip6hdr;
   struct netif *netif;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* ICMPv6 header + IPv6 header + data */
   q = pbuf_alloc(PBUF_IP, sizeof(struct icmp6_hdr) + IP6_HLEN + LWIP_ICMP6_DATASIZE,
                  PBUF_RAM);

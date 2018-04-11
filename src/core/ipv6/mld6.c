@@ -223,7 +223,8 @@ mld6_input(struct pbuf *p, struct netif *inp)
 {
   struct mld_header *mld_hdr;
   struct mld_group *group;
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   MLD6_STATS_INC(mld6.recv);
 
   /* Check that mld header fits in packet. */

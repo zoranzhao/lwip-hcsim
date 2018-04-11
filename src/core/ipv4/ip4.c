@@ -234,6 +234,8 @@ ip4_route(const ip4_addr_t *dest)
 static int
 ip4_canforward(struct pbuf *p)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   u32_t addr = lwip_htonl(ip4_addr_get_u32(ip4_current_dest_addr()));
 
   if (p->flags & PBUF_FLAG_LLBCAST) {
@@ -271,7 +273,8 @@ static void
 ip4_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
 {
   struct netif *netif;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   PERF_START;
   LWIP_UNUSED_ARG(inp);
 

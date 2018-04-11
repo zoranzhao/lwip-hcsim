@@ -1025,7 +1025,8 @@ void
 lwip_netconn_do_delconn(void *m)
 {
   struct api_msg *msg = (struct api_msg*)m;
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   enum netconn_state state = msg->conn->state;
   LWIP_ASSERT("netconn state error", /* this only happens for TCP netconns */
     (state == NETCONN_NONE) || (NETCONNTYPE_GROUP(msg->conn->type) == NETCONN_TCP));
@@ -1217,6 +1218,8 @@ lwip_netconn_do_connected(void *arg, struct tcp_pcb *pcb, err_t err)
 void
 lwip_netconn_do_connect(void *m)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
   if (msg->conn->pcb.tcp == NULL) {
@@ -1656,6 +1659,8 @@ err_mem:
 void
 lwip_netconn_do_write(void *m)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
   if (ERR_IS_FATAL(msg->conn->last_err)) {
@@ -1779,6 +1784,8 @@ lwip_netconn_do_getaddr(void *m)
 void
 lwip_netconn_do_close(void *m)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
 #if LWIP_TCP

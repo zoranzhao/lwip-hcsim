@@ -33,7 +33,7 @@
 SYSTEMC_LIB=/home/slam/OMNET/systemc-2.3.1/lib-linux64
 SYSTEMC_INC=/home/slam/OMNET/systemc-2.3.1
 HCSIM_DIR=/home/slam/OMNET/HCSim
-#HELPER_DIR = ../helper_multiprof
+
 #INS_LIB = ../InstrumentLLVM/build/FunctionInstr/libLLVMFunctionInstr.so
 #LLVM_INSTR_PASS = -functionInstr
 #INS_STAGE=annot#preprof#prof#annot 
@@ -44,6 +44,8 @@ CCDEP=g++
 CC=g++
 COPTS=-emit-llvm
 LLVM_CC=clang++
+LLVM_LINK=llvm-link-3.8
+LLVM_LLC=llc-3.8
 ARFLAGS=rs
 LFLAGS=-L$(SYSTEMC_LIB) -lsystemc -L$(HCSIM_DIR)/lib -lhcsim -Wl,-rpath,$(SYSTEMC_LIB) 
 
@@ -72,12 +74,13 @@ endif
 
 LWIPPORT=./port
 APPLWIP=./hcsim
-LWIPDIR=./lwip/src
+LWIPDIR=../../lwip-hcsim/src
+HELPER_DIR = ./hcsim/context
 
 CFLAGS:=$(CFLAGS) \
 	-I$(LWIPDIR)/include -I$(LWIPPORT)/include -I$(LWIPDIR)/include/ipv4 \
-	-I$(LWIPDIR) -I$(LWIPPORT)/include -I$(APPLWIP)\
-	-I$(SYSTEMC_INC)/include\
+	-I$(LWIPDIR) -I$(LWIPPORT)/include -I$(APPLWIP) \
+	-I$(SYSTEMC_INC)/include \
 	-I$(HCSIM_DIR)/include -I$(HELPER_DIR)
 
 
@@ -163,9 +166,10 @@ include .depend
 
 $(LWIPOBJ): $(LWIPFILES)
 	$(LLVM_CC) $(COPTS) $(CFLAGS) -c $(LWIPFILES) 
-	llvm-link $(LWIPBCFILES) -o $(LWIPALL).all.bc 
-	opt -load $(INS_LIB) $(LLVM_INSTR_PASS) -libname=12 -InstruProf=$(INS_STAGE) < $(LWIPALL).all.bc > $(LWIPALL).instru.bc
-	llc -filetype=obj $(LWIPALL).instru.bc -o $(LWIPALL).o
+	$(LLVM_LINK) $(LWIPBCFILES) -o $(LWIPALL).all.bc 
+	#opt -load $(INS_LIB) $(LLVM_INSTR_PASS) -libname=12 -InstruProf=$(INS_STAGE) < $(LWIPALL).all.bc > $(LWIPALL).instru.bc
+	#llc -filetype=obj $(LWIPALL).instru.bc -o $(LWIPALL).o
+	$(LLVM_LLC) -filetype=obj $(LWIPALL).all.bc -o $(LWIPALL).o
 
 #$(): 
 %.o:

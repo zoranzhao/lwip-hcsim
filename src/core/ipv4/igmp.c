@@ -325,7 +325,8 @@ igmp_input(struct pbuf *p, struct netif *inp, const ip4_addr_t *dest)
   struct igmp_msg*   igmp;
   struct igmp_group* group;
   struct igmp_group* groupref;
-
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   IGMP_STATS_INC(igmp.recv);
 
   /* Note that the length CAN be greater than 8 but only 8 are used - All are included in the checksum */
