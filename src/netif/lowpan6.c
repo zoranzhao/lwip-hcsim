@@ -46,7 +46,7 @@
  */
 
 #include "netif/lowpan6.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV6 && LWIP_6LOWPAN
 
 #include "lwip/ip.h"
@@ -61,21 +61,21 @@
 
 #include <string.h>
 
-struct ieee_802154_addr {
-  u8_t addr_len;
-  u8_t addr[8];
-};
+//struct ieee_802154_addr {
+//  u8_t addr_len;
+//  u8_t addr[8];
+//};
 
 /** This is a helper struct.
  */
-struct lowpan6_reass_helper {
-  struct pbuf *pbuf;
-  struct lowpan6_reass_helper *next_packet;
-  u8_t timer;
-  struct ieee_802154_addr sender_addr;
-  u16_t datagram_size;
-  u16_t datagram_tag;
-};
+//struct lowpan6_reass_helper {
+//  struct pbuf *pbuf;
+//  struct lowpan6_reass_helper *next_packet;
+//  u8_t timer;
+//  struct ieee_802154_addr sender_addr;
+//  u16_t datagram_size;
+//  u16_t datagram_tag;
+//};
 
 static struct lowpan6_reass_helper * reass_list;
 
@@ -102,8 +102,10 @@ void
 lowpan6_tmr(void)
 {
   struct lowpan6_reass_helper *lrh, *lrh_temp;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
-  lrh = reass_list;
+  lrh = (((LwipCntxt*)ctxt)->reass_list);
   while (lrh != NULL) {
     lrh_temp = lrh->next_packet;
     if ((--lrh->timer) == 0) {
@@ -122,11 +124,13 @@ static err_t
 dequeue_datagram(struct lowpan6_reass_helper *lrh)
 {
   struct lowpan6_reass_helper *lrh_temp;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
-  if (reass_list == lrh) {
-    reass_list = reass_list->next_packet;
+  if ((((LwipCntxt*)ctxt)->reass_list) == lrh) {
+    (((LwipCntxt*)ctxt)->reass_list) = (((LwipCntxt*)ctxt)->reass_list)->next_packet;
   } else {
-    lrh_temp = reass_list;
+    lrh_temp = (((LwipCntxt*)ctxt)->reass_list);
     while (lrh_temp != NULL) {
       if (lrh_temp->next_packet == lrh) {
         lrh_temp->next_packet = lrh->next_packet;
@@ -143,9 +147,10 @@ static s8_t
 lowpan6_context_lookup(const ip6_addr_t *ip6addr)
 {
   s8_t i;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   for (i = 0; i < LWIP_6LOWPAN_NUM_CONTEXTS; i++) {
-    if (ip6_addr_netcmp(&lowpan6_context[i], ip6addr)) {
+    if (ip6_addr_netcmp(&(((LwipCntxt*)ctxt)->lowpan6_context)[i], ip6addr)) {
       return i;
     }
   }
@@ -215,10 +220,12 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
   u8_t ieee_header_len;
   u8_t lowpan6_header_len;
   s8_t i;
-  static u8_t frame_seq_num;
-  static u16_t datagram_tag;
+  //static u8_t frame_seq_num;//(((LwipCntxt*)ctxt)->frame_seq_num)
+  //static u16_t datagram_tag;//(((LwipCntxt*)ctxt)->datagram_tag)
   u16_t datagram_offset;
   err_t err = ERR_IF;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   /* We'll use a dedicated pbuf for building 6LowPAN fragments. */
   p_frag = pbuf_alloc(PBUF_RAW, 127, PBUF_RAM);
@@ -239,17 +246,17 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
   buffer[ieee_header_len] |= (dst->addr_len == 2) ? (0x02 << 2) : (0x03 << 2); /* destination addressing mode  */
   buffer[ieee_header_len] |= (src->addr_len == 2) ? (0x02 << 6) : (0x03 << 6); /* source addressing mode */
   ieee_header_len++;
-  buffer[ieee_header_len++] = frame_seq_num++;
+  buffer[ieee_header_len++] = (((LwipCntxt*)ctxt)->frame_seq_num)++;
 
-  buffer[ieee_header_len++] = ieee_802154_pan_id & 0xff; /* pan id */
-  buffer[ieee_header_len++] = (ieee_802154_pan_id >> 8) & 0xff; /* pan id */
+  buffer[ieee_header_len++] = (((LwipCntxt*)ctxt)->ieee_802154_pan_id) & 0xff; /* pan id */
+  buffer[ieee_header_len++] = ((((LwipCntxt*)ctxt)->ieee_802154_pan_id) >> 8) & 0xff; /* pan id */
   i = dst->addr_len;
   while (i-- > 0) {
     buffer[ieee_header_len++] = dst->addr[i];
   }
 
-  buffer[ieee_header_len++] = ieee_802154_pan_id & 0xff; /* pan id */
-  buffer[ieee_header_len++] = (ieee_802154_pan_id >> 8) & 0xff; /* pan id */
+  buffer[ieee_header_len++] = (((LwipCntxt*)ctxt)->ieee_802154_pan_id) & 0xff; /* pan id */
+  buffer[ieee_header_len++] = ((((LwipCntxt*)ctxt)->ieee_802154_pan_id) >> 8) & 0xff; /* pan id */
   i = src->addr_len;
   while (i-- > 0) {
     buffer[ieee_header_len++] = src->addr[i];
@@ -262,8 +269,8 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
 
     /* Point to ip6 header and align copies of src/dest addresses. */
     ip6hdr = (struct ip6_hdr *)p->payload;
-    ip_addr_copy_from_ip6(ip_data.current_iphdr_dest, ip6hdr->dest);
-    ip_addr_copy_from_ip6(ip_data.current_iphdr_src, ip6hdr->src);
+    ip_addr_copy_from_ip6((((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest, ip6hdr->dest);
+    ip_addr_copy_from_ip6((((LwipCntxt*)ctxt)->ip_data).current_iphdr_src, ip6hdr->src);
 
     /* Basic length of 6LowPAN header, set dispatch and clear fields. */
     lowpan6_header_len = 2;
@@ -275,14 +282,14 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
 #if LWIP_6LOWPAN_NUM_CONTEXTS > 0
     buffer[ieee_header_len + 2] = 0;
 
-    i = lowpan6_context_lookup(ip_2_ip6(&ip_data.current_iphdr_src));
+    i = lowpan6_context_lookup(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src));
     if (i >= 0) {
       /* Stateful source address compression. */
       buffer[ieee_header_len + 1] |= 0x40;
       buffer[ieee_header_len + 2] |= (i & 0x0f) << 4;
     }
 
-    i = lowpan6_context_lookup(ip_2_ip6(&ip_data.current_iphdr_dest));
+    i = lowpan6_context_lookup(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest));
     if (i >= 0) {
       /* Stateful destination address compression. */
       buffer[ieee_header_len + 1] |= 0x04;
@@ -348,9 +355,9 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
 
     /* Compress source address */
     if (((buffer[ieee_header_len + 1] & 0x40) != 0) ||
-        (ip6_addr_islinklocal(ip_2_ip6(&ip_data.current_iphdr_src)))) {
+        (ip6_addr_islinklocal(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src)))) {
       /* Context-based or link-local source address compression. */
-      i = lowpan6_get_address_mode(ip_2_ip6(&ip_data.current_iphdr_src), src);
+      i = lowpan6_get_address_mode(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src), src);
       buffer[ieee_header_len + 1] |= (i & 0x03) << 4;
       if (i == 1) {
         MEMCPY(buffer + ieee_header_len + lowpan6_header_len, (u8_t*)p->payload + 16, 8);
@@ -359,7 +366,7 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
         MEMCPY(buffer + ieee_header_len + lowpan6_header_len, (u8_t*)p->payload + 22, 2);
         lowpan6_header_len += 2;
       }
-    } else if (ip6_addr_isany(ip_2_ip6(&ip_data.current_iphdr_src))) {
+    } else if (ip6_addr_isany(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src))) {
       /* Special case: mark SAC and leave SAM=0 */
       buffer[ieee_header_len + 1] |= 0x40;
     } else {
@@ -369,12 +376,12 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
     }
 
     /* Compress destination address */
-    if (ip6_addr_ismulticast(ip_2_ip6(&ip_data.current_iphdr_dest))) {
+    if (ip6_addr_ismulticast(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest))) {
       /* @todo support stateful multicast address compression */
 
       buffer[ieee_header_len + 1] |= 0x08;
 
-      i = lowpan6_get_address_mode_mc(ip_2_ip6(&ip_data.current_iphdr_dest));
+      i = lowpan6_get_address_mode_mc(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest));
       buffer[ieee_header_len + 1] |= i & 0x03;
       if (i == 0) {
         MEMCPY(buffer + ieee_header_len + lowpan6_header_len, (u8_t*)p->payload + 24, 16);
@@ -391,9 +398,9 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
         buffer[ieee_header_len + lowpan6_header_len++] = ((u8_t *)p->payload)[39];
       }
     } else if (((buffer[ieee_header_len + 1] & 0x04) != 0) ||
-               (ip6_addr_islinklocal(ip_2_ip6(&ip_data.current_iphdr_dest)))) {
+               (ip6_addr_islinklocal(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest)))) {
       /* Context-based or link-local destination address compression. */
-      i = lowpan6_get_address_mode(ip_2_ip6(&ip_data.current_iphdr_dest), dst);
+      i = lowpan6_get_address_mode(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest), dst);
       buffer[ieee_header_len + 1] |= i & 0x03;
       if (i == 1) {
         MEMCPY(buffer + ieee_header_len + lowpan6_header_len, (u8_t*)p->payload + 32, 8);
@@ -480,9 +487,9 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
     buffer[ieee_header_len] = 0xc0 | (((p->tot_len + lowpan6_header_len) >> 8) & 0x7);
     buffer[ieee_header_len + 1] = (p->tot_len + lowpan6_header_len) & 0xff;
 
-    datagram_tag++;
-    buffer[ieee_header_len + 2] = datagram_tag & 0xff;
-    buffer[ieee_header_len + 3] = (datagram_tag >> 8) & 0xff;
+    (((LwipCntxt*)ctxt)->datagram_tag)++;
+    buffer[ieee_header_len + 2] = (((LwipCntxt*)ctxt)->datagram_tag) & 0xff;
+    buffer[ieee_header_len + 3] = ((((LwipCntxt*)ctxt)->datagram_tag) >> 8) & 0xff;
 
     /* Fragment follows. */
     frag_len = (127 - ieee_header_len - 4 - 2) & 0xf8;
@@ -508,7 +515,7 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
 
     while ((remaining_len > 0) && (err == ERR_OK)) {
       /* new frame, new seq num for ACK */
-      buffer[2] = frame_seq_num++;
+      buffer[2] = (((LwipCntxt*)ctxt)->frame_seq_num)++;
 
       buffer[ieee_header_len] |= 0x20; /* Change FRAG1 to FRAGN */
 
@@ -570,11 +577,13 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct ieee_802154_addr 
 err_t
 lowpan6_set_context(u8_t idx, const ip6_addr_t * context)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   if (idx >= LWIP_6LOWPAN_NUM_CONTEXTS) {
     return ERR_ARG;
   }
 
-  ip6_addr_set(&lowpan6_context[idx], context);
+  ip6_addr_set(&(((LwipCntxt*)ctxt)->lowpan6_context)[idx], context);
 
   return ERR_OK;
 }
@@ -795,8 +804,8 @@ lowpan6_decompress(struct pbuf * p, struct ieee_802154_addr * src, struct ieee_8
         return NULL;
       }
 
-      ip6hdr->src.addr[0] = lowpan6_context[i].addr[0];
-      ip6hdr->src.addr[1] = lowpan6_context[i].addr[1];
+      ip6hdr->src.addr[0] = (((LwipCntxt*)ctxt)->lowpan6_context)[i].addr[0];
+      ip6hdr->src.addr[1] = (((LwipCntxt*)ctxt)->lowpan6_context)[i].addr[1];
     }
 
     if ((lowpan6_buffer[1] & 0x30) == 0x10) {
@@ -866,8 +875,8 @@ lowpan6_decompress(struct pbuf * p, struct ieee_802154_addr * src, struct ieee_8
         return NULL;
       }
 
-      ip6hdr->dest.addr[0] = lowpan6_context[i].addr[0];
-      ip6hdr->dest.addr[1] = lowpan6_context[i].addr[1];
+      ip6hdr->dest.addr[0] = (((LwipCntxt*)ctxt)->lowpan6_context)[i].addr[0];
+      ip6hdr->dest.addr[1] = (((LwipCntxt*)ctxt)->lowpan6_context)[i].addr[1];
     } else {
       /* Link local address compression */
       ip6hdr->dest.addr[0] = PP_HTONL(0xfe800000UL);
@@ -969,6 +978,10 @@ lowpan6_input(struct pbuf * p, struct netif *netif)
 {
   u8_t * puc;
   s8_t i;
+
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
   struct ieee_802154_addr src, dest;
   u16_t datagram_size, datagram_offset, datagram_tag;
   struct lowpan6_reass_helper *lrh, *lrh_temp;
@@ -1017,7 +1030,7 @@ lowpan6_input(struct pbuf * p, struct netif *netif)
     datagram_tag = ((u16_t)puc[2] << 8) | (u16_t)puc[3];
 
     /* check for duplicate */
-    lrh = reass_list;
+    lrh = (((LwipCntxt*)ctxt)->reass_list);
     while (lrh != NULL) {
       if ((lrh->sender_addr.addr_len == src.addr_len) &&
           (memcmp(lrh->sender_addr.addr, src.addr, src.addr_len) == 0)) {
@@ -1059,9 +1072,9 @@ lowpan6_input(struct pbuf * p, struct netif *netif)
     lrh->datagram_size = datagram_size;
     lrh->datagram_tag = datagram_tag;
     lrh->pbuf = p;
-    lrh->next_packet = reass_list;
+    lrh->next_packet = (((LwipCntxt*)ctxt)->reass_list);
     lrh->timer = 2;
-    reass_list = lrh;
+    (((LwipCntxt*)ctxt)->reass_list) = lrh;
 
     return ERR_OK;
   } else if ((*puc & 0xf8) == 0xe0) {
@@ -1071,7 +1084,7 @@ lowpan6_input(struct pbuf * p, struct netif *netif)
     datagram_offset = (u16_t)puc[4] << 3;
     pbuf_header(p, -5); /* hide frag1 dispatch */
 
-    for (lrh = reass_list; lrh != NULL; lrh = lrh->next_packet) {
+    for (lrh = (((LwipCntxt*)ctxt)->reass_list); lrh != NULL; lrh = lrh->next_packet) {
       if ((lrh->sender_addr.addr_len == src.addr_len) &&
           (memcmp(lrh->sender_addr.addr, src.addr, src.addr_len) == 0) &&
           (datagram_tag == lrh->datagram_tag) &&
@@ -1170,7 +1183,7 @@ lowpan6_if_init(struct netif *netif)
 err_t
 lowpan6_set_pan_id(u16_t pan_id)
 {
-  ieee_802154_pan_id = pan_id;
+  (((LwipCntxt*)ctxt)->ieee_802154_pan_id) = pan_id;
 
   return ERR_OK;
 }

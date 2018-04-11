@@ -47,7 +47,7 @@
 /* Based on igmp.c implementation of igmp v2 protocol */
 
 #include "lwip/opt.h"
-
+#include "lwip_ctxt.h"//HCSim
 #if LWIP_IPV6 && LWIP_IPV6_MLD  /* don't build if not configured for use in lwipopts.h */
 
 #include "lwip/mld6.h"
@@ -306,8 +306,10 @@ mld6_joingroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   err_t         err = ERR_VAL; /* no matching interface */
   struct netif *netif;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* loop through netif's */
-  netif = netif_list;
+  netif = (((LwipCntxt*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we join this interface ? */
     if (ip6_addr_isany(srcaddr) ||
@@ -379,8 +381,10 @@ mld6_leavegroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   err_t         err = ERR_VAL; /* no matching interface */
   struct netif *netif;
 
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* loop through netif's */
-  netif = netif_list;
+  netif = (((LwipCntxt*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we leave this interface ? */
     if (ip6_addr_isany(srcaddr) ||
@@ -456,7 +460,9 @@ mld6_leavegroup_netif(struct netif *netif, const ip6_addr_t *groupaddr)
 void
 mld6_tmr(void)
 {
-  struct netif *netif = netif_list;
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
 
   while (netif != NULL) {
     struct mld_group *group = netif_mld6_data(netif);
