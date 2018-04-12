@@ -119,13 +119,13 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
 {
 
   struct sys_thread *thread_p;
-  /*   for(thread_p=threads; thread_p!=NULL; thread_p=thread_p->next)
-	{
-	 std::cout<<thread_p->sc_thread.name()<<std::endl;
-	 std::cout<<thread_p->sc_thread.valid()<<std::endl;
-	 std::cout<<thread_p->sc_thread.dynamic()<<std::endl;
-	}
-  */
+  //for(thread_p=threads; thread_p!=NULL; thread_p=thread_p->next)
+  //	{
+  //	 std::cout<<thread_p->sc_thread.name()<<std::endl;
+  //	 std::cout<<thread_p->sc_thread.valid()<<std::endl;
+  //	 std::cout<<thread_p->sc_thread.dynamic()<<std::endl;
+  //}
+  
   int code;
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );

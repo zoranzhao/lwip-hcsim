@@ -2,9 +2,8 @@
 # This is a SystemC-based OS model port of lwIP
 
 ## Changes:
-In order to instantiate multiple copies of lwIP in a virtual IoT simulation platform, 
-the global states are first encapsulated in a global Context Class.
-
+- All global states are encapsulated in a context class.
+- A port of HCSim OS model is included 
 
 ## References:
 [1] Zhuoran Zhao, Vasileios Tsoutsouras, Dimitrios Soudris, Andreas Gerstlauer, 

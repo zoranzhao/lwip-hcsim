@@ -5,7 +5,7 @@
  ********************************************/
 
 #include "MCProcessor.h"
-#include "NicProxy.h"
+#include "NicDriver.h"
 #include "Nic.h"
 
 #ifndef TOP_MODULE__H
