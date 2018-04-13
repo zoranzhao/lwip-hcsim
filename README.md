@@ -1,9 +1,9 @@
 # lwip-hcsim
-# This is a SystemC-based OS model port of lwIP
+# A SystemC-based OS model port of lwIP
 
 ## Changes:
 - All global states are encapsulated in a context class.
-- A port of HCSim OS model is included 
+- A HCSim (https://github.com/zoranzhao/HCSim) port is included 
 
 ## References:
 [1] Zhuoran Zhao, Vasileios Tsoutsouras, Dimitrios Soudris, Andreas Gerstlauer, 
