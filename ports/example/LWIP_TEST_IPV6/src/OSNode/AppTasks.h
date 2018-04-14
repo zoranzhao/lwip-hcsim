@@ -6,18 +6,6 @@
 #include <systemc>
 #include "HCSim.h"
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <getopt.h>
-#include <math.h> 
-
-
-
 #include "lwip/opt.h"
 #include "lwip/init.h"
 #include "lwip/ip_addr.h"
@@ -40,7 +28,7 @@
 #include "lwip_ctxt.h"
 #include "annotation.h"
 #include "OmnetIf_pkt.h"
-#include "image_file.h"
+#include "app_utils.h"
 
 
 #ifndef SC_VISION_TASK__H
@@ -89,7 +77,7 @@ class IntrDriven_Task
 	recv_port.init(2);
 	send_port.init(2);
 
-        SC_THREAD(run_jobs);
+
 
         g_ctxt=new LwipCntxt();
 	IP_ADDR6(&((LwipCntxt* )g_ctxt)->ipaddr,  1, 2, 3, (4 + NodeID));
@@ -102,7 +90,7 @@ class IntrDriven_Task
 	((OSModelCtxt*)(((LwipCntxt* )g_ctxt)->OSmodel))->send_port[0](this->send_port[0]);
 	((OSModelCtxt*)(((LwipCntxt* )g_ctxt)->OSmodel))->send_port[1](this->send_port[1]);
 
-
+        SC_THREAD(run_jobs);
 		
     }
     
@@ -142,6 +130,7 @@ class IntrDriven_Task
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((LwipCntxt* )g_ctxt)->NodeID, taskManager.getTaskID(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
+	os_port->timeWait(10, os_task_id);
 	sys_thread_new("send_dats", send_dats, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
 	recv_dats(g_ctxt);
 
@@ -162,23 +151,15 @@ class IntrDriven_Task
 
 void tcpip_init_done(void *arg)
 {
-
-
-
   LwipCntxt* ctxt = (LwipCntxt*)arg;
-
-
-
   (ctxt->netif).ip6_autoconfig_enabled = 1;
-
   netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
   netif_set_default(&(ctxt->netif));
   netif_set_up(&(ctxt->netif));
-
-  netif_ip6_addr_set_state(&(ctxt->netif), 1, IP6_ADDR_TENTATIVE);   
   netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
 
+  //netif_ip6_addr_set_state(&(ctxt->netif), 0, IP6_ADDR_TENTATIVE);   
 
   //Necessary steps of initializing a IPv6 interface.
   //Pre-defined variables needed for IPv6 initialization
@@ -230,7 +211,14 @@ void send_dats(void *arg)
   char* buf;
   buf_size = load_file_to_memory("./IN.JPG", &buf);
 
+
+
+  char this_str[40];
   IP_ADDR6(&((LwipCntxt* )arg)->ipaddr_dest, 1, 2, 3, (4));
+  ipaddr_ntoa_r(&(((LwipCntxt* )arg)->ipaddr_dest), this_str, 40);
+  printf("dest ip is %s\n", this_str);
+
+
   err = netconn_connect(conn, &(((LwipCntxt* )ctxt)->ipaddr_dest), 7);
 
   if (err != ERR_OK) {

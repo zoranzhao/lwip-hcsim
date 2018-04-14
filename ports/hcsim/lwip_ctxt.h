@@ -74,6 +74,7 @@
 //etharp.c and sockets.c must include lwip_ctxt.h file to be able to instantiate
 //related global/local variables 
 //--------------etharp.c //lwip/src/core/ipv4/etharp.c--------------//
+
 struct etharp_entry {
 #if ARP_QUEUEING
   /** Pointer to queue of pending outgoing packets on this ARP entry. */
@@ -82,7 +83,9 @@ struct etharp_entry {
   /** Pointer to a single pending outgoing packet on this ARP entry. */
   struct pbuf *q;
 #endif /* ARP_QUEUEING */
+#if LWIP_IPV4
   ip4_addr_t ipaddr;
+#endif//LWIP_IPV4
   struct netif *netif;
   struct eth_addr ethaddr;
   u16_t ctime;
@@ -173,9 +176,11 @@ struct lwip_socket_multicast_pair {
   /** the socket */
   struct lwip_sock* sock;
   /** the interface address */
+#if LWIP_IPV4
   ip4_addr_t if_addr;
   /** the group address */
   ip4_addr_t multi_addr;
+#endif
 };
 //-----------Some definition defined in c file, relocate those definitions as listed above------------
 

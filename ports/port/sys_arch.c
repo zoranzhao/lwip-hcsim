@@ -155,8 +155,6 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
 
   (taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() ))-> os_port -> dynamicStart(init_core);
 
-
-
   OS_wrapper_fn OS_fn = NULL;
   OS_fn = &wrapper;
 

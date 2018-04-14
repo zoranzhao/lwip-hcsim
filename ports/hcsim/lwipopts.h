@@ -34,7 +34,7 @@
 
 #include "lwip/arch.h"
 
-#define LWIP_IPV4          1
+#define LWIP_IPV4          0
 #define LWIP_IPV6          1
 
 #define LWIP_DBG_MIN_LEVEL 0
