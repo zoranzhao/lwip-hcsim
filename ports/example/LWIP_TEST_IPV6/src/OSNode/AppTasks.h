@@ -152,12 +152,20 @@ class IntrDriven_Task
 void tcpip_init_done(void *arg)
 {
   LwipCntxt* ctxt = (LwipCntxt*)arg;
-  (ctxt->netif).ip6_autoconfig_enabled = 1;
-  netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
+
+  netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
+  netif_ip6_addr_set(&(ctxt->netif), 0, ip_2_ip6(&(ctxt->ipaddr)));
+  netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
+  //netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
   netif_set_default(&(ctxt->netif));
   netif_set_up(&(ctxt->netif));
-  netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
+
+  (ctxt->netif).ip6_autoconfig_enabled = 1;
+
+
+
+
 
   //netif_ip6_addr_set_state(&(ctxt->netif), 0, IP6_ADDR_TENTATIVE);   
 
