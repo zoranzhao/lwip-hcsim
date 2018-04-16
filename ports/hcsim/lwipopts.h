@@ -46,6 +46,8 @@
 #define SIO_FIFO_DEBUG LWIP_DBG_OFF
 #define TCPDUMP_DEBUG LWIP_DBG_ON
 
+#define ETHARP_DEBUG     LWIP_DBG_ON
+#define IP6_DEBUG        LWIP_DBG_ON
 #define SLIP_DEBUG       LWIP_DBG_OFF
 #define PPP_DEBUG        LWIP_DBG_OFF
 #define MEM_DEBUG        LWIP_DBG_OFF
