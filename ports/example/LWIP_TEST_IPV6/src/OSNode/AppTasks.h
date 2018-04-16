@@ -159,14 +159,14 @@ void tcpip_init_done(void *arg)
 
 
   (ctxt->netif).ip6_autoconfig_enabled = 1;
-  netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
+  netif_create_ip6_linklocal_address(&(ctxt->netif), 0);
+  netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
   netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_PREFERRED);
   netif_ip6_addr_set(&(ctxt->netif), 1, ip_2_ip6(&(ctxt->ipaddr)));
 
   //netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
   netif_set_default(&(ctxt->netif));
   netif_set_up(&(ctxt->netif));
-
 
 
 
