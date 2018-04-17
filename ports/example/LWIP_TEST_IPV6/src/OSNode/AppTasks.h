@@ -130,7 +130,7 @@ class IntrDriven_Task
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((LwipCntxt* )g_ctxt)->NodeID, taskManager.getTaskID(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
-	os_port->timeWait(10, os_task_id);
+	//os_port->timeWait(10, os_task_id);
 	sys_thread_new("send_dats", send_dats, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
 	recv_dats(g_ctxt);
 
@@ -159,17 +159,25 @@ void tcpip_init_done(void *arg)
 
 
   (ctxt->netif).ip6_autoconfig_enabled = 1;
-  netif_create_ip6_linklocal_address(&(ctxt->netif), 0);
-  netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
-  netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_PREFERRED);
-  netif_ip6_addr_set(&(ctxt->netif), 1, ip_2_ip6(&(ctxt->ipaddr)));
+  netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
+  netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
+
+  //netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
+
+
+  //netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_TENTATIVE);
+  //netif_ip6_addr_set(&(ctxt->netif), 1, ip_2_ip6(&(ctxt->ipaddr)));
 
   //netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
   netif_set_default(&(ctxt->netif));
   netif_set_up(&(ctxt->netif));
+  netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_PREFERRED);
+  netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_PREFERRED);
 
 
-
+  //char this_str[100];
+  //ipaddr_ntoa_r(&((ctxt->netif).ip6_addr[0]), this_str, 100);
+  //printf("============================= ip is %s\n", this_str);
 
 
 
@@ -217,6 +225,7 @@ void tcpip_init_done(void *arg)
 
 void send_dats(void *arg)
 {
+  int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 1){return;}
   struct netconn *conn;
@@ -234,8 +243,8 @@ void send_dats(void *arg)
   char this_str[40];
   IP_ADDR6(&((LwipCntxt* )arg)->ipaddr_dest, 1, 2, 3, (4));
   ipaddr_ntoa_r(&(((LwipCntxt* )arg)->ipaddr_dest), this_str, 40);
-  printf("dest ip is %s\n", this_str);
-
+  printf("Dest ip is %s\n", this_str);
+  OSmodel->os_port->timeWait(10, taskID);
 
   err = netconn_connect(conn, &(((LwipCntxt* )ctxt)->ipaddr_dest), 7);
 
@@ -259,6 +268,7 @@ void send_dats(void *arg)
     }
   }
   printf(" ====================== netconn_write_partly done======================\n");
+
   free(buf);
 }
 
