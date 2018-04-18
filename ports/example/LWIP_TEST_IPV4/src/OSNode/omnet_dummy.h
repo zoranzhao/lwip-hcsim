@@ -63,15 +63,14 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 	while(1){
 		pkt = data_in -> read();
 		count++;
+		//if(NodeID==0) {
+		std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
+		//if(count == 2) continue;
+		//if(count == 5) continue;
+		//if(count == 30) continue;
+		//if(count == 31) continue;
 
-		if(NodeID==0) {
-		        std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
-			//if(count == 2) continue;
-			//if(count == 5) continue;
-			//if(count == 30) continue;
-			//if(count == 31) continue;
-
-		}
+		//}
 
 		//if(NodeID==1) {
 		//        std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " 

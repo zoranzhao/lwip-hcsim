@@ -41,7 +41,7 @@ test:
 	./$(MODULE)
 
 clean::
-	rm -f $(OBJS) *~ $(EXE) core
+	rm -f $(OBJS) *.log *~ $(EXE) core
 
 
 
