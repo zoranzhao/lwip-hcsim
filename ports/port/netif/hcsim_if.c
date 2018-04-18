@@ -138,7 +138,7 @@ low_level_init(struct netif *netif)
   //hcsim_if->ethaddr->addr[4] = 0x5;
   //hcsim_if->ethaddr->addr[5] = 0x6;
   netif->hwaddr_len = 6;
-  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
+  netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
   netif_set_link_up(netif);
   sys_thread_new("hcsim_if_thread", hcsim_if_thread, netif, DEFAULT_THREAD_STACKSIZE, 0);
 
