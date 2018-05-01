@@ -701,7 +701,8 @@ lowpan6_decompress(struct pbuf * p, struct ieee_802154_addr * src, struct ieee_8
   struct ip6_hdr *ip6hdr;
   s8_t i;
   s8_t ip6_offset = IP6_HLEN;
-
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   q = pbuf_alloc(PBUF_IP, p->len + IP6_HLEN + UDP_HLEN, PBUF_POOL);
   if (q == NULL) {
@@ -978,7 +979,6 @@ lowpan6_input(struct pbuf * p, struct netif *netif)
 {
   u8_t * puc;
   s8_t i;
-
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
@@ -1183,6 +1183,8 @@ lowpan6_if_init(struct netif *netif)
 err_t
 lowpan6_set_pan_id(u16_t pan_id)
 {
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   (((LwipCntxt*)ctxt)->ieee_802154_pan_id) = pan_id;
 
   return ERR_OK;
