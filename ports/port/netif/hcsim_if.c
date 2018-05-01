@@ -367,4 +367,40 @@ hcsim_if_init(struct netif *netif)
 
   return ERR_OK;
 }
+
+err_t
+hcsim_if_init_6lowpan(struct netif *netif)
+{
+
+  void* ctxt;
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+
+ 
+  struct hcsim_if *hcsim_if; // A holder for ethernet address and device number
+  hcsim_if = (struct hcsim_if *)mem_malloc(sizeof(struct hcsim_if));
+  if (!hcsim_if) {
+    return ERR_MEM;
+  }
+  netif->state = hcsim_if;
+  lowpan6_if_init(netif);
+  lowpan6_set_pan_id(1);
+  netif->linkoutput = low_level_output;
+
+  /* hardware address length */
+
+  netif->hwaddr[0] = 0x00;
+  netif->hwaddr[1] = 0x00;
+  netif->hwaddr[2] = 0x00;
+  netif->hwaddr[3] = 0x00;
+  netif->hwaddr[4] = 0x00;
+  netif->hwaddr[5] = 0x00 +  (((LwipCntxt*)ctxt)->NodeID);;
+  netif->hwaddr_len = 6;
+  //netif->hwaddr_len = 6;
+  //hcsim_if->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
+  //netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
+
+  low_level_init(netif);
+
+  return ERR_OK;
+}
 /*-----------------------------------------------------------------------------------*/
