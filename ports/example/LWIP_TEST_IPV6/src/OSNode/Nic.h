@@ -71,11 +71,7 @@ class Nic : public sc_module {
 	void NicRecv()
 	{
 		while (1) {
-
 			sc_core::wait(recvd);
-
-			
-		        //std::cout <<this->basename()<< "  " <<strcmp("nic1", this->basename())<<"  "<< NodeID << " ------------- in NiC the size is: " << size_recv  << sc_core::sc_time_stamp().value() << std::endl;
 			size_out -> write(size_recv);
 			data_out -> write(data_recv);
 	    	}   
@@ -92,35 +88,6 @@ class Nic : public sc_module {
 
 		recvd.notify(sc_core::SC_ZERO_TIME); 
 	}
-
-/*
-	void syn_wait()
-	{
-		if(syn_flag == 0)
-			sc_core::wait(syn_cond);
-		syn_flag = 0;
-
-
-
-
-
-	}
-	void syn_send()
-	{
-			cSimpleModule* wrapper = (cSimpleModule*)(OmnetWrapper);
-			cContextSwitcher dummy1(wrapper); //VERY IMPORTANT
-			OmnetIf_pkt* pkt = new OmnetIf_pkt();
-			int size_send = 1;
-			pkt->setFileBufferArraySize(size_send);
-			    for(int ii=0; ii<size_send; ii++){
-				pkt->setFileBuffer(ii, 1);
-			    }
-			cMessage *startMsg = new cMessage("syn_wait");
-			startMsg->setContextPointer(pkt);
-			wrapper->scheduleAt(simTime(), startMsg);  //Notify immediately
-	}
-*/
-
 
 };
 
