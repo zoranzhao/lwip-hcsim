@@ -80,6 +80,7 @@ static void icmp6_send_response(struct pbuf *p, u8_t code, u32_t data, u8_t type
 void
 icmp6_input(struct pbuf *p, struct netif *inp)
 {
+  printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=============!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   void* ctxt;//HCSim
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   struct icmp6_hdr *icmp6hdr;
@@ -91,6 +92,7 @@ icmp6_input(struct pbuf *p, struct netif *inp)
   /* Check that ICMPv6 header fits in payload */
   if (p->len < sizeof(struct icmp6_hdr)) {
     /* drop short packets */
+  printf("/* drop short packets */\n");
     pbuf_free(p);
     ICMP6_STATS_INC(icmp6.lenerr);
     ICMP6_STATS_INC(icmp6.drop);
@@ -104,6 +106,7 @@ icmp6_input(struct pbuf *p, struct netif *inp)
     if (ip6_chksum_pseudo(p, IP6_NEXTH_ICMP6, p->tot_len, ip6_current_src_addr(),
                           ip6_current_dest_addr()) != 0) {
       /* Checksum failed */
+  printf("/** Checksum failed */ */\n");
       pbuf_free(p);
       ICMP6_STATS_INC(icmp6.chkerr);
       ICMP6_STATS_INC(icmp6.drop);

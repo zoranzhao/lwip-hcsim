@@ -1,11 +1,12 @@
 /**
  * @file
- *
- * 6LowPAN output for IPv6. Uses ND tables for link-layer addressing. Fragments packets to 6LowPAN units.
+ * 6LowPAN over BLE for IPv6 (RFC7668).
  */
 
 /*
- * Copyright (c) 2015 Inico Technologies Ltd.
+ * Copyright (c) 2017 Benjamin Aigner
+ * Copyright (c) 2015 Inico Technologies Ltd. , Author: Ivan Delamer <delamer@inicotech.com>
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,21 +31,17 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * This file is part of the lwIP TCP/IP stack.
- *
- * Author: Ivan Delamer <delamer@inicotech.com>
- *
- *
- * Please coordinate changes and requests with Ivan Delamer
- * <delamer@inicotech.com>
+ * Author: Benjamin Aigner <aignerb@technikum-wien.at>
+ * 
+ * Based on the original 6lowpan implementation of lwIP ( @see 6lowpan.c)
  */
-
-#ifndef LWIP_HDR_LOWPAN6_H
-#define LWIP_HDR_LOWPAN6_H
+ 
+#ifndef LWIP_HDR_LOWPAN6_BLE_H
+#define LWIP_HDR_LOWPAN6_BLE_H
 
 #include "netif/lowpan6_opts.h"
 
-#if LWIP_IPV6
+#if LWIP_IPV6 /* don't build if not configured for use in lwipopts.h */
 
 #include "netif/lowpan6_common.h"
 #include "lwip/pbuf.h"
@@ -56,29 +53,21 @@
 extern "C" {
 #endif
 
-/** 1 second period for reassembly */
-#define LOWPAN6_TMR_INTERVAL 1000
-
-void lowpan6_tmr(void);
-
-err_t lowpan6_set_context(u8_t idx, const ip6_addr_t * context);
-err_t lowpan6_set_short_addr(u8_t addr_high, u8_t addr_low);
-
-#if LWIP_IPV4
-err_t lowpan4_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr);
-#endif /* LWIP_IPV4 */
-err_t lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr);
-err_t lowpan6_input(struct pbuf * p, struct netif *netif);
-err_t lowpan6_if_init(struct netif *netif);
-
-/* pan_id in network byte order. */
-err_t lowpan6_set_pan_id(u16_t pan_id);
-
-u16_t lowpan6_calc_crc(const void *buf, u16_t len);
+err_t rfc7668_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr);
+err_t rfc7668_input(struct pbuf * p, struct netif *netif);
+err_t rfc7668_set_local_addr_eui64(struct netif *netif, const u8_t *local_addr, size_t local_addr_len);
+err_t rfc7668_set_local_addr_mac48(struct netif *netif, const u8_t *local_addr, size_t local_addr_len, int is_public_addr);
+err_t rfc7668_set_peer_addr_eui64(struct netif *netif, const u8_t *peer_addr, size_t peer_addr_len);
+err_t rfc7668_set_peer_addr_mac48(struct netif *netif, const u8_t *peer_addr, size_t peer_addr_len, int is_public_addr);
+err_t rfc7668_set_context(u8_t index, const ip6_addr_t * context);
+err_t rfc7668_if_init(struct netif *netif);
 
 #if !NO_SYS
-err_t tcpip_6lowpan_input(struct pbuf *p, struct netif *inp);
-#endif /* !NO_SYS */
+err_t tcpip_rfc7668_input(struct pbuf *p, struct netif *inp);
+#endif
+
+void ble_addr_to_eui64(uint8_t *dst, const uint8_t *src, int public_addr);
+void eui64_to_ble_addr(uint8_t *dst, const uint8_t *src);
 
 #ifdef __cplusplus
 }
@@ -86,4 +75,4 @@ err_t tcpip_6lowpan_input(struct pbuf *p, struct netif *inp);
 
 #endif /* LWIP_IPV6 */
 
-#endif /* LWIP_HDR_LOWPAN6_H */
+#endif /* LWIP_HDR_LOWPAN6_BLE_H */

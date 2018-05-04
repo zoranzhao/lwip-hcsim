@@ -946,9 +946,7 @@ ip6_output(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
   struct netif *netif;
   struct ip6_hdr *ip6hdr;
   ip6_addr_t src_addr, dest_addr;
-
   LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p);
-
   if (dest != LWIP_IP_HDRINCL) {
     netif = ip6_route(src, dest);
   } else {
@@ -1017,7 +1015,6 @@ ip6_output_hinted(struct pbuf *p, const ip6_addr_t *src, const ip6_addr_t *dest,
     ip6_addr_copy(dest_addr, ip6hdr->dest);
     netif = ip6_route(&src_addr, &dest_addr);
   }
-
   if (netif == NULL) {
     LWIP_DEBUGF(IP6_DEBUG, ("ip6_output: no route for %"X16_F":%"X16_F":%"X16_F":%"X16_F":%"X16_F":%"X16_F":%"X16_F":%"X16_F"\n",
         IP6_ADDR_BLOCK1(dest),

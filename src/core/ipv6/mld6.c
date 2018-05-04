@@ -587,6 +587,7 @@ mld6_send(struct netif *netif, struct mld_group *group, u8_t type)
 
   /* Send the packet out. */
   MLD6_STATS_INC(mld6.xmit);
+  printf("1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   ip6_output_if(p, (ip6_addr_isany(src_addr)) ? NULL : src_addr, &(group->group_address),
       MLD6_HL, 0, IP6_NEXTH_HOPBYHOP, netif);
   pbuf_free(p);
