@@ -383,7 +383,7 @@ hcsim_if_init_6lowpan(struct netif *netif)
   }
   netif->state = hcsim_if;
   lowpan6_if_init(netif);
-  lowpan6_set_pan_id(1);
+  //lowpan6_set_pan_id(1);
   netif->linkoutput = low_level_output;
 
   /* hardware address length */
@@ -393,7 +393,7 @@ hcsim_if_init_6lowpan(struct netif *netif)
   netif->hwaddr[2] = 0x00;
   netif->hwaddr[3] = 0x00;
   netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 +  (((LwipCntxt*)ctxt)->NodeID);;
+  netif->hwaddr[5] = 0x00 + (((LwipCntxt*)ctxt)->NodeID);;
   netif->hwaddr_len = 6;
   //netif->hwaddr_len = 6;
   //hcsim_if->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);

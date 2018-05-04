@@ -118,17 +118,13 @@ class artificial_example
     sc_fifo<char* > data_recv_fifo2;
     sc_fifo<int > size_recv_fifo2;
 
-
-
     // Channels 
     sc_core::sc_vector< HCSim::handshake_ch  > MainBus_HINT;
-    //HCSim::handshake_ch MainBus_HINT[CON_INTR_NUM];
     // TLM AMBA AHB bus model
     HCSim::AmbaAhbMacTlm* MainBus;
     // TLM MultiCore Processpr model
     MCProcessor<CON_INTR_NUM, CON_CPU_NUM>* CPU;
     //Interrupt resources
- 
     HCSim::AmbaAhbBusSlaveMacLinkPass busSlaveMacLink_1;
     HCSim::AmbaAhbBusSlaveMacLinkPass busSlaveMacLink_2;
 
