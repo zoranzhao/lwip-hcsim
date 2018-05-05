@@ -43,21 +43,13 @@ void send_dats(void *arg);
 
 
 
-class IntrDriven_Task
-    :public sc_core::sc_module
-  	,virtual public HCSim::OS_TASK_INIT 
+class IntrDriven_Task: public sc_core::sc_module, virtual public HCSim::OS_TASK_INIT 
 {
  public:
-
     sc_core::sc_vector< sc_core::sc_port< lwip_recv_if > > recv_port;
     sc_core::sc_vector< sc_core::sc_port< lwip_send_if > > send_port;
-
-    //sc_core::sc_port<lwip_recv_if> recv_port[2];
-    //sc_core::sc_port<lwip_send_if> send_port[2];  
     sc_core::sc_port< HCSim::OSAPI > os_port;
     void* g_ctxt;
-
-   
 
     SC_HAS_PROCESS(IntrDriven_Task);
   	IntrDriven_Task(const sc_core::sc_module_name name, 
@@ -73,12 +65,8 @@ class IntrDriven_Task
         this->end_sim_time = end_sim_time;
 	this->NodeID = NodeID;
         this->init_core = 1;
-
 	recv_port.init(2);
 	send_port.init(2);
-
-
-
         g_ctxt=new LwipCntxt();
 	IP_ADDR6(&((LwipCntxt* )g_ctxt)->ipaddr,  1, 2, 3, (4 + NodeID));
 	((LwipCntxt* )g_ctxt) -> OSmodel = (new OSModelCtxt());
@@ -89,17 +77,12 @@ class IntrDriven_Task
 	((OSModelCtxt*)(((LwipCntxt* )g_ctxt)->OSmodel))->recv_port[1](this->recv_port[1]);
 	((OSModelCtxt*)(((LwipCntxt* )g_ctxt)->OSmodel))->send_port[0](this->send_port[0]);
 	((OSModelCtxt*)(((LwipCntxt* )g_ctxt)->OSmodel))->send_port[1](this->send_port[1]);
-
         SC_THREAD(run_jobs);
-		
     }
     
     ~IntrDriven_Task() {}
-
     void OSTaskCreate(void)
     {
-
-
 	printf("Setting up NodeID %d ............... \n", NodeID);
 	((LwipCntxt* )g_ctxt)->NodeID = NodeID;
         os_task_id = os_port->taskCreate(sc_core::sc_gen_unique_name("intrdriven_task"), 
@@ -108,7 +91,6 @@ class IntrDriven_Task
     }
 
  private:
-  
     int id;
     uint8_t init_core;
     sc_dt::uint64 exe_cost;
@@ -124,27 +106,14 @@ class IntrDriven_Task
 	os_port->timeWait(0, os_task_id);
 	os_port->syncGlobalTime(os_task_id);
         taskManager.registerTask( (OSModelCtxt*)(((LwipCntxt*)(g_ctxt))->OSmodel ), g_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
-
-
 	//netif_init();
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((LwipCntxt* )g_ctxt)->NodeID, taskManager.getTaskID(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
-	//os_port->timeWait(10, os_task_id);
 	sys_thread_new("send_dats", send_dats, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
 	recv_dats(g_ctxt);
-
-
         os_port->taskTerminate(os_task_id);
-
-
-
-
-
     }
-
-
-
 };
 
 
@@ -154,17 +123,21 @@ void tcpip_init_done(void *arg)
   LwipCntxt* ctxt = (LwipCntxt*)arg;
 
 
-
+//#if LWIP_6LOWPAN
+//  netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
+//  lowpan6_set_pan_id(1);
+//#else 
   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
+//#endif
 
 
   (ctxt->netif).ip6_autoconfig_enabled = 1;
   netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
   netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
+  lowpan6_set_context(1, ip_2_ip6(&(ctxt->ipaddr)));
+  lowpan6_set_context(0, ip_2_ip6(&(ctxt->ipaddr)));
 
   //netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
-
-
   //netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_TENTATIVE);
   //netif_ip6_addr_set(&(ctxt->netif), 1, ip_2_ip6(&(ctxt->ipaddr)));
 
@@ -174,16 +147,9 @@ void tcpip_init_done(void *arg)
   netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_PREFERRED);
   netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_PREFERRED);
 
-
   //char this_str[100];
   //ipaddr_ntoa_r(&((ctxt->netif).ip6_addr[0]), this_str, 100);
   //printf("============================= ip is %s\n", this_str);
-
-
-
-
-
-
 
   //netif_ip6_addr_set_state(&(ctxt->netif), 0, IP6_ADDR_TENTATIVE);   
 
@@ -218,11 +184,6 @@ void tcpip_init_done(void *arg)
 
 
 
-//int load_file_to_memory(const char *filename, char **result);
-//void dump_mem_to_file(unsigned int size, const char *filename, char **result);
-
-
-
 void send_dats(void *arg)
 {
   int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
@@ -238,14 +199,11 @@ void send_dats(void *arg)
   char* buf;
   buf_size = load_file_to_memory("./IN.JPG", &buf);
 
-
-
   char this_str[40];
   IP_ADDR6(&((LwipCntxt* )arg)->ipaddr_dest, 1, 2, 3, (4));
   ipaddr_ntoa_r(&(((LwipCntxt* )arg)->ipaddr_dest), this_str, 40);
   printf("Dest ip is %s\n", this_str);
   OSmodel->os_port->timeWait(10, taskID);
-
   err = netconn_connect(conn, &(((LwipCntxt* )ctxt)->ipaddr_dest), 7);
 
   if (err != ERR_OK) {
@@ -254,10 +212,8 @@ void send_dats(void *arg)
     return;
   }
 
-
   size_t *bytes_written=NULL; 
   while (1) {
-
     printf(" ====================== netconn_write_partly ======================\n");
     err = netconn_write_partly(conn, buf, (buf_size), NETCONN_COPY, bytes_written);
     if (err == ERR_OK) 
@@ -268,7 +224,6 @@ void send_dats(void *arg)
     }
   }
   printf(" ====================== netconn_write_partly done======================\n");
-
   free(buf);
 }
 
@@ -327,10 +282,80 @@ void recv_dats(void *arg)
 
 }
 
+/*
+udpecho_thread(void *arg)
+{
+  struct netconn *conn;
+  struct netbuf *buf;
+  char buffer[4096];
+  err_t err;
+  LWIP_UNUSED_ARG(arg);
+
+
+  conn = netconn_new(NETCONN_UDP_IPV6);
+  netconn_bind(conn, IP6_ADDR_ANY, 7);
+
+  LWIP_ERROR("udpecho: invalid conn", (conn != NULL), return;);
+
+  while (1) {
+    err = netconn_recv(conn, &buf);
+    if (err == ERR_OK) {
+      //  no need netconn_connect here, since the netbuf contains the address 
+      if(netbuf_copy(buf, buffer, sizeof(buffer)) != buf->p->tot_len) {
+        LWIP_DEBUGF(LWIP_DBG_ON, ("netbuf_copy failed\n"));
+      } else {
+        buffer[buf->p->tot_len] = '\0';
+        err = netconn_send(conn, buf);
+        if(err != ERR_OK) {
+          LWIP_DEBUGF(LWIP_DBG_ON, ("netconn_send failed: %d\n", (int)err));
+        } else {
+          LWIP_DEBUGF(LWIP_DBG_ON, ("got %s\n", buffer));
+        }
+      }
+      netbuf_delete(buf);
+    }
+  }
+}
+*/
+/*
+void send_dats_udp(void *arg)
+{
+  int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
+  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  if(OSmodel->NodeID != 1){return;}
+  struct netconn *conn;
+  err_t err;
+  LwipCntxt *ctxt = (LwipCntxt *)arg;
+  conn = netconn_new(NETCONN_UDP_IPV6);
+  unsigned int buf_size;
+  char* buf;
+  buf_size = load_file_to_memory("./IN.JPG", &buf);
+
+  char this_str[40];
+  IP_ADDR6(&((LwipCntxt* )arg)->ipaddr_dest, 1, 2, 3, (4));
+  ipaddr_ntoa_r(&(((LwipCntxt* )arg)->ipaddr_dest), this_str, 40);
+  printf("Dest ip is %s\n", this_str);
+  OSmodel->os_port->timeWait(10, taskID);
 
 
 
+  size_t *bytes_written=NULL; 
+  while (1) {
+    printf(" ====================== netconn_write_partly ======================\n");
+    err = netconn_send(conn, buf, (buf_size), NETCONN_COPY, bytes_written);
+    if (err == ERR_OK) 
+    {
+      netconn_close(conn);
+      netconn_delete(conn);
+      break;
+    }
+  }
 
+  printf(" ====================== netconn_write_partly done======================\n");
+  free(buf);
+
+}
+*/
 
 
 

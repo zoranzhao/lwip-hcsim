@@ -36,6 +36,7 @@
 
 #define LWIP_IPV4          0
 #define LWIP_IPV6          1
+#define LWIP_IPV6_MLD      1
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 0
@@ -285,7 +286,7 @@ extern void sntp_set_system_time(u32_t sec);
 #define sio_tryread sio_read
 
 /* ---------- 6LoWPAN options ---------- */
-#define LWIP_6LOWPAN      0
+#define LWIP_6LOWPAN      1
 
 /* ---------- PPP options ---------- */
 

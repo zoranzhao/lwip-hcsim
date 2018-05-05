@@ -133,8 +133,8 @@ NETIFFILES=$(LWIPDIR)/netif/ethernet.c
 
 
 # SIXLOWPAN: 6LoWPAN
-SIXLOWPAN=$(LWIPDIR)/netif/lowpan6.c \
-
+SIXLOWPAN=$(LWIPDIR)/netif/lowpan6.c #\
+	  #$(LWIPDIR)/netif/lowpan6_common.c
 
 ARCHFILES=$(wildcard $(LWIPPORT)/*.c $(LWIPPORT)/netif/hcsim_if.c)
 APPFILES=$(APPLWIP)/app_utils.c 
