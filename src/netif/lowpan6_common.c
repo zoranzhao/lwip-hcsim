@@ -161,10 +161,10 @@ lowpan6_compress_headers(struct netif *netif, u8_t *inbuf, size_t inbuf_size, u8
 
   /* Point to ip6 header and align copies of src/dest addresses. */
   ip6hdr = (struct ip6_hdr *)inptr;
-  ip_addr_copy_from_ip6_packed(ip6dst, ip6hdr->dest);
-  ip6_addr_assign_zone(ip_2_ip6(&ip6dst), IP6_UNKNOWN, netif);
-  ip_addr_copy_from_ip6_packed(ip6src, ip6hdr->src);
-  ip6_addr_assign_zone(ip_2_ip6(&ip6src), IP6_UNKNOWN, netif);
+  ip_addr_copy_from_ip6(ip6dst, ip6hdr->dest);
+
+  ip_addr_copy_from_ip6(ip6src, ip6hdr->src);
+
 
   /* Basic length of 6LowPAN header, set dispatch and clear fields. */
   lowpan6_header_len = 2;
@@ -788,10 +788,10 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
 #else
 #define UDP_HLEN_ALLOC 0
 #endif
-
   /* Allocate a buffer for decompression. This buffer will be too big and will be
      trimmed once the final size is known. */
   q = pbuf_alloc(PBUF_IP, p->len + IP6_HLEN + UDP_HLEN_ALLOC, PBUF_POOL);
+
   if (q == NULL) {
     pbuf_free(p);
     return NULL;
@@ -802,7 +802,6 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
     pbuf_free(q);
     return NULL;
   }
-
   /* Decompress the IPv6 (and possibly UDP) header(s) into the new pbuf */
   err = lowpan6_decompress_hdr((u8_t *)p->payload, p->len, (u8_t *)q->payload, q->len,
     &lowpan6_offset, &ip6_offset, datagram_size, p->tot_len, lowpan6_contexts, src, dest);
@@ -816,13 +815,15 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
      (and L4?) in a single pbuf: */
 
   /* Hide the compressed headers in p */
-  pbuf_remove_header(p, lowpan6_offset);
+  pbuf_header(p, -lowpan6_offset);
   /* Temporarily hide the headers in q... */
-  pbuf_remove_header(q, ip6_offset);
+  pbuf_header(q, -ip6_offset);
+
   /* ... copy the rest of p into q... */
   pbuf_copy(q, p);
   /* ... and reveal the headers again... */
-  pbuf_add_header_force(q, ip6_offset);
+  pbuf_header_force(q, ip6_offset);
+ 
   /* ... trim the pbuf to its correct size... */
   pbuf_realloc(q, ip6_offset + p->len);
   /* ... and cat possibly remaining (data-only) pbufs */

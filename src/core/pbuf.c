@@ -1105,15 +1105,15 @@ void pbuf_split_64k(struct pbuf *p, struct pbuf **rest)
 #endif /* LWIP_TCP && TCP_QUEUE_OOSEQ && LWIP_WND_SCALE */
 
 /* Actual implementation of pbuf_skip() but returning const pointer... */
-static const struct pbuf*
-pbuf_skip_const(const struct pbuf* in, u16_t in_offset, u16_t* out_offset)
+static const struct pbuf *
+pbuf_skip_const(const struct pbuf *in, u16_t in_offset, u16_t *out_offset)
 {
   u16_t offset_left = in_offset;
-  const struct pbuf* q = in;
+  const struct pbuf *q = in;
 
   /* get the correct pbuf */
   while ((q != NULL) && (q->len <= offset_left)) {
-    offset_left -= q->len;
+    offset_left = (u16_t)(offset_left - q->len);
     q = q->next;
   }
   if (out_offset != NULL) {
@@ -1197,16 +1197,18 @@ err_t
 pbuf_take_at(struct pbuf *buf, const void *dataptr, u16_t len, u16_t offset)
 {
   u16_t target_offset;
-  struct pbuf* q = pbuf_skip(buf, offset, &target_offset);
+  struct pbuf *q = pbuf_skip(buf, offset, &target_offset);
 
   /* return requested data if pbuf is OK */
   if ((q != NULL) && (q->tot_len >= target_offset + len)) {
     u16_t remaining_len = len;
-    const u8_t* src_ptr = (const u8_t*)dataptr;
+    const u8_t *src_ptr = (const u8_t *)dataptr;
     /* copy the part that goes into the first pbuf */
-    u16_t first_copy_len = LWIP_MIN(q->len - target_offset, len);
-    MEMCPY(((u8_t*)q->payload) + target_offset, dataptr, first_copy_len);
-    remaining_len -= first_copy_len;
+    u16_t first_copy_len;
+    LWIP_ASSERT("check pbuf_skip result", target_offset < q->len);
+    first_copy_len = (u16_t)LWIP_MIN(q->len - target_offset, len);
+    MEMCPY(((u8_t *)q->payload) + target_offset, dataptr, first_copy_len);
+    remaining_len = (u16_t)(remaining_len - first_copy_len);
     src_ptr += first_copy_len;
     if (remaining_len > 0) {
       return pbuf_take(q->next, src_ptr, remaining_len);
