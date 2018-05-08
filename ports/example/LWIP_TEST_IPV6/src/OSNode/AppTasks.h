@@ -123,19 +123,19 @@ void tcpip_init_done(void *arg)
   LwipCntxt* ctxt = (LwipCntxt*)arg;
 
 
-//#if LWIP_6LOWPAN
-//  netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
-//  lowpan6_set_pan_id(1);
-//#else 
+#if LWIP_6LOWPAN
+  netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
+  lowpan6_set_pan_id(1);
+#else 
   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
-//#endif
+#endif
 
 
   (ctxt->netif).ip6_autoconfig_enabled = 1;
   netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
   netif_add_ip6_address(&(ctxt->netif), ip_2_ip6(&(ctxt->ipaddr)), NULL);
-  lowpan6_set_context(1, ip_2_ip6(&(ctxt->ipaddr)));
-  lowpan6_set_context(0, ip_2_ip6(&(ctxt->ipaddr)));
+  //lowpan6_set_context(1, netif_ip6_addr(&(ctxt->netif), 1));
+  //lowpan6_set_context(0, netif_ip6_addr(&(ctxt->netif), 0));
 
   //netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_TENTATIVE);
   //netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_TENTATIVE);
@@ -317,6 +317,7 @@ udpecho_thread(void *arg)
   }
 }
 */
+
 /*
 void send_dats_udp(void *arg)
 {

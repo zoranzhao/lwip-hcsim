@@ -133,7 +133,7 @@ static void nd6_send_q(s8_t i);
 void
 nd6_input(struct pbuf *p, struct netif *inp)
 {
-  printf("11111111111nd6_input1111111111\n");
+
   u8_t msg_type;
   s8_t i;
   void* ctxt;
@@ -278,7 +278,6 @@ nd6_input(struct pbuf *p, struct netif *inp)
   }
   case ICMP6_TYPE_NS: /* Neighbor solicitation. */
   {
-    printf("11111111111nd6_input112221111111\n");
     struct ns_header *ns_hdr;
     struct lladdr_option *lladdr_opt;
     u8_t accepted;
@@ -329,7 +328,6 @@ nd6_input(struct pbuf *p, struct netif *inp)
         if (!ip6_addr_isinvalid(netif_ip6_addr_state(inp, i)) &&
             ip6_addr_cmp(&(ns_hdr->target_address), netif_ip6_addr(inp, i))) {
           /* Send a NA back so that the sender does not use this address. */
-          printf("No Fuck!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11\n");
           nd6_send_na(inp, netif_ip6_addr(inp, i), ND6_FLAG_OVERRIDE | ND6_SEND_FLAG_ALLNODES_DEST);
           if (ip6_addr_istentative(netif_ip6_addr_state(inp, i))) {
             /* We shouldn't use this address either. */
@@ -387,7 +385,6 @@ nd6_input(struct pbuf *p, struct netif *inp)
       ip6_addr_set(&target_address, &(ns_hdr->target_address));
 
       /* Send back a NA for us. Allocate the reply pbuf. */
-      printf("Fuck!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11\n");
       nd6_send_na(inp, &target_address, ND6_FLAG_SOLICITED | ND6_FLAG_OVERRIDE);
     }
 
@@ -978,7 +975,6 @@ nd6_send_ns(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
 
   /* Send the packet out. */
   ND6_STATS_INC(nd6.xmit);
-  printf("3!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   ip6_output_if(p, (src_addr == IP6_ADDR_ANY6) ? NULL : src_addr, target_addr,
       LWIP_ICMP6_HL, 0, IP6_NEXTH_ICMP6, netif);
   pbuf_free(p);
@@ -1053,7 +1049,6 @@ nd6_send_na(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
 
   /* Send the packet out. */
   ND6_STATS_INC(nd6.xmit);
-  printf("4!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   ip6_output_if(p, src_addr, dest_addr,
       LWIP_ICMP6_HL, 0, IP6_NEXTH_ICMP6, netif);
   pbuf_free(p);
@@ -1121,7 +1116,6 @@ nd6_send_rs(struct netif *netif)
 
   /* Send the packet out. */
   ND6_STATS_INC(nd6.xmit);
-  printf("2!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
   err = ip6_output_if(p, (src_addr == IP6_ADDR_ANY6) ? NULL : src_addr, &(((LwipCntxt*)ctxt)->multicast_address),
       LWIP_ICMP6_HL, 0, IP6_NEXTH_ICMP6, netif);
   pbuf_free(p);
