@@ -34,7 +34,7 @@
 
 #include "lwip/arch.h"
 
-#define LWIP_IPV4          0
+#define LWIP_IPV4          1
 #define LWIP_IPV6          1
 #define LWIP_IPV6_MLD      0
 
@@ -213,8 +213,8 @@ a lot of data that needs to be copied, this should be set high. */
 /* IP reassembly and segmentation.These are orthogonal even
  * if they both deal with IP fragments */
 #define IP_REASSEMBLY             1
-#define IP_REASS_MAX_PBUFS        10
-#define MEMP_NUM_REASSDATA        10
+#define IP_REASS_MAX_PBUFS        3000
+#define MEMP_NUM_REASSDATA        3000
 #define IP_FRAG                   1
 #define IPV6_FRAG_COPYHEADER      1
 #define LWIP_IPV6_FRAG            1
@@ -286,7 +286,7 @@ extern void sntp_set_system_time(u32_t sec);
 #define sio_tryread sio_read
 
 /* ---------- 6LoWPAN options ---------- */
-#define LWIP_6LOWPAN      1
+#define LWIP_6LOWPAN      0
 
 /* ---------- PPP options ---------- */
 
