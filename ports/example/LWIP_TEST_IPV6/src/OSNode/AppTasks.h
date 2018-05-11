@@ -123,12 +123,12 @@ void tcpip_init_done(void *arg)
   LwipCntxt* ctxt = (LwipCntxt*)arg;
 
 
-#if LWIP_6LOWPAN
-  netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
-  lowpan6_set_pan_id(1);
-#else 
+//#if LWIP_6LOWPAN
+//  netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
+//  lowpan6_set_pan_id(1);
+//#else 
   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
-#endif
+//#endif
 
 
   (ctxt->netif).ip6_autoconfig_enabled = 1;
@@ -183,6 +183,31 @@ void tcpip_init_done(void *arg)
 }
 
 
+void read_sock(int sock, char* buffer, unsigned int bytes_length){
+    size_t bytes_read = 0;
+    int n;
+    while (bytes_read < bytes_length){
+        n = lwip_recv(sock, buffer + bytes_read, bytes_length - bytes_read, 0);
+        if( n < 0 ) sock_error("ERROR reading socket");
+        bytes_read += n;
+        //std::cout << "Read size is " << bytes_read << std::endl;
+    }
+
+};
+
+
+void write_sock(int sock, char* buffer, unsigned int bytes_length){
+    size_t bytes_written = 0;
+    int n;
+    //std::cout << "Writing size is " << bytes_length << std::endl;
+    while (bytes_written < bytes_length) {
+        n = lwip_send(sock, buffer + bytes_written, bytes_length - bytes_written, 0);
+        if( n < 0 ) sock_error("ERROR writing socket");
+        bytes_written += n;
+        //std::cout << "Written size is " << bytes_written << std::endl;
+    }
+};
+
 
 void send_dats(void *arg)
 {
@@ -226,6 +251,8 @@ void send_dats(void *arg)
   printf(" ====================== netconn_write_partly done======================\n");
   free(buf);
 }
+
+
 
 
 
