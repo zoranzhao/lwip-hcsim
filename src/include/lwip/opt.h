@@ -573,7 +573,7 @@
  *  Old packets are dropped, new packets are queued.
  */
 #if !defined ARP_QUEUE_LEN || defined __DOXYGEN__
-#define ARP_QUEUE_LEN                   3
+#define ARP_QUEUE_LEN                   3000
 #endif
 
 /**
