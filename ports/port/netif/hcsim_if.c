@@ -309,7 +309,7 @@ hcsim_if_input(struct netif *netif)
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_input: low_level_input returned NULL\n"));
     return;
   }
-
+  printf("Input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
   if (netif->input(p, netif) != ERR_OK) {
     LWIP_DEBUGF(NETIF_DEBUG, ("tapif_input: netif input error\n"));
     pbuf_free(p);
@@ -367,7 +367,7 @@ hcsim_if_init(struct netif *netif)
 
   return ERR_OK;
 }
-
+#if LWIP_IPV6 && LWIP_6LOWPAN
 err_t
 hcsim_if_init_6lowpan(struct netif *netif)
 {
@@ -403,4 +403,5 @@ hcsim_if_init_6lowpan(struct netif *netif)
 
   return ERR_OK;
 }
+#endif//LWIP_IPV6 && LWIP_6LOWPAN
 /*-----------------------------------------------------------------------------------*/
