@@ -30,6 +30,14 @@ class artificial_example
         :sc_core::sc_module(name)
         ,busSlaveMacLink_1("busSlaveMacLink_1")
         ,busSlaveMacLink_2("busSlaveMacLink_2")
+	,data_send_fifo1(2000)
+	,size_send_fifo1(2000)
+	,data_recv_fifo1(2000)
+	,size_recv_fifo1(2000)
+	,data_send_fifo2(2000)
+	,size_send_fifo2(2000)
+	,data_recv_fifo2(2000)
+    	,size_recv_fifo2(2000)
     {
 
         MainBus_HINT.init(CON_INTR_NUM);
