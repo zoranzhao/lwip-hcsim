@@ -6,7 +6,7 @@
 
 #include "HCSim.h"
 #include "lwip_ctxt.h"
-
+/*
 #include "lwip/opt.h"
 #include "lwip/init.h"
 #include "lwip/ip_addr.h"
@@ -18,22 +18,17 @@
 #include "lwip/tcpip.h"
 #include "lwip/sys.h"
 #include "lwip/api.h"
-
+*/
 
 
 #include "netif/hcsim_if.h"
-
-
-
-#include "arch/perf.h"
-
 #include "annotation.h"
 #include "OmnetIf_pkt.h"
 #include "app_utils.h"
 
 
-#ifndef SC_VISION_TASK__H
-#define SC_VISION_TASK__H
+#ifndef SC_TASK_MODEL__H
+#define SC_TASK_MODEL__H
 
 
 
@@ -54,8 +49,6 @@ class IntrDriven_Task
     sc_core::sc_vector< sc_core::sc_port< lwip_recv_if > > recv_port;
     sc_core::sc_vector< sc_core::sc_port< lwip_send_if > > send_port;
 
-    //sc_core::sc_port<lwip_recv_if> recv_port[2];
-    //sc_core::sc_port<lwip_send_if> send_port[2];  
     sc_core::sc_port< HCSim::OSAPI > os_port;
     void* g_ctxt;
 
@@ -100,7 +93,6 @@ class IntrDriven_Task
 
     void OSTaskCreate(void)
     {
-//IPV4 program
 	IP_ADDR4(&((LwipCntxt* )g_ctxt)->gw, 192,168,0,1);
 	IP_ADDR4(&((LwipCntxt* )g_ctxt)->netmask, 255,255,255,0);
 	IP_ADDR4(&((LwipCntxt* )g_ctxt)->ipaddr, 192,168,0,NodeID+2);
@@ -130,17 +122,11 @@ class IntrDriven_Task
 
     void run_jobs(void)
     {
-
-
-
 	os_port->taskActivate(os_task_id);
 	os_port->timeWait(0, os_task_id);
 	os_port->syncGlobalTime(os_task_id);
 
         taskManager.registerTask( (OSModelCtxt*)(((LwipCntxt*)(g_ctxt))->OSmodel ), g_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
-
-
-	//netif_init();
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((LwipCntxt* )g_ctxt)->NodeID, taskManager.getTaskID(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
@@ -148,20 +134,9 @@ class IntrDriven_Task
 	sys_thread_new("send_with_sock", send_with_sock, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
         recv_with_sock(g_ctxt);
 
-        //sys_thread_new("send_dats", send_dats, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
-	//recv_dats(g_ctxt);
-        
 
         os_port->taskTerminate(os_task_id);
-
-
-
-
-
     }
-
-
-
 };
 
 
@@ -177,36 +152,31 @@ void tcpip_init_done(void *arg)
 
 }
 
-//int load_file_to_memory(const char *filename, char **result);
-//void dump_mem_to_file(unsigned int size, const char *filename, char **result);
 
-void read_sock(int sock, char* buffer, unsigned int bytes_length){
+void read_sock_tcp(int sock, char* buffer, unsigned int bytes_length){
     size_t bytes_read = 0;
     int n;
     while (bytes_read < bytes_length){
         n = lwip_recv(sock, buffer + bytes_read, bytes_length - bytes_read, 0);
         if( n < 0 ) printf("ERROR reading socket");
         bytes_read += n;
-        //std::cout << "Read size is " << bytes_read << std::endl;
     }
 
 };
 
-void write_sock(int sock, char* buffer, unsigned int bytes_length){
+void write_sock_tcp(int sock, char* buffer, unsigned int bytes_length){
     size_t bytes_written = 0;
     int n;
-    //std::cout << "Writing size is " << bytes_length << std::endl;
     while (bytes_written < bytes_length) {
         n = lwip_send(sock, buffer + bytes_written, bytes_length - bytes_written, 0);
         if( n < 0 ) printf("ERROR writing socket");
         bytes_written += n;
-        //std::cout << "Written size is " << bytes_written << std::endl;
     }
 };
 
 
 
-#define UDP_TRANS_SIZE 3000
+#define UDP_TRANS_SIZE 512
 
 void read_sock_udp(int sock, char* buffer, unsigned int bytes_length, struct sockaddr *from, socklen_t *fromlen){  
     size_t bytes_read = 0;
@@ -248,8 +218,8 @@ void send_data_tcp(char *blob_buffer, unsigned int bytes_length, const char *des
      serv_addr.sin_port = htons(portno);
      if (lwip_connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
 	printf("ERROR connecting");
-     write_sock(sockfd, (char*)&bytes_length, sizeof(bytes_length));
-     write_sock(sockfd, blob_buffer, bytes_length);
+     write_sock_tcp(sockfd, (char*)&bytes_length, sizeof(bytes_length));
+     write_sock_tcp(sockfd, blob_buffer, bytes_length);
      lwip_close(sockfd);
 }
 
@@ -279,9 +249,9 @@ void recv_data_tcp(int portno)
    while(1){
      	newsockfd = lwip_accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
 	if (newsockfd < 0) printf("ERROR on accept");
-	read_sock(newsockfd, (char*)&bytes_length, sizeof(bytes_length));
+	read_sock_tcp(newsockfd, (char*)&bytes_length, sizeof(bytes_length));
 	printf("bytes_length is = %d\n", bytes_length);
-	read_sock(newsockfd, blob_buffer, bytes_length); 
+	read_sock_tcp(newsockfd, blob_buffer, bytes_length); 
         dump_mem_to_file(bytes_length, "./OUT.JPG", &blob_buffer);
      	lwip_close(newsockfd);
    }
@@ -363,6 +333,9 @@ void recv_with_sock(void *arg)
   recv_data_udp(7);
 }
 
+
+/*
+
 void recv_dats(void *arg)
 {
   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
@@ -374,9 +347,7 @@ void recv_dats(void *arg)
   err_t err;
   LwipCntxt *ctxt = (LwipCntxt *)arg;
   conn = netconn_new_with_proto_and_callback(NETCONN_TCP, 0, NULL);
-  /* Bind connection to well known port number 7. */
   netconn_bind(conn, NULL, 7);
-  /* Tell connection to go into listening mode. */
   netconn_listen(conn);
 
   int taskID = taskManager.getTaskID( sc_core::sc_get_current_process_handle());
@@ -396,28 +367,20 @@ void recv_dats(void *arg)
       while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
         do {
              netbuf_data(buf, &data, &len);
-
              for(ii=0;ii<(len);ii++)
 		img[img_ii+ii]=((char*)data)[ii];
              img_ii+=len;
         } while (netbuf_next(buf) >= 0);
         if((buf->p->flags) & PBUF_FLAG_PUSH){
-
-		push++; 
-		std::cout<< img_ii << "   "<< push<<std::endl;
-
+	     push++; 
+	     std::cout<< img_ii << "   "<< push<<std::endl;
 	}
-
         netbuf_delete(buf);
       }
-      //std::cout<< img_ii << "   "<< img[img_ii -1]<<std::endl;
-
       dump_mem_to_file(img_ii, "./OUT.JPG", &img);
       free(img);
-
       netconn_close(newconn);
       netconn_delete(newconn);
-
     }
   }
 
@@ -432,39 +395,23 @@ void send_dats(void *arg)
   struct netconn *conn;
   err_t err;
   LwipCntxt *ctxt = (LwipCntxt *)arg;
-  /* Create a new connection identifier. */
   conn = netconn_new(NETCONN_TCP);
-  /* Bind connection to well known port number 7. */
-  //char this_str[16];
-  //ipaddr_ntoa_r(&(((LwipCntxt* )ctxt)->ipaddr_dest), this_str, 16);
   unsigned int buf_size;
   char* buf;
-  //buf = (char*)malloc( buf_size );
-  //printf("Size is %d \n", buf_size);
-  //buf[buf_size-1] = 'c';
 
   buf_size = load_file_to_memory("./IN.JPG", &buf);
-
   char this_str[16];
   IP_ADDR4(&((LwipCntxt* )arg)->ipaddr_dest, 192, 168, 0, (2));
   ipaddr_ntoa_r(&(((LwipCntxt* )arg)->ipaddr_dest), this_str, 16);
   printf("dest ip is %s\n", this_str);
   err = netconn_connect(conn, &(((LwipCntxt* )ctxt)->ipaddr_dest), 7);
 
-  //std::cout << "Connected in node " << (((LwipCntxt* )ctxt)->NodeID) << " connect to "<< this_str << std::endl;
   printf("%d, ", err);
   if (err != ERR_OK) {
     std::cout << "Connection refused, "  << "error code is: "  << std::endl;
     return;
   }
-
-
   size_t *bytes_written=NULL; 
-/*
-  char dat[30];   
-  sprintf(dat, "send data %d", ((LwipCntxt* )ctxt)->NodeID);//large
-*/
-  //std::cout << "Before netconn_write_partly: "<< (((LwipCntxt* )ctxt)->NodeID)<<"  "<<buf_size<<" time: " << sc_core::sc_time_stamp().value() << std::endl;
   while (1) {
     printf(" ====================== netconn_write_partly ======================\n");
     err = netconn_write_partly(conn, buf, (buf_size), NETCONN_COPY, bytes_written);
@@ -477,15 +424,8 @@ void send_dats(void *arg)
     }
   }
   printf(" ====================== netconn_write_partly done======================\n");
-
-
-
-
-  //std::cout << "After netconn_write_partly: "<< (((LwipCntxt* )ctxt)->NodeID)<<"  "<<buf_size<<" time: " << sc_core::sc_time_stamp().value() << std::endl;
   free(buf);
 }
+*/
+#endif // SC_TASK_MODEL__H 
 
-
-
-
-#endif // SC_VISION_TASK__H 
