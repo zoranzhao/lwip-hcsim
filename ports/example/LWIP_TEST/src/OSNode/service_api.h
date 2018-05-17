@@ -13,7 +13,7 @@
 
 #define IPV4_TASK 0
 #define IPV6_TASK !(IPV4_TASK)
-#define LOWPAN6_TASK (IPV6_TASK && 0) 
+#define LOWPAN6_TASK (IPV6_TASK && 1) 
 
 typedef enum proto{
    TCP,
@@ -48,6 +48,7 @@ raw_data* pack_raw_data(void* data, uint32_t size){
    raw_data* blob  = (raw_data*) malloc(sizeof(raw_data));
    if (blob == NULL) return NULL;
    blob->data = data;
+   blob->size = size;
    return blob;
 }
 
@@ -209,7 +210,13 @@ void send_data(raw_data *blob, ctrl_proto proto, const char *dest_ip, int portno
 //sock is generated through service_init()
 raw_data* recv_data(int sockfd, ctrl_proto proto){
    socklen_t clilen;
+
+#if IPV4_TASK
    struct sockaddr_in cli_addr;
+#elif IPV6_TASK//IPV4_TASK
+   struct sockaddr_in6 cli_addr;
+#endif//IPV4_TASK
+
    int newsockfd;
    clilen = sizeof(cli_addr);
    uint32_t bytes_length;
@@ -219,14 +226,15 @@ raw_data* recv_data(int sockfd, ctrl_proto proto){
       newsockfd = lwip_accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
       if (newsockfd < 0) printf("ERROR on accept");
       read_from_sock(newsockfd, TCP, (uint8_t*)&bytes_length, sizeof(bytes_length), NULL, NULL);
-	//printf("bytes_length is = %d\n", bytes_length);
       buffer = (uint8_t*)malloc(bytes_length);
       read_from_sock(newsockfd, TCP, buffer, bytes_length, NULL, NULL);
       lwip_close(newsockfd);   
    }else if(proto == UDP){
       read_from_sock(sockfd, UDP, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &cli_addr, &clilen);
       buffer = (uint8_t*)malloc(bytes_length);
+      printf("1 bytes_length is = %d\n", bytes_length);
       read_from_sock(sockfd, UDP, buffer, bytes_length, (struct sockaddr *) &cli_addr, &clilen);
+      printf("2 bytes_length is = %d\n", bytes_length);
    }else{ printf("Protocol is not supported\n"); }
    lwip_close(sockfd);
 
