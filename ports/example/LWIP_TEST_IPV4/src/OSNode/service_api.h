@@ -5,11 +5,11 @@
 //***************************************************************
 
 //Header file for sockets, drivers and OS APIs
+#ifndef SERVICE_API__H
+#define SERVICE_API__H
 #include "HCSim.h"
 #include "lwip_ctxt.h"
 
-#ifndef SERVICE_API__H
-#define SERVICE_API__H
 
 typedef enum proto{
    TCP,
@@ -22,7 +22,7 @@ typedef struct data_buffer{
 } raw_data;
 
 raw_data* make_raw_data(uint32_t size){
-   raw_data* blob = malloc(sizeof(raw_data));
+   raw_data* blob = (raw_data*) malloc(sizeof(raw_data));
    if (blob == NULL) return NULL;
    blob->data = malloc(size);
    if(size > 0 && blob->data == NULL) {free(blob); return NULL;}
@@ -41,7 +41,7 @@ void copy_raw_data(raw_data* blob1, raw_data* blob2){
 }
 
 raw_data* pack_raw_data(void* data, uint32_t size){
-   raw_data* blob  = make_raw_data(size);
+   raw_data* blob  = (raw_data*) malloc(sizeof(raw_data));
    if (blob == NULL) return NULL;
    blob->data = data;
    return blob;
@@ -72,8 +72,10 @@ raw_data* write_file_to_raw_data(const char *filename){
    }
    fclose(f);
    ((uint8_t*)blob->data)[size] = 0;
+   blob->size = size;
    return blob;
 }
+
 
 void write_raw_data_to_file(const char *filename, raw_data* blob){
    FILE *fp;
@@ -82,11 +84,11 @@ void write_raw_data_to_file(const char *filename, raw_data* blob){
    fclose(fp);
 }
 
-#define UDP_TRANS_SIZE 512
 
-static inline void read_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, struct sockaddr *from, socklen_t *fromlen){
+#define UDP_TRANS_SIZE 512
+static inline void read_from_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, struct sockaddr *from, socklen_t *fromlen){
    uint32_t bytes_read = 0;
-   uint32_t n;
+   int32_t n;
    while (bytes_read < bytes_length){
       if(proto == TCP){
          n = lwip_recv(sock, buffer + bytes_read, bytes_length - bytes_read, 0);
@@ -100,9 +102,9 @@ static inline void read_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32
    }
 }
 
-static inline void write_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, const struct sockaddr *to, socklen_t tolen){
+static inline void write_to_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, const struct sockaddr *to, socklen_t tolen){
    uint32_t bytes_written = 0;
-   uint32_t n;
+   int32_t n;
    while (bytes_written < bytes_length) {
       if(proto == TCP){
          n = lwip_send(sock, buffer + bytes_written, bytes_length - bytes_written, 0);
@@ -110,14 +112,14 @@ static inline void write_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint3
       }else if(proto == UDP){
          if((bytes_length - bytes_written) < UDP_TRANS_SIZE) { n = bytes_length - bytes_written; }
          else { n = UDP_TRANS_SIZE; }
-         if( lwip_sendto(sock, buffer + bytes_written, n, 0, to, tolen)< 0) printf("ERROR writing socket");
+         if(lwip_sendto(sock, buffer + bytes_written, n, 0, to, tolen)< 0) printf("ERROR writing socket\n");
       }else{printf("Protocol is not supported\n");}
       bytes_written += n;
    }
 }
 
 
-int service_init(uint16_t portno, ctrl_proto proto){
+int service_init(int portno, ctrl_proto proto){
    int sockfd;
    struct sockaddr_in serv_addr;
    memset(&serv_addr, 0, sizeof(serv_addr));
@@ -138,14 +140,14 @@ int service_init(uint16_t portno, ctrl_proto proto){
 	printf("ERROR on binding: %s", lwip_strerr(sockfd));
 	exit(EXIT_FAILURE);
    }
-   if (proto == TCP) listen(sockfd, 10);//back_log numbers 
+   if (proto == TCP) lwip_listen(sockfd, 10);//back_log numbers 
    return sockfd;
 }
 
 
 void send_data(raw_data *blob, ctrl_proto proto, const char *dest_ip, int portno)
 {
-   uint8_t* data;
+   void* data;
    uint32_t bytes_length;
    extract_raw_data(blob, &data, &bytes_length);
    
@@ -153,50 +155,50 @@ void send_data(raw_data *blob, ctrl_proto proto, const char *dest_ip, int portno
    struct sockaddr_in serv_addr;
    memset(&serv_addr, 0, sizeof(serv_addr));
    serv_addr.sin_family = AF_INET;
+   //inet_pton(AF_INET, dest_ip, &(serv_addr.sin_addr));
    serv_addr.sin_addr.s_addr = inet_addr(dest_ip) ;
+
    serv_addr.sin_port = htons(portno);
 
    if(proto == TCP) {
       sockfd = lwip_socket(AF_INET, SOCK_STREAM, 0);
       if (lwip_connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
       printf("ERROR connecting");
-   } else if (proto == UDP) {sockfd = lwip_socket(AF_INET, SOCK_STREAM, 0);}
+   } else if (proto == UDP) {sockfd = lwip_socket(AF_INET, SOCK_DGRAM, 0);}
    else {printf("Control protocol is not supported");}
    if (sockfd < 0) printf("ERROR opening socket");
 
-   write_sock(sockfd, proto, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &serv_addr, sizeof(serv_addr));
-   write_sock(sockfd, proto, data, bytes_length, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+   write_to_sock(sockfd, proto, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &serv_addr, sizeof(serv_addr));
+   write_to_sock(sockfd, proto, (uint8_t*)data, bytes_length, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
 
    lwip_close(sockfd);
 }
-
 
 //sock is generated through service_init()
 raw_data* recv_data(int sockfd, ctrl_proto proto){
    socklen_t clilen;
    struct sockaddr_in cli_addr;
+   int newsockfd;
    clilen = sizeof(cli_addr);
    uint32_t bytes_length;
    uint8_t* buffer;
-
    if(proto == TCP){
       newsockfd = lwip_accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
       if (newsockfd < 0) printf("ERROR on accept");
-      read_sock(newsockfd, TCP, (uint8_t*)&bytes_length, sizeof(bytes_length), NULL, NULL);
+      read_from_sock(newsockfd, TCP, (uint8_t*)&bytes_length, sizeof(bytes_length), NULL, NULL);
 	//printf("bytes_length is = %d\n", bytes_length);
       buffer = (uint8_t*)malloc(bytes_length);
-      read_sock(newsockfd, TCP, buffer, bytes_length, NULL, NULL);
+      read_from_sock(newsockfd, TCP, buffer, bytes_length, NULL, NULL);
       lwip_close(newsockfd);   
    }else if(proto == UDP){
-      read_sock(sockfd, UDP, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &cli_addr, &clilen);
+      read_from_sock(sockfd, UDP, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &cli_addr, &clilen);
       buffer = (uint8_t*)malloc(bytes_length);
-      read_sock(sockfd, UDP, buffer, bytes_length, (struct sockaddr *) &cli_addr, &clilen);
+      read_from_sock(sockfd, UDP, buffer, bytes_length, (struct sockaddr *) &cli_addr, &clilen);
    }else{ printf("Protocol is not supported\n"); }
    lwip_close(sockfd);
 
    return pack_raw_data(buffer, bytes_length);
 }
-
 
 int service_init(int portno, ctrl_proto proto);
 raw_data* recv_data(int sockfd, ctrl_proto proto);
@@ -211,6 +213,4 @@ void extract_raw_data(raw_data* blob, void** data_ptr, uint32_t* size_ptr);
 raw_data* write_file_to_raw_data(const char *filename);
 void write_raw_data_to_file(const char *filename, raw_data* blob);
 
-
 #endif // SERVICE_API__H 
-

@@ -26,6 +26,7 @@
 #include "OmnetIf_pkt.h"
 #include "app_utils.h"
 
+#include "service_api.h"
 
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
@@ -335,7 +336,6 @@ void recv_with_sock(void *arg)
 
 
 /*
-
 void recv_dats(void *arg)
 {
   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
