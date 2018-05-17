@@ -34,12 +34,13 @@
 
 #include "lwip/arch.h"
 
-#define LWIP_IPV4          1
+#define LWIP_IPV4          0
 #define LWIP_IPV6          1
 #define LWIP_IPV6_MLD      0
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 0
+#define LWIP_POSIX_SOCKETS_IO_NAMES 0
 #define TAPIF_DEBUG LWIP_DBG_ON
 #define TUNIF_DEBUG LWIP_DBG_OFF
 #define UNIXIF_DEBUG LWIP_DBG_OFF
@@ -286,7 +287,7 @@ extern void sntp_set_system_time(u32_t sec);
 #define sio_tryread sio_read
 
 /* ---------- 6LoWPAN options ---------- */
-#define LWIP_6LOWPAN      0
+#define LWIP_6LOWPAN      1
 
 /* ---------- PPP options ---------- */
 
