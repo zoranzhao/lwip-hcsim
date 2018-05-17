@@ -152,10 +152,10 @@ void tcpip_init_done(void *arg){
    netif_set_up(&(ctxt->netif));
 #elif IPV6_TASK//IPV4_TASK
 #if LOWPAN6_TASK
-   netif_add(&(ctxt->netif), (ip_2_ip4(&(ctxt->ipaddr))), (ip_2_ip4(&(ctxt->netmask))), (ip_2_ip4(&(ctxt->gw))), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
+   netif_add(&(ctxt->netif),  NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
    lowpan6_set_pan_id(1);
 #else //LOWPAN6_TASK
-   netif_add(&(ctxt->netif), (ip_2_ip4(&(ctxt->ipaddr))), (ip_2_ip4(&(ctxt->netmask))), (ip_2_ip4(&(ctxt->gw))), NULL, hcsim_if_init, tcpip_input);
+   netif_add(&(ctxt->netif),  NULL, hcsim_if_init, tcpip_input);
 #endif //LOWPAN6_TASK
    (ctxt->netif).ip6_autoconfig_enabled = 1;
    netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
