@@ -661,7 +661,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
   struct lowpan6_reass_helper *lrh, *lrh_next, *lrh_prev = NULL;
 
   if (p == NULL) {
-    printf("return 1 \n");
     return ERR_OK;
   }
 
@@ -678,13 +677,10 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
   puc = (u8_t *)p->payload;
 
   b = *puc;
-  printf("If input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
   if ((b & 0xf8) == 0xc0) {
-    printf("/* FRAG1 dispatch, add this packet to reassembly list. */\n");
     /* FRAG1 dispatch. add this packet to reassembly list. */
     datagram_size = ((u16_t)(puc[0] & 0x07) << 8) | (u16_t)puc[1];
     datagram_tag = ((u16_t)puc[2] << 8) | (u16_t)puc[3];
-    printf("datagram_size = %d, datagram_tag  =%d\n", datagram_size, datagram_tag);
     /* check for duplicate */
     lrh = (((LwipCntxt*)ctxt)->lowpan6_data).reass_list;
     while (lrh != NULL) {
@@ -698,8 +694,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
           goto lowpan6_input_discard;
         } else {
           /* We are receiving the start of a new datagram. Discard old one (incomplete). */
-          printf("Input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
-          printf("/* We are receiving the start of a new datagram. Discard old one (incomplete). */\n");
           discard = 1;
         }
       }
@@ -733,7 +727,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
       lrh->reass = p;
     } else if ((*(u8_t *)p->payload & 0xe0 ) == 0x60) {
       lrh->reass = lowpan6_decompress(p, datagram_size, LWIP_6LOWPAN_CONTEXTS(netif), &src, &dest);
-      printf(" After decompression is============ lrh->reass->len = %d ============ \n",lrh->reass->len);
       if (lrh->reass == NULL) {
         /* decompression failed */
         mem_free(lrh);
@@ -744,16 +737,13 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
     lrh->next_packet = (((LwipCntxt*)ctxt)->lowpan6_data).reass_list;
     lrh->timer = 2;
     (((LwipCntxt*)ctxt)->lowpan6_data).reass_list = lrh;
-    printf("return 2 \n");
     return ERR_OK;
   } else if ((b & 0xf8) == 0xe0) {
 
     /* FRAGN dispatch, find packet being reassembled. */
-    printf("/* FRAGN dispatch, find packet being reassembled. */\n");
     datagram_size = ((u16_t)(puc[0] & 0x07) << 8) | (u16_t)puc[1];
     datagram_tag = ((u16_t)puc[2] << 8) | (u16_t)puc[3];
     datagram_offset = (u16_t)puc[4] << 3;
-    printf("datagram_size = %d, datagram_tag = %d datagram_offset =%d\n", datagram_size, datagram_tag, datagram_offset);
     pbuf_header(p, -4); /* hide frag1 dispatch but keep datagram offset for reassembly */
 
     for (lrh = (((LwipCntxt*)ctxt)->lowpan6_data).reass_list; lrh != NULL; lrh_prev = lrh, lrh = lrh->next_packet) {
@@ -769,7 +759,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
       /* rogue fragment */
       goto lowpan6_input_discard;
     }
-    printf(" ============ lrh->reass->len = %d ============ \n",lrh->reass->len);
     /* Insert new pbuf into list of fragments. Each fragment is a pbuf,
        this only works for unchained pbufs. */
     LWIP_ASSERT("p->next == NULL", p->next == NULL);
@@ -810,7 +799,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
           }
           /* duplicate, ignore */
           pbuf_free(p);
-          printf("return 3 \n");
           return ERR_OK;
         }
       }
@@ -826,16 +814,11 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
     if (lrh->reass) {
       u16_t offset = lrh->reass->len;
       struct pbuf *q;
-      for (q = lrh->frags; q != NULL; q = q->next) {
-        printf(" ============ q->len = %d ============ \n",q->len);
-      }
 
       for (q = lrh->frags; q != NULL; q = q->next) {
         u16_t q_datagram_offset = ((u8_t *)q->payload)[0] << 3;
         if (q_datagram_offset != offset) {
           /* not complete, wait for more fragments */
-	  printf("offset = %d, q_datagram_offset = %d datagram_size = %d q->len = %d\n", offset, q_datagram_offset, datagram_size, q->len);
-          printf("return 4 \n");
           return ERR_OK;
         }
         offset += q->len - 1;
@@ -860,12 +843,10 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
 
         /* @todo: distinguish unicast/multicast */
         MIB2_STATS_NETIF_INC(netif, ifinucastpkts);
-        printf("ip6_input in node, q->len: %d, q->tot_len: %d\n", q->len, q->tot_len);
         return ip6_input(q, netif);
       }
     }
     /* pbuf enqueued, waiting for more fragments */
-    printf("return 5 \n");
     return ERR_OK;
   } else {
     if (b == 0x41) {
@@ -876,7 +857,6 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
       p = lowpan6_decompress(p, datagram_size, LWIP_6LOWPAN_CONTEXTS(netif), &src, &dest);
       if (p == NULL) {
         MIB2_STATS_NETIF_INC(netif, ifindiscards);
-        printf("return 6 \n");
         return ERR_OK;
       }
     } else {
@@ -885,14 +865,12 @@ lowpan6_input(struct pbuf *p, struct netif *netif)
 
     /* @todo: distinguish unicast/multicast */
     MIB2_STATS_NETIF_INC(netif, ifinucastpkts);
-    printf("ip6_input in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
     return ip6_input(p, netif);
   }
 lowpan6_input_discard:
   MIB2_STATS_NETIF_INC(netif, ifindiscards);
   pbuf_free(p);
   /* always return ERR_OK here to prevent the caller freeing the pbuf */
-  printf("return 7 \n");
   return ERR_OK;
 }
 

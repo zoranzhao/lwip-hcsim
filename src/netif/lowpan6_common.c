@@ -797,8 +797,6 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
     pbuf_free(p);
     return NULL;
   }
-  printf("++++++++++++++++p->len %d, IP6_HLEN %d, UDP_HLEN_ALLOC %d+++++++++++++++++++=%d\n", p->len, IP6_HLEN, UDP_HLEN_ALLOC, q->len);
-  printf("++++++++++++++++q->len+++++++++++++++++++=%d\n", q->len);
   if (q->len < IP6_HLEN + UDP_HLEN_ALLOC) {
     /* The headers need to fit into the first pbuf */
     pbuf_free(p);
@@ -813,7 +811,6 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
     pbuf_free(q);
     return NULL;
   }
-  printf("++++++++++++++++q->len+++++++++++++++++++=%d\n", q->len);
   /* Now we copy leftover contents from p to q, so we have all L2 and L3 headers
      (and L4?) in a single pbuf: */
 
@@ -836,7 +833,6 @@ lowpan6_decompress(struct pbuf *p, u16_t datagram_size, ip6_addr_t *lowpan6_cont
   /* the original (first) pbuf can now be freed */
   p->next = NULL;
   pbuf_free(p);
-  printf("++++++++++++++++q->len+++++++++++++++++++=%d\n", q->len);
   /* all done */
   return q;
 }
