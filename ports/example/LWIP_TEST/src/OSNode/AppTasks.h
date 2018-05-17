@@ -164,8 +164,7 @@ void tcpip_init_done(void *arg){
    netif_set_up(&(ctxt->netif));
    netif_ip6_addr_set_state(&(ctxt->netif), 0,  IP6_ADDR_PREFERRED);
    netif_ip6_addr_set_state(&(ctxt->netif), 1,  IP6_ADDR_PREFERRED);
-
-#endif//IPV4_TASK
+#endif//IPV4_TASK   
 }
 
 #endif // SC_TASK_MODEL__H 
