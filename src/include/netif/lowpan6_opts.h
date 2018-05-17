@@ -47,14 +47,14 @@
  * contexts per netif type
  */
 #ifndef LWIP_6LOWPAN_NUM_CONTEXTS
-#define LWIP_6LOWPAN_NUM_CONTEXTS        10
+#define LWIP_6LOWPAN_NUM_CONTEXTS        0
 #endif
 
 /** LWIP_6LOWPAN_INFER_SHORT_ADDRESS: set this to 0 to disable creating
  * short addresses for matching addresses (debug only)
  */
 #ifndef LWIP_6LOWPAN_INFER_SHORT_ADDRESS
-#define LWIP_6LOWPAN_INFER_SHORT_ADDRESS 1
+#define LWIP_6LOWPAN_INFER_SHORT_ADDRESS 0
 #endif
 
 /** LWIP_6LOWPAN_IPHC: set this to 0 to disable IP header compression as per
@@ -82,31 +82,31 @@
 
 /** Debug level for 6LoWPAN in general */
 #ifndef LWIP_LOWPAN6_DEBUG
-#define LWIP_LOWPAN6_DEBUG               LWIP_DBG_OFF
+#define LWIP_LOWPAN6_DEBUG               LWIP_DBG_ON
 #endif
 
 /** Debug level for 6LoWPAN over IEEE 802.15.4 */
 #ifndef LWIP_LOWPAN6_802154_DEBUG
-#define LWIP_LOWPAN6_802154_DEBUG        LWIP_DBG_OFF
+#define LWIP_LOWPAN6_802154_DEBUG        LWIP_DBG_ON
 #endif
 
 /** LWIP_LOWPAN6_IP_COMPRESSED_DEBUG: enable compressed IP frame
  * output debugging
  */
 #ifndef LWIP_LOWPAN6_IP_COMPRESSED_DEBUG
-#define LWIP_LOWPAN6_IP_COMPRESSED_DEBUG      LWIP_DBG_OFF
+#define LWIP_LOWPAN6_IP_COMPRESSED_DEBUG      LWIP_DBG_ON
 #endif
 
 /** LWIP_LOWPAN6_DECOMPRESSION_DEBUG: enable decompression debug output
  */
 #ifndef LWIP_LOWPAN6_DECOMPRESSION_DEBUG
-#define LWIP_LOWPAN6_DECOMPRESSION_DEBUG      LWIP_DBG_OFF
+#define LWIP_LOWPAN6_DECOMPRESSION_DEBUG      LWIP_DBG_ON
 #endif
 
 /** LWIP_RFC7668_IP_UNCOMPRESSED_DEBUG: enable decompressed IP frame
  * output debugging */
 #ifndef LWIP_RFC7668_IP_UNCOMPRESSED_DEBUG
-#define LWIP_RFC7668_IP_UNCOMPRESSED_DEBUG    LWIP_DBG_OFF
+#define LWIP_RFC7668_IP_UNCOMPRESSED_DEBUG    LWIP_DBG_ON
 #endif
 
 /** LWIP_RFC7668_LINUX_WORKAROUND_PUBLIC_ADDRESS: 
