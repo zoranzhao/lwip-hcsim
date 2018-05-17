@@ -56,7 +56,7 @@ void recv_task(void *arg){
    ctrl_proto proto=UDP;
    int sock1 = service_init(PORTNO, proto);
    raw_data* blob = recv_data(sock1, proto);
-   write_raw_data_to_file("OUT2.JPG", blob);
+   write_raw_data_to_file("OUT.JPG", blob);
    free_raw_data(blob);
 }
 
