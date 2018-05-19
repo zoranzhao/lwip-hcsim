@@ -530,8 +530,10 @@ lowpan6_set_context(u8_t idx, const ip6_addr_t *context)
 err_t
 lowpan6_set_short_addr(u8_t addr_high, u8_t addr_low)
 {
-  short_mac_addr.addr[0] = addr_high;
-  short_mac_addr.addr[1] = addr_low;
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  (ctxt->short_mac_addr).addr[0] = addr_high;
+  (ctxt->short_mac_addr).addr[1] = addr_low;
 
   return ERR_OK;
 }
@@ -571,6 +573,8 @@ lowpan6_hwaddr_to_addr(struct netif *netif, struct lowpan6_link_addr *addr)
 err_t
 lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
 {
+  void* ctxt;//HCSim
+  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
   err_t result;
   const u8_t *hwaddr;
   struct lowpan6_link_addr src, dest;
@@ -584,10 +588,10 @@ lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
   ip6_hdr = (struct ip6_hdr *)q->payload;
   ip_addr_copy_from_ip6(ip6_src, ip6_hdr->src);
 
-  if (lowpan6_get_address_mode(&ip6_src, &short_mac_addr) == 3) {
+  if (lowpan6_get_address_mode(&ip6_src, &(ctxt -> short_mac_addr)) == 3) {
     src.addr_len = 2;
-    src.addr[0] = short_mac_addr.addr[0];
-    src.addr[1] = short_mac_addr.addr[1];
+    src.addr[0] = (ctxt -> short_mac_addr).addr[0];
+    src.addr[1] = (ctxt -> short_mac_addr).addr[1];
   } else
 #endif /* LWIP_6LOWPAN_INFER_SHORT_ADDRESS */
   {
