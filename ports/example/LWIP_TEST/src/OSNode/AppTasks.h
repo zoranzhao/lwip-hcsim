@@ -26,15 +26,18 @@ void send_with_sock(void *arg);
 
 void send_data_ipv4(raw_data *blob, ctrl_proto proto, int portno){
    ip_addr_t dstaddr;
+   int dest_id;   
+   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+   if(OSmodel->NodeID == 1){dest_id = 0;}
+   else if(OSmodel->NodeID == 0){dest_id = 1;}
 #if IPV4_TASK
-   IP_ADDR4(&dstaddr, 192, 168, 0, 2);
+   IP_ADDR4(&dstaddr, 192, 168, 0, 2+dest_id);
    send_data(blob, proto, ipaddr_ntoa(&dstaddr), portno);
 #elif IPV6_TASK//IPV4_TASK
-   IP_ADDR6(&dstaddr,  1, 2, 3, 4);
+   IP_ADDR6(&dstaddr,  1, 2, 3, 4+dest_id);
    send_data(blob, proto, ipaddr_ntoa(&dstaddr), portno);
 #endif//IPV4_TASK
 }
-
 
 void send_task(void *arg){
    OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
@@ -56,7 +59,11 @@ void recv_task(void *arg){
    ctrl_proto proto=UDP;
    int sock1 = service_init(PORTNO, proto);
    raw_data* blob = recv_data(sock1, proto);
-   write_raw_data_to_file("OUT.JPG", blob);
+   if(OSmodel->NodeID == 0){
+     write_raw_data_to_file("OUT0.JPG", blob);
+   }else if(OSmodel->NodeID == 1){
+     write_raw_data_to_file("OUT1.JPG", blob);
+   }
    free_raw_data(blob);
 }
 
@@ -117,7 +124,6 @@ class IntrDriven_Task
     }
 
  private:
-  
     int id;
     uint8_t init_core;
     sc_dt::uint64 exe_cost;
@@ -136,8 +142,8 @@ class IntrDriven_Task
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((LwipCntxt* )g_ctxt)->NodeID, taskManager.getTaskID(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
-	sys_thread_new("send_with_sock", send_task, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
-	sys_thread_new("recv_with_sock", recv_task, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, init_core);
+	sys_thread_new("send_with_sock", send_task, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 0);
+	sys_thread_new("recv_with_sock", recv_task, ((LwipCntxt* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);
         os_port->taskTerminate(os_task_id);
     }
 };
@@ -152,10 +158,10 @@ void tcpip_init_done(void *arg){
    netif_set_up(&(ctxt->netif));
 #elif IPV6_TASK//IPV4_TASK
 #if LOWPAN6_TASK
-   netif_add(&(ctxt->netif),  NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
+   netif_add(&(ctxt->netif), NULL, hcsim_if_init_6lowpan, tcpip_6lowpan_input);
    lowpan6_set_pan_id(1);
 #else //LOWPAN6_TASK
-   netif_add(&(ctxt->netif),  NULL, hcsim_if_init, tcpip_input);
+   netif_add(&(ctxt->netif), NULL, hcsim_if_init, tcpip_input);
 #endif //LOWPAN6_TASK
    (ctxt->netif).ip6_autoconfig_enabled = 1;
    netif_create_ip6_linklocal_address(&(ctxt->netif), 1);
