@@ -232,9 +232,7 @@ raw_data* recv_data(int sockfd, ctrl_proto proto){
    }else if(proto == UDP){
       read_from_sock(sockfd, UDP, (uint8_t*)&bytes_length, sizeof(bytes_length), (struct sockaddr *) &cli_addr, &clilen);
       buffer = (uint8_t*)malloc(bytes_length);
-      printf("1 bytes_length is = %d\n", bytes_length);
       read_from_sock(sockfd, UDP, buffer, bytes_length, (struct sockaddr *) &cli_addr, &clilen);
-      printf("2 bytes_length is = %d\n", bytes_length);
    }else{ printf("Protocol is not supported\n"); }
    lwip_close(sockfd);
 
