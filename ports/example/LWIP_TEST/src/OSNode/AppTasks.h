@@ -24,7 +24,7 @@ void tcpip_init_done(void *arg);
 void recv_with_sock(void *arg);
 void send_with_sock(void *arg);
 
-void send_data_ipv4(raw_data *blob, ctrl_proto proto, int portno){
+void send_data_all(raw_data *blob, ctrl_proto proto, int portno){
    ip_addr_t dstaddr;
    int dest_id;   
    OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
@@ -48,7 +48,7 @@ void send_task(void *arg){
    raw_data* blob = write_file_to_raw_data("IN.JPG");
    printf("blob->size%d \n", blob->size);
    //send_data(blob,  proto, "192.168.0.2", PORTNO);
-   send_data_ipv4(blob,  proto, PORTNO);
+   send_data_all(blob,  proto, PORTNO);
 }
 
 void recv_task(void *arg){
@@ -67,9 +67,7 @@ void recv_task(void *arg){
    free_raw_data(blob);
 }
 
-class IntrDriven_Task
-    :public sc_core::sc_module
-  	,virtual public HCSim::OS_TASK_INIT 
+class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_INIT 
 {
  public:
 
