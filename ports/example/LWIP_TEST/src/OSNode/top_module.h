@@ -24,8 +24,6 @@ class artificial_example
 
 
 
-
-
     artificial_example(const sc_core::sc_module_name name, int NodeID)
         :sc_core::sc_module(name)
         ,busSlaveMacLink_1("busSlaveMacLink_1")

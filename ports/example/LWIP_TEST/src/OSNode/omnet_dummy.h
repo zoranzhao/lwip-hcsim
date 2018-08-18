@@ -15,11 +15,8 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 {
   public:
 
-
-
     sc_port< sc_fifo_out_if<OmnetIf_pkt*> > data_out;
     sc_port< sc_fifo_in_if<OmnetIf_pkt*> > data_in;
-
 
     int NodeID;
     artificial_example *System; 

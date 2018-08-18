@@ -11,9 +11,9 @@
 #ifndef SERVICE_API__H
 #define SERVICE_API__H
 
-#define IPV4_TASK 0
+#define IPV4_TASK 1
 #define IPV6_TASK !(IPV4_TASK)
-#define LOWPAN6_TASK (IPV6_TASK && 1) 
+#define LOWPAN6_TASK IPV6_TASK
 
 typedef enum proto{
    TCP,

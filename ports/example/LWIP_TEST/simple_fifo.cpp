@@ -15,8 +15,7 @@ class top : public sc_module
      cSimpleModuleWrapper *prod_inst;
      cSimpleModuleWrapper *cons_inst;
 
-     top(sc_module_name name) : sc_module(name), fifo_inst1(100), fifo_inst2(100)
-     {
+     top(sc_module_name name) : sc_module(name), fifo_inst1(100), fifo_inst2(100){
        prod_inst = new cSimpleModuleWrapper("Producer1", 0);
        prod_inst->data_out(fifo_inst1);
        prod_inst->data_in(fifo_inst2);

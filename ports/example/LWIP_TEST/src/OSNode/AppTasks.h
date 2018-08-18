@@ -16,6 +16,8 @@
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
 
+#define PROTO TCP
+
 #define PORTNO 11111 //Service for job stealing and sharing
 #define SMART_GATEWAY 11112 //Service for a smart gateway 
 #define START_CTRL 11113 //Control the start and stop of a service
@@ -31,10 +33,10 @@ void send_data_all(raw_data *blob, ctrl_proto proto, int portno){
    if(OSmodel->NodeID == 1){dest_id = 0;}
    else if(OSmodel->NodeID == 0){dest_id = 1;}
 #if IPV4_TASK
-   IP_ADDR4(&dstaddr, 192, 168, 0, 2+dest_id);
+   IP_ADDR4(&dstaddr, 192, 168, 0, 2 + dest_id);
    send_data(blob, proto, ipaddr_ntoa(&dstaddr), portno);
 #elif IPV6_TASK//IPV4_TASK
-   IP_ADDR6(&dstaddr,  1, 2, 3, 4+dest_id);
+   IP_ADDR6(&dstaddr,  1, 2, 3, 4 + dest_id);
    send_data(blob, proto, ipaddr_ntoa(&dstaddr), portno);
 #endif//IPV4_TASK
 }
@@ -44,7 +46,7 @@ void send_task(void *arg){
    if(OSmodel->NodeID != 1){return;}
    LwipCntxt *ctxt = (LwipCntxt *)arg;
 
-   ctrl_proto proto=UDP;
+   ctrl_proto proto=PROTO;
    raw_data* blob = write_file_to_raw_data("IN.JPG");
    printf("blob->size%d \n", blob->size);
    //send_data(blob,  proto, "192.168.0.2", PORTNO);
@@ -56,7 +58,7 @@ void recv_task(void *arg){
    if(OSmodel->NodeID != 0){return;}
    LwipCntxt *ctxt = (LwipCntxt *)arg;
 
-   ctrl_proto proto=UDP;
+   ctrl_proto proto=PROTO;
    int sock1 = service_init(PORTNO, proto);
    raw_data* blob = recv_data(sock1, proto);
    if(OSmodel->NodeID == 0){

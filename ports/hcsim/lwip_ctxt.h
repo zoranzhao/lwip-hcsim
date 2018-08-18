@@ -184,7 +184,7 @@ struct lwip_socket_multicast_pair {
 };
 //-----------Some definition defined in c file, relocate those definitions as listed above------------
 
-
+#if LWIP_IPV6
 //--------------lowpan6.c //lwip/src/netif/lowpan6.c--------------//
 struct lowpan6_reass_helper {
   struct lowpan6_reass_helper *next_packet;
@@ -211,7 +211,7 @@ struct lowpan6_ieee802154_data {
   /** Sequence Number for IEEE 802.15.4 transmission */
   u8_t tx_frame_seq_num;
 };
-
+#endif
 //---------------The definitions for 6LoWPAN----------------//
 
 
@@ -328,6 +328,8 @@ class LwipCntxt {
 	int select_cb_ctr; //Why defined as volatile here
 
 
+   //api_msg.c //lwip/src/api/api_msg.c
+	u8_t netconn_aborted;
 
    //ip4.c //lwip/src/core/ipv4/ip4.c
    //ip.c //lwip/src/core/ip.c
@@ -338,7 +340,7 @@ class LwipCntxt {
    //ip4_frag.c //lwip/src/core/ipv4/ip4_frag.c
 	struct ip_reassdata *reassdatagrams;
 	u16_t ip_reass_pbufcount;
-
+#if LWIP_IPV6
    //ip6_frag.c //lwip/src/core/ipv6/ip6_frag.c
 	struct ip6_reassdata *reassdatagrams6;
 	u16_t ip6_reass_pbufcount;
@@ -367,6 +369,10 @@ class LwipCntxt {
 	u8_t nd6_ra_buffer[sizeof(struct prefix_option)];
 
 
+   //lowpan6.c //lwip/src/netif/lowpan6.c
+	struct lowpan6_ieee802154_data lowpan6_data;
+	struct lowpan6_link_addr short_mac_addr;
+#endif
 
    //pbuf.c //lwip/src/core/pbuf.c
 	volatile u8_t pbuf_free_ooseq_pending;
@@ -377,19 +383,6 @@ class LwipCntxt {
 	//#define LWIP_MEMPOOL(name,num,size,desc) &memp_ ## name,
 	//#include "lwip/priv/memp_std.h"
 	//};
-
-
-
-   //api_msg.c //lwip/src/api/api_msg.c
-	u8_t netconn_aborted;
-
-
-   //lowpan6.c //lwip/src/netif/lowpan6.c
-	struct lowpan6_ieee802154_data lowpan6_data;
-	struct lowpan6_link_addr short_mac_addr;
-
-
-
 
   LwipCntxt(): ip_data(), inseg(), netif(){
 
@@ -472,12 +465,22 @@ class LwipCntxt {
 	recv_data=NULL;
 	tcp_input_pcb=NULL;
 
+   //api_msg.c //lwip/src/api/api_msg.c
+	netconn_aborted = 0;
+   //sockets.c //lwip/src/api/sockets.c
+	/** The global list of tasks waiting for select */
+	select_cb_list = NULL;
+	/** This counter is increased from lwip_select when the list is changed
+	    and checked in event_callback to see if it has changed. */
+	select_cb_ctr = 0; 
+   //etharp.c //lwip/src/core/ipv4/etharp.c
+	etharp_cached_entry = 0;
 
+#if LWIP_IPV6
    //ipv6
    //ip6_frag.c //lwip/src/core/ipv6/ip6_frag.c
 	reassdatagrams6=NULL;
 	ip6_reass_pbufcount=0;
-
 
    //nd6.c //lwip/src/core/ipv6/nd6.c
 	/* Default values, can be updated by a RA message. */
@@ -487,25 +490,6 @@ class LwipCntxt {
 	/* Index for cache entries. */
 	nd6_cached_neighbor_index = 0;
 	nd6_cached_destination_index = 0;
-
-
-   //api_msg.c //lwip/src/api/api_msg.c
-	netconn_aborted = 0;
-
-
-   //sockets.c //lwip/src/api/sockets.c
-
-	/** The global list of tasks waiting for select */
-	select_cb_list = NULL;
-
-	/** This counter is increased from lwip_select when the list is changed
-	    and checked in event_callback to see if it has changed. */
-	select_cb_ctr = 0; 
-
-   //etharp.c //lwip/src/core/ipv4/etharp.c
-	etharp_cached_entry = 0;
-
-
    //lowpan6.c //lwip/src/netif/lowpan6.c
 	lowpan6_data.reass_list = NULL;
 	lowpan6_data.ieee_802154_pan_id = 0;
@@ -520,6 +504,7 @@ class LwipCntxt {
 	short_mac_addr.addr[5] = 0;
 	short_mac_addr.addr[6] = 0;
 	short_mac_addr.addr[7] = 0;
+#endif
   }
 
   ~LwipCntxt(){
