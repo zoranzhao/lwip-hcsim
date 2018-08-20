@@ -97,7 +97,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
   /* points to packet payload, which starts with an Ethernet header */
   ethhdr = (struct eth_hdr *)p->payload;
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
-    ("ethernet_input: dest:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", src:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", type:%"X16_F"\n",
+    ("ethernet_input: dest:%" X8_F":%" X8_F":%" X8_F":%" X8_F":%" X8_F":%" X8_F", src:%" X8_F":%" X8_F":%" X8_F":%" X8_F":%" X8_F":%" X8_F", type:%" X16_F"\n",
      (unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
      (unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5],
      (unsigned)ethhdr->src.addr[0],  (unsigned)ethhdr->src.addr[1],  (unsigned)ethhdr->src.addr[2],
@@ -171,7 +171,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       /* skip Ethernet header */
       if ((p->len < ip_hdr_offset) || pbuf_header(p, (s16_t)-ip_hdr_offset)) {
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
-          ("ethernet_input: IPv4 packet dropped, too short (%"S16_F"/%"S16_F")\n",
+          ("ethernet_input: IPv4 packet dropped, too short (%" S16_F"/%" S16_F")\n",
           p->tot_len, ip_hdr_offset));
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("Can't move over header in packet"));
         goto free_and_return;
@@ -188,7 +188,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       /* skip Ethernet header */
       if ((p->len < ip_hdr_offset) || pbuf_header(p, (s16_t)-ip_hdr_offset)) {
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
-          ("ethernet_input: ARP response packet dropped, too short (%"S16_F"/%"S16_F")\n",
+          ("ethernet_input: ARP response packet dropped, too short (%" S16_F"/%" S16_F")\n",
           p->tot_len, ip_hdr_offset));
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("Can't move over header in packet"));
         ETHARP_STATS_INC(etharp.lenerr);
@@ -215,7 +215,7 @@ ethernet_input(struct pbuf *p, struct netif *netif)
       /* skip Ethernet header */
       if ((p->len < ip_hdr_offset) || pbuf_header(p, (s16_t)-ip_hdr_offset)) {
         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
-          ("ethernet_input: IPv6 packet dropped, too short (%"S16_F"/%"S16_F")\n",
+          ("ethernet_input: IPv6 packet dropped, too short (%" S16_F"/%" S16_F")\n",
           p->tot_len, ip_hdr_offset));
         goto free_and_return;
       } else {

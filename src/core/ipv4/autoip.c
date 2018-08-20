@@ -189,7 +189,7 @@ autoip_create_addr(struct netif *netif, ip4_addr_t *ipaddr)
   ip4_addr_set_u32(ipaddr, lwip_htonl(addr));
 
   LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-    ("autoip_create_addr(): tried_llipaddr=%"U16_F", %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+    ("autoip_create_addr(): tried_llipaddr=%" U16_F", %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     (u16_t)(autoip->tried_llipaddr), ip4_addr1_16(ipaddr), ip4_addr2_16(ipaddr),
     ip4_addr3_16(ipaddr), ip4_addr4_16(ipaddr)));
 }
@@ -230,7 +230,7 @@ autoip_bind(struct netif *netif)
   ip4_addr_t sn_mask, gw_addr;
 
   LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE,
-    ("autoip_bind(netif=%p) %c%c%"U16_F" %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+    ("autoip_bind(netif=%p) %c%c%" U16_F" %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     (void*)netif, netif->name[0], netif->name[1], (u16_t)netif->num,
     ip4_addr1_16(&autoip->llipaddr), ip4_addr2_16(&autoip->llipaddr),
     ip4_addr3_16(&autoip->llipaddr), ip4_addr4_16(&autoip->llipaddr)));
@@ -264,7 +264,7 @@ autoip_start(struct netif *netif)
   netif_set_addr(netif, IP4_ADDR_ANY4, IP4_ADDR_ANY4, IP4_ADDR_ANY4);
 
   LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-    ("autoip_start(netif=%p) %c%c%"U16_F"\n", (void*)netif, netif->name[0],
+    ("autoip_start(netif=%p) %c%c%" U16_F"\n", (void*)netif, netif->name[0],
     netif->name[1], (u16_t)netif->num));
   if (autoip == NULL) {
     /* no AutoIP client attached yet? */
@@ -302,7 +302,7 @@ autoip_start_probing(struct netif *netif)
   autoip->state = AUTOIP_STATE_PROBING;
   autoip->sent_num = 0;
   LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-     ("autoip_start_probing(): changing state to PROBING: %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+     ("autoip_start_probing(): changing state to PROBING: %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
       ip4_addr1_16(&autoip->llipaddr), ip4_addr2_16(&autoip->llipaddr),
       ip4_addr3_16(&autoip->llipaddr), ip4_addr4_16(&autoip->llipaddr)));
 
@@ -378,7 +378,7 @@ autoip_tmr(void)
       }
 
       LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE,
-        ("autoip_tmr() AutoIP-State: %"U16_F", ttw=%"U16_F"\n",
+        ("autoip_tmr() AutoIP-State: %" U16_F", ttw=%" U16_F"\n",
         (u16_t)(autoip->state), autoip->ttw));
 
       if (autoip->ttw > 0) {
@@ -397,7 +397,7 @@ autoip_tmr(void)
               autoip->sent_num = 1;
               autoip->ttw = ANNOUNCE_WAIT * AUTOIP_TICKS_PER_SECOND;
               LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-                 ("autoip_tmr(): changing state to ANNOUNCING: %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+                 ("autoip_tmr(): changing state to ANNOUNCING: %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
                   ip4_addr1_16(&autoip->llipaddr), ip4_addr2_16(&autoip->llipaddr),
                   ip4_addr3_16(&autoip->llipaddr), ip4_addr4_16(&autoip->llipaddr)));
             } else {
@@ -429,7 +429,7 @@ autoip_tmr(void)
                 autoip->sent_num = 0;
                 autoip->ttw = 0;
                  LWIP_DEBUGF(AUTOIP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE,
-                    ("autoip_tmr(): changing state to BOUND: %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+                    ("autoip_tmr(): changing state to BOUND: %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
                      ip4_addr1_16(&autoip->llipaddr), ip4_addr2_16(&autoip->llipaddr),
                      ip4_addr3_16(&autoip->llipaddr), ip4_addr4_16(&autoip->llipaddr)));
             }

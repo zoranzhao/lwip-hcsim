@@ -545,7 +545,7 @@ netif_set_ipaddr(struct netif *netif, const ip4_addr_t *ipaddr)
     NETIF_STATUS_CALLBACK(netif);
   }
 
-  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IP address of interface %c%c set to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IP address of interface %c%c set to %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     netif->name[0], netif->name[1],
     ip4_addr1_16(netif_ip4_addr(netif)),
     ip4_addr2_16(netif_ip4_addr(netif)),
@@ -567,7 +567,7 @@ netif_set_gw(struct netif *netif, const ip4_addr_t *gw)
 {
   ip4_addr_set(ip_2_ip4(&netif->gw), gw);
   IP_SET_TYPE_VAL(netif->gw, IPADDR_TYPE_V4);
-  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: GW address of interface %c%c set to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: GW address of interface %c%c set to %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     netif->name[0], netif->name[1],
     ip4_addr1_16(netif_ip4_gw(netif)),
     ip4_addr2_16(netif_ip4_gw(netif)),
@@ -593,7 +593,7 @@ netif_set_netmask(struct netif *netif, const ip4_addr_t *netmask)
   ip4_addr_set(ip_2_ip4(&netif->netmask), netmask);
   IP_SET_TYPE_VAL(netif->netmask, IPADDR_TYPE_V4);
   mib2_add_route_ip4(0, netif);
-  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: netmask of interface %c%c set to %"U16_F".%"U16_F".%"U16_F".%"U16_F"\n",
+  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: netmask of interface %c%c set to %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     netif->name[0], netif->name[1],
     ip4_addr1_16(netif_ip4_netmask(netif)),
     ip4_addr2_16(netif_ip4_netmask(netif)),
@@ -1086,7 +1086,7 @@ netif_ip6_addr_set_parts(struct netif *netif, s8_t addr_idx, u32_t i0, u32_t i1,
     }
   }
 
-  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IPv6 address %d of interface %c%c set to %s/0x%"X8_F"\n",
+  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IPv6 address %d of interface %c%c set to %s/0x%" X8_F"\n",
     addr_idx, netif->name[0], netif->name[1], ip6addr_ntoa(netif_ip6_addr(netif, addr_idx)),
     netif_ip6_addr_state(netif, addr_idx)));
 }
@@ -1149,7 +1149,7 @@ netif_ip6_addr_set_state(struct netif* netif, s8_t addr_idx, u8_t state)
     }
   }
 
-  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IPv6 address %d of interface %c%c set to %s/0x%"X8_F"\n",
+  LWIP_DEBUGF(NETIF_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("netif: IPv6 address %d of interface %c%c set to %s/0x%" X8_F"\n",
     addr_idx, netif->name[0], netif->name[1], ip6addr_ntoa(netif_ip6_addr(netif, addr_idx)),
     netif_ip6_addr_state(netif, addr_idx)));
 }

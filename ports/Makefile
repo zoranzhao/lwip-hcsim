@@ -44,8 +44,8 @@ CCDEP=g++
 CC=g++
 COPTS=-emit-llvm
 LLVM_CC=clang++
-LLVM_LINK=llvm-link-3.8
-LLVM_LLC=llc-3.8
+LLVM_LINK=llvm-link-6.0
+LLVM_LLC=llc-6.0
 ARFLAGS=rs
 LFLAGS=-L$(SYSTEMC_LIB) -lsystemc -L$(HCSIM_DIR)/lib -lhcsim -Wl,-rpath,$(SYSTEMC_LIB) 
 
