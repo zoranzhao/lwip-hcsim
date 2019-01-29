@@ -48,7 +48,7 @@ void send_task(void *arg){
 
    ctrl_proto proto=PROTO;
    raw_data* blob = write_file_to_raw_data("IN.JPG");
-   printf("blob->size%d \n", blob->size);
+   printf("blob->size: %d \n", blob->size);
    //send_data(blob,  proto, "192.168.0.2", PORTNO);
    send_data_all(blob,  proto, PORTNO);
 }
