@@ -326,7 +326,7 @@ igmp_input(struct pbuf *p, struct netif *inp, const ip4_addr_t *dest)
   struct igmp_group* group;
   struct igmp_group* groupref;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   IGMP_STATS_INC(igmp.recv);
 
   /* Note that the length CAN be greater than 8 but only 8 are used - All are included in the checksum */
@@ -452,7 +452,7 @@ igmp_joingroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
   err_t err = ERR_VAL; /* no matching interface */
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* make sure it is multicast address */
   LWIP_ERROR("igmp_joingroup: attempt to join non-multicast address", ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
@@ -550,7 +550,7 @@ igmp_leavegroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
   err_t err = ERR_VAL; /* no matching interface */
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* make sure it is multicast address */
   LWIP_ERROR("igmp_leavegroup: attempt to leave non-multicast address", ip4_addr_ismulticast(groupaddr), return ERR_VAL;);
@@ -644,7 +644,7 @@ void
 igmp_tmr(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
 
   while (netif != NULL) {

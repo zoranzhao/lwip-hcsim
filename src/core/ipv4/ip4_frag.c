@@ -129,7 +129,7 @@ ip_reass_tmr(void)
 {
   struct ip_reassdata *r, *prev = NULL;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   r = (((LwipCntxt*)ctxt)->reassdatagrams);
   while (r != NULL) {
     /* Decrement the timer. Once it reaches 0,
@@ -169,7 +169,7 @@ ip_reass_free_complete_datagram(struct ip_reassdata *ipr, struct ip_reassdata *p
   struct pbuf *p;
   struct ip_reass_helper *iprh;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_ASSERT("prev != ipr", prev != ipr);
   if (prev != NULL) {
@@ -236,7 +236,7 @@ ip_reass_remove_oldest_datagram(struct ip_hdr *fraghdr, int pbufs_needed)
   int pbufs_freed = 0, pbufs_freed_current;
   int other_datagrams;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* Free datagrams until being allowed to enqueue 'pbufs_needed' pbufs,
    * but don't free the datagram that 'fraghdr' belongs to! */
   do {
@@ -286,7 +286,7 @@ ip_reass_enqueue_new_datagram(struct ip_hdr *fraghdr, int clen)
   LWIP_UNUSED_ARG(clen);
 #endif
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* No matching previous fragment found, allocate a new reassdata struct */
   ipr = (struct ip_reassdata *)memp_malloc(MEMP_REASSDATA);
   if (ipr == NULL) {
@@ -322,7 +322,7 @@ static void
 ip_reass_dequeue_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* dequeue the reass struct  */
   if ((((LwipCntxt*)ctxt)->reassdatagrams) == ipr) {
     /* it was the first in the list */
@@ -357,7 +357,7 @@ ip_reass_chain_frag_into_datagram_and_validate(struct ip_reassdata *ipr, struct 
   int valid = 1;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* Extract length and fragment offset from current fragment */
   fraghdr = (struct ip_hdr*)new_p->payload;
@@ -515,7 +515,7 @@ ip4_reass(struct pbuf *p)
   int valid;
   int is_last;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   IPFRAG_STATS_INC(ip_frag.recv);
   MIB2_STATS_INC(mib2.ipreasmreqds);

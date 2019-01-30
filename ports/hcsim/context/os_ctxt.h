@@ -1,10 +1,29 @@
 #include <systemc>
 #include "HCSim.h"
 #include "lwipOS_if.h"
-
+#include <string>
+#include <unordered_map>
 
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
+
+
+class app_context{
+   std::unordered_map<std::string, void*> ctxt_list;  
+public:
+   /*For example, here we can have global data defined to hold application states*/
+   app_context(void* ctxt){
+      ctxt_list["lwIP"] = ctxt;
+   }
+   void add_context(std::string ctxt_name, void* ctxt){
+      ctxt_list[ctxt_name] = ctxt;
+   }
+   void* get_context(std::string ctxt_name){
+      return ctxt_list[ctxt_name];
+   }
+};
+
+
 
 typedef struct AnnotationTrackerStruct {
   int FunID[10000];//depth of calling stack
@@ -79,17 +98,17 @@ class GlobalRecorder {
 	std::vector<OSModelCtxt* > ctxtIDList;  
 	std::vector<AnnotationCtxt* > annotList;
 	std::vector<void* > lwipList;
-
+        std::vector<app_context* > app_context_list;
 
 	void registerTask(OSModelCtxt* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
-
+                
 
 		lwipList.push_back(lwipCtxt);
 		ctxtIDList.push_back(ctxt);
 		taskIDList.push_back(taskID);
 		taskHandlerList.push_back(taskHandler);
 		annotList.push_back(new AnnotationCtxt());
-
+  		app_context_list.push_back(new app_context(lwipCtxt));
 
 		for(size_t i = 0; i < taskIDList.size(); i++)
 			std::cout << taskIDList[i]  <<", ";
@@ -102,6 +121,17 @@ class GlobalRecorder {
 
 
 	}
+
+
+        app_context* get_app_ctxt(sc_core::sc_process_handle taskHandler){
+		auto handlerIt = taskHandlerList.begin();
+		auto idIt = app_context_list.begin();
+		for(; (handlerIt!=taskHandlerList.end() && idIt!= app_context_list.end() ) ;handlerIt++, idIt++){
+			if(*handlerIt == taskHandler)
+				return *idIt;	
+		}
+		return NULL;
+        } 
 
 
 	void* getLwipCtxt(sc_core::sc_process_handle taskHandler){
@@ -160,7 +190,7 @@ class GlobalRecorder {
 };
 
 
-extern GlobalRecorder taskManager;
+extern GlobalRecorder sim_ctxt;
 #endif
 
 

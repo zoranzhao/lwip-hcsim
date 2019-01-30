@@ -223,7 +223,6 @@ class LwipCntxt {
    int DestNodeID;
 
    //OSModelCtxt *OSmodel;
-   void *OSmodel;
 
    //sys_arc.c context
         void* OmnetWrapper;

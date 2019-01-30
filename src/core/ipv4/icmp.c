@@ -80,7 +80,7 @@ void
 icmp_input(struct pbuf *p, struct netif *inp)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u8_t type;
 #ifdef LWIP_DEBUG
   u8_t code;

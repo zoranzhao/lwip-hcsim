@@ -165,7 +165,7 @@ void
 pbuf_free_ooseq(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct tcp_pcb* pcb;
   SYS_ARCH_SET((((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending), 0);
 
@@ -197,7 +197,7 @@ static void
 pbuf_pool_is_empty(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #ifndef PBUF_POOL_FREE_OOSEQ_QUEUE_CALL
   SYS_ARCH_SET((((LwipCntxt*)ctxt)->pbuf_free_ooseq_pending), 1);
 #else /* PBUF_POOL_FREE_OOSEQ_QUEUE_CALL */

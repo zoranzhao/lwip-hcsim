@@ -117,7 +117,7 @@ void
 ip4_set_default_multicast_netif(struct netif* default_multicast_netif)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   (((LwipCntxt*)ctxt)->ip4_default_multicast_netif) = default_multicast_netif;
 }
 #endif /* LWIP_MULTICAST_TX_OPTIONS */
@@ -155,7 +155,7 @@ ip4_route(const ip4_addr_t *dest)
 {
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_MULTICAST_TX_OPTIONS
   /* Use administratively selected interface for multicast by default */
   if (ip4_addr_ismulticast(dest) && (((LwipCntxt*)ctxt)->ip4_default_multicast_netif)) {
@@ -235,7 +235,7 @@ static int
 ip4_canforward(struct pbuf *p)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u32_t addr = lwip_htonl(ip4_addr_get_u32(ip4_current_dest_addr()));
 
   if (p->flags & PBUF_FLAG_LLBCAST) {
@@ -274,7 +274,7 @@ ip4_forward(struct pbuf *p, struct ip_hdr *iphdr, struct netif *inp)
 {
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   PERF_START;
   LWIP_UNUSED_ARG(inp);
 
@@ -387,7 +387,7 @@ ip4_input(struct pbuf *p, struct netif *inp)
   int check_ip_src = 1;
 #endif /* IP_ACCEPT_LINK_LAYER_ADDRESSING || LWIP_IGMP */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   IP_STATS_INC(ip.recv);
   MIB2_STATS_INC(mib2.ipinreceives);
@@ -824,7 +824,7 @@ ip4_output_if_opt_src(struct pbuf *p, const ip4_addr_t *src, const ip4_addr_t *d
   u32_t chk_sum = 0;
 #endif /* CHECKSUM_GEN_IP_INLINE */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_IP_CHECK_PBUF_REF_COUNT_FOR_TX(p);
 
   MIB2_STATS_INC(mib2.ipoutrequests);

@@ -351,7 +351,7 @@ get_socket(int s)
 {
   struct lwip_sock *sock;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   s -= LWIP_SOCKET_OFFSET;
 
   if ((s < 0) || (s >= NUM_SOCKETS)) {
@@ -381,7 +381,7 @@ static struct lwip_sock *
 tryget_socket(int s)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   s -= LWIP_SOCKET_OFFSET;
   if ((s < 0) || (s >= NUM_SOCKETS)) {
     return NULL;
@@ -406,7 +406,7 @@ alloc_socket(struct netconn *newconn, int accepted)
   int i;
   SYS_ARCH_DECL_PROTECT(lev);
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* allocate a new socket identifier */
   for (i = 0; i < NUM_SOCKETS; ++i) {
     /* Protect socket array */
@@ -476,7 +476,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   int newsock;
   err_t err;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   SYS_ARCH_DECL_PROTECT(lev);
 
@@ -1386,7 +1386,7 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
   int i;
   int maxfdp2;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 #if LWIP_NETCONN_SEM_PER_THREAD
   int waited = 0;
@@ -1585,7 +1585,7 @@ event_callback(struct netconn *conn, enum netconn_evt evt, u16_t len)
   struct lwip_select_cb *scb;
   int last_select_cb_ctr;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   SYS_ARCH_DECL_PROTECT(lev);
 
@@ -1802,7 +1802,7 @@ int
 lwip_getsockopt(int s, int level, int optname, void *optval, socklen_t *optlen)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u8_t err;
   struct lwip_sock *sock = get_socket(s);
 #if !LWIP_TCPIP_CORE_LOCKING
@@ -2210,7 +2210,7 @@ int
 lwip_setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u8_t err = 0;
   struct lwip_sock *sock = get_socket(s);
 #if !LWIP_TCPIP_CORE_LOCKING
@@ -2771,7 +2771,7 @@ lwip_socket_register_membership(int s, const ip4_addr_t *if_addr, const ip4_addr
   struct lwip_sock *sock = get_socket(s);
   int i;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (!sock) {
     return 0;
@@ -2799,7 +2799,7 @@ lwip_socket_unregister_membership(int s, const ip4_addr_t *if_addr, const ip4_ad
   struct lwip_sock *sock = get_socket(s);
   int i;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (!sock) {
     return;
@@ -2827,7 +2827,7 @@ lwip_socket_drop_registered_memberships(int s)
   struct lwip_sock *sock = get_socket(s);
   int i;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (!sock) {
     return;

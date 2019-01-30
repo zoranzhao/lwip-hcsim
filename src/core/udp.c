@@ -87,7 +87,7 @@ void
 udp_init(void)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND)
   (((LwipCntxt*)ctxt)->udp_port) = UDP_ENSURE_LOCAL_PORT_RANGE(LWIP_RAND());//HCSim
 #endif /* LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND) */
@@ -104,7 +104,7 @@ udp_new_port(void)
   u16_t n = 0;
   struct udp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 again:
   if ((((LwipCntxt*)ctxt)->udp_port)++ == UDP_LOCAL_PORT_RANGE_END) {//HCSim
     (((LwipCntxt*)ctxt)->udp_port) = UDP_LOCAL_PORT_RANGE_START;//HCSim
@@ -135,7 +135,7 @@ udp_input_local_match(struct udp_pcb *pcb, struct netif *inp, u8_t broadcast)
   LWIP_UNUSED_ARG(inp);       /* in IPv6 only case */
   LWIP_UNUSED_ARG(broadcast); /* in IPv6 only case */
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* Dual-stack: PCBs listening to any IP type also listen to any IP address */
   if (IP_IS_ANY_TYPE_VAL(pcb->local_ip)) {
@@ -197,7 +197,7 @@ udp_input(struct pbuf *p, struct netif *inp)
   u8_t for_us = 0;
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_UNUSED_ARG(inp);
 
@@ -892,7 +892,7 @@ udp_bind(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   struct udp_pcb *ipcb;
   u8_t rebind;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 #if LWIP_IPV4
   /* Don't propagate NULL pointer (IPv4 ANY) to subsequent functions */
@@ -993,7 +993,7 @@ udp_connect(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   struct udp_pcb *ipcb;
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
@@ -1084,7 +1084,7 @@ udp_remove(struct udp_pcb *pcb)
 {
   struct udp_pcb *pcb2;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   mib2_udp_unbind(pcb);
   /* pcb to be removed is first in list? */
@@ -1171,7 +1171,7 @@ void udp_netif_ip_addr_changed(const ip_addr_t* old_addr, const ip_addr_t* new_a
 {
   struct udp_pcb* upcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (!ip_addr_isany(old_addr) && !ip_addr_isany(new_addr)) {
     for (upcb = (((LwipCntxt*)ctxt)->udp_pcbs); upcb != NULL; upcb = upcb->next) {//HCSim

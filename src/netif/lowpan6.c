@@ -132,7 +132,7 @@ lowpan6_write_iee802154_header(struct ieee_802154_hdr *hdr, const struct lowpan6
                                const struct lowpan6_link_addr *dst)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u8_t ieee_header_len;
   u8_t *buffer;
   u8_t i;
@@ -304,7 +304,7 @@ static void
 dequeue_datagram(struct lowpan6_reass_helper *lrh, struct lowpan6_reass_helper *prev)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if ((((LwipCntxt*)ctxt)->lowpan6_data).reass_list == lrh) {
     (((LwipCntxt*)ctxt)->lowpan6_data).reass_list = (((LwipCntxt*)ctxt)->lowpan6_data).reass_list->next_packet;
   } else {
@@ -323,7 +323,7 @@ void
 lowpan6_tmr(void)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct lowpan6_reass_helper *lrh, *lrh_next, *lrh_prev = NULL;
 
   lrh = (((LwipCntxt*)ctxt)->lowpan6_data).reass_list;
@@ -348,7 +348,7 @@ static err_t
 lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr *src, const struct lowpan6_link_addr *dst)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct pbuf *p_frag;
   u16_t frag_len, remaining_len, max_data_len;
   u8_t *buffer;
@@ -505,7 +505,7 @@ err_t
 lowpan6_set_context(u8_t idx, const ip6_addr_t *context)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_6LOWPAN_NUM_CONTEXTS > 0
   if (idx >= LWIP_6LOWPAN_NUM_CONTEXTS) {
     return ERR_ARG;
@@ -531,7 +531,7 @@ err_t
 lowpan6_set_short_addr(u8_t addr_high, u8_t addr_low)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   (ctxt->short_mac_addr).addr[0] = addr_high;
   (ctxt->short_mac_addr).addr[1] = addr_low;
 
@@ -574,7 +574,7 @@ err_t
 lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   err_t result;
   const u8_t *hwaddr;
   struct lowpan6_link_addr src, dest;
@@ -656,7 +656,7 @@ err_t
 lowpan6_input(struct pbuf *p, struct netif *netif)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u8_t *puc, b;
   s8_t i;
   struct lowpan6_link_addr src, dest;
@@ -907,7 +907,7 @@ err_t
 lowpan6_set_pan_id(u16_t pan_id)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   (((LwipCntxt*)ctxt)->lowpan6_data).ieee_802154_pan_id = pan_id;
 
   return ERR_OK;

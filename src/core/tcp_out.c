@@ -997,7 +997,7 @@ tcp_output(struct tcp_pcb *pcb)
   err_t err;
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if TCP_CWND_DEBUG
   s16_t i = 0;
 #endif /* TCP_CWND_DEBUG */
@@ -1195,7 +1195,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
   u32_t *opts;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (seg->p->ref != 1) {
     /* This can happen if the pbuf of this segment is still referenced by the
@@ -1541,7 +1541,7 @@ tcp_keepalive(struct tcp_pcb *pcb)
   struct netif *netif;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: sending KEEPALIVE probe to "));
   ip_addr_debug_print(TCP_DEBUG, &pcb->remote_ip);
@@ -1603,7 +1603,7 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
   struct netif *netif;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_zero_window_probe: sending ZERO WINDOW probe to "));
   ip_addr_debug_print(TCP_DEBUG, &pcb->remote_ip);

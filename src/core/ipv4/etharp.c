@@ -172,7 +172,7 @@ static void
 etharp_free_entry(int i)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* remove from SNMP ARP index tree */
   mib2_remove_arp_entry((((LwipCntxt*)ctxt)->arp_table)[i].netif, &(((LwipCntxt*)ctxt)->arp_table)[i].ipaddr);
   /* and empty packet queue */
@@ -204,7 +204,7 @@ etharp_tmr(void)
 {
   u8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_DEBUGF(ETHARP_DEBUG, ("etharp_timer\n"));
   /* remove expired entries from the ARP table */
   for (i = 0; i < ARP_TABLE_SIZE; ++i) {
@@ -270,7 +270,7 @@ etharp_find_entry(const ip4_addr_t *ipaddr, u8_t flags, struct netif* netif)
   /* its age */
   u16_t age_queue = 0, age_pending = 0, age_stable = 0;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_UNUSED_ARG(netif);
 
   /**
@@ -430,7 +430,7 @@ static err_t
 etharp_update_arp_entry(struct netif *netif, const ip4_addr_t *ipaddr, struct eth_addr *ethaddr, u8_t flags)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   s8_t i;
   LWIP_ASSERT("netif->hwaddr_len == ETH_HWADDR_LEN", netif->hwaddr_len == ETH_HWADDR_LEN);
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_update_arp_entry: %" U16_F".%" U16_F".%" U16_F".%" U16_F" - %02" X16_F":%02" X16_F":%02" X16_F":%02" X16_F":%02" X16_F":%02" X16_F"\n",
@@ -539,7 +539,7 @@ etharp_remove_static_entry(const ip4_addr_t *ipaddr)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_remove_static_entry: %" U16_F".%" U16_F".%" U16_F".%" U16_F"\n",
     ip4_addr1_16(ipaddr), ip4_addr2_16(ipaddr), ip4_addr3_16(ipaddr), ip4_addr4_16(ipaddr)));
 
@@ -570,7 +570,7 @@ etharp_cleanup_netif(struct netif *netif)
 {
   u8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   for (i = 0; i < ARP_TABLE_SIZE; ++i) {
     u8_t state = (((LwipCntxt*)ctxt)->arp_table)[i].state;
     if ((state != ETHARP_STATE_EMPTY) && ((((LwipCntxt*)ctxt)->arp_table)[i].netif == netif)) {
@@ -596,7 +596,7 @@ etharp_find_addr(struct netif *netif, const ip4_addr_t *ipaddr,
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_ASSERT("eth_ret != NULL && ip_ret != NULL",
     eth_ret != NULL && ip_ret != NULL);
 
@@ -627,7 +627,7 @@ etharp_get_entry(u8_t i, ip4_addr_t **ipaddr, struct netif **netif, struct eth_a
   LWIP_ASSERT("netif != NULL", netif != NULL);
   LWIP_ASSERT("eth_ret != NULL", eth_ret != NULL);
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if((i < ARP_TABLE_SIZE) && ((((LwipCntxt*)ctxt)->arp_table)[i].state >= ETHARP_STATE_STABLE)) {
     *ipaddr  = &(((LwipCntxt*)ctxt)->arp_table)[i].ipaddr;
     *netif   = (((LwipCntxt*)ctxt)->arp_table)[i].netif;
@@ -759,7 +759,7 @@ static err_t
 etharp_output_to_arp_index(struct netif *netif, struct pbuf *q, u8_t arp_idx)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   LWIP_ASSERT("arp_table[arp_idx].state >= ETHARP_STATE_STABLE",
               (((LwipCntxt*)ctxt)->arp_table)[arp_idx].state >= ETHARP_STATE_STABLE);
   /* if arp table entry is about to expire: re-request it,
@@ -808,7 +808,7 @@ etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
   const ip4_addr_t *dst_addr = ipaddr;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_ASSERT("netif != NULL", netif != NULL);
   LWIP_ASSERT("q != NULL", q != NULL);
@@ -952,7 +952,7 @@ etharp_query(struct netif *netif, const ip4_addr_t *ipaddr, struct pbuf *q)
   int is_new_entry = 0;
   s8_t i; /* ARP entry index */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* non-unicast address? */
   if (ip4_addr_isbroadcast(ipaddr, netif) ||

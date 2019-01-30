@@ -480,7 +480,7 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
   struct netconn *newconn;
   struct netconn *conn = (struct netconn *)arg;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (conn == NULL) {
     return ERR_VAL;
@@ -770,7 +770,7 @@ netconn_drain(struct netconn *conn)
   struct pbuf *p;
 #endif /* LWIP_TCP */
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* This runs in tcpip_thread, so we don't need to lock against rx packets */
 
   /* Delete and drain the recvmbox. */
@@ -1026,7 +1026,7 @@ lwip_netconn_do_delconn(void *m)
 {
   struct api_msg *msg = (struct api_msg*)m;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   enum netconn_state state = msg->conn->state;
   LWIP_ASSERT("netconn state error", /* this only happens for TCP netconns */
     (state == NETCONN_NONE) || (NETCONNTYPE_GROUP(msg->conn->type) == NETCONN_TCP));
@@ -1219,7 +1219,7 @@ void
 lwip_netconn_do_connect(void *m)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
   if (msg->conn->pcb.tcp == NULL) {
@@ -1660,7 +1660,7 @@ void
 lwip_netconn_do_write(void *m)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
   if (ERR_IS_FATAL(msg->conn->last_err)) {
@@ -1785,7 +1785,7 @@ void
 lwip_netconn_do_close(void *m)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct api_msg *msg = (struct api_msg*)m;
 
 #if LWIP_TCP

@@ -145,7 +145,7 @@ void
 tcp_init(void)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND)
   ((LwipCntxt*)ctxt)->tcp_port = TCP_ENSURE_LOCAL_PORT_RANGE(LWIP_RAND());//HCSim
 #endif /* LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND) */
@@ -159,7 +159,7 @@ tcp_tmr(void)
 {
   /* Call tcp_fasttmr() every 250 ms */
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   tcp_fasttmr();
 
   if (++(((LwipCntxt*)ctxt)->tcp_timer) & 1) {//HCSim
@@ -192,7 +192,7 @@ static void
 tcp_listen_closed(struct tcp_pcb *pcb)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_CALLBACK_API || TCP_LISTEN_BACKLOG
   size_t i;
   LWIP_ASSERT("pcb != NULL", pcb != NULL);
@@ -271,7 +271,7 @@ static err_t
 tcp_close_shutdown(struct tcp_pcb *pcb, u8_t rst_on_unacked_data)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if (rst_on_unacked_data && ((pcb->state == ESTABLISHED) || (pcb->state == CLOSE_WAIT))) {
     if ((pcb->refused_data != NULL) || (pcb->rcv_wnd != TCP_WND_MAX(pcb))) {
       /* Not all data received by application, send RST to tell the remote
@@ -478,7 +478,7 @@ void
 tcp_abandon(struct tcp_pcb *pcb, int reset)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u32_t seqno, ackno;
 #if LWIP_CALLBACK_API
   tcp_err_fn errf;
@@ -575,7 +575,7 @@ tcp_bind(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   int max_pcb_list = NUM_TCP_PCB_LISTS;
   struct tcp_pcb *cpcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 #if LWIP_IPV4
   /* Don't propagate NULL pointer (IPv4 ANY) to subsequent functions */
@@ -700,7 +700,7 @@ tcp_listen_with_backlog_and_err(struct tcp_pcb *pcb, u8_t backlog, err_t *err)
   struct tcp_pcb_listen *lpcb = NULL;
   err_t res;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_UNUSED_ARG(backlog);
   LWIP_ERROR("tcp_listen: pcb already connected", pcb->state == CLOSED, res = ERR_CLSD; goto done);
@@ -855,7 +855,7 @@ tcp_new_port(void)
   u16_t n = 0;
   struct tcp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 again:
   if (((LwipCntxt*)ctxt)->tcp_port++ == TCP_LOCAL_PORT_RANGE_END) {//HCSim
@@ -897,7 +897,7 @@ tcp_connect(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port,
   u32_t iss;
   u16_t old_local_port;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if ((pcb == NULL) || (ipaddr == NULL)) {
     return ERR_VAL;
@@ -1012,7 +1012,7 @@ tcp_slowtmr(void)
   err = ERR_OK;
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   ++(((LwipCntxt*)ctxt)->tcp_ticks);//HCSim
   ++(((LwipCntxt*)ctxt)->tcp_timer_ctr);//HCSim
@@ -1273,7 +1273,7 @@ tcp_fasttmr(void)
 {
   struct tcp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   ++(((LwipCntxt*)ctxt)->tcp_timer_ctr);//HCSim
 
@@ -1322,7 +1322,7 @@ tcp_txnow(void)
 {
   struct tcp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   for (pcb = ((LwipCntxt*)ctxt)->tcp_active_pcbs; pcb != NULL; pcb = pcb->next) {//HCSim
     if (pcb->flags & TF_NAGLEMEMERR) {
@@ -1492,7 +1492,7 @@ tcp_kill_prio(u8_t prio)
   u32_t inactivity;
   u8_t mprio;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   mprio = LWIP_MIN(TCP_PRIO_MAX, prio);
 
@@ -1524,7 +1524,7 @@ tcp_kill_state(enum tcp_state state)
   struct tcp_pcb *pcb, *inactive;
   u32_t inactivity;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_ASSERT("invalid state", (state == CLOSING) || (state == LAST_ACK));
 
@@ -1558,7 +1558,7 @@ tcp_kill_timewait(void)
   struct tcp_pcb *pcb, *inactive;
   u32_t inactivity;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   inactivity = 0;
   inactive = NULL;
@@ -1587,7 +1587,7 @@ tcp_alloc(u8_t prio)
 {
   struct tcp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   pcb = (struct tcp_pcb *)memp_malloc(MEMP_TCP_PCB);
   if (pcb == NULL) {
@@ -1928,7 +1928,7 @@ u32_t
 tcp_next_iss(struct tcp_pcb *pcb)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #ifdef LWIP_HOOK_TCP_ISN
   return LWIP_HOOK_TCP_ISN(&pcb->local_ip, pcb->local_port, &pcb->remote_ip, pcb->remote_port);
 #else /* LWIP_HOOK_TCP_ISN */
@@ -2042,7 +2042,7 @@ tcp_netif_ip_addr_changed(const ip_addr_t* old_addr, const ip_addr_t* new_addr)
 {
   struct tcp_pcb_listen *lpcb, *next;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if (!ip_addr_isany(old_addr)) {
     tcp_netif_ip_addr_changed_pcblist(old_addr, (((LwipCntxt*)ctxt)->tcp_active_pcbs));//HCSim
     tcp_netif_ip_addr_changed_pcblist(old_addr, (((LwipCntxt*)ctxt)->tcp_bound_pcbs));//HCSim
@@ -2160,7 +2160,7 @@ tcp_debug_print_pcbs(void)
   struct tcp_pcb *pcb;
   struct tcp_pcb_listen *pcbl;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_DEBUGF(TCP_DEBUG, ("Active PCB states:\n"));
   for(pcb = ((LwipCntxt*)ctxt)->tcp_active_pcbs; pcb != NULL; pcb = pcb->next) {//HCSim
@@ -2193,7 +2193,7 @@ tcp_pcbs_sane(void)
 {
   struct tcp_pcb *pcb;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   for (pcb = ((LwipCntxt*)ctxt)->tcp_active_pcbs; pcb != NULL; pcb = pcb->next) {//HCSim
     LWIP_ASSERT("tcp_pcbs_sane: active pcb->state != CLOSED", pcb->state != CLOSED);

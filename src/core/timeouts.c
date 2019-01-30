@@ -127,7 +127,7 @@ tcpip_tcp_timer(void *arg)
 {
   LWIP_UNUSED_ARG(arg);
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* call TCP timer handler */
   tcp_tmr();
@@ -150,7 +150,7 @@ void
 tcp_timer_needed(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* timer is off but needed again? */
   if (!(((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) && ((((LwipCntxt*)ctxt)->tcp_active_pcbs) || (((LwipCntxt*)ctxt)->tcp_tw_pcbs))) {
     /* enable and start timer */
@@ -182,7 +182,7 @@ void sys_timeouts_init(void)
   size_t i;
   /* tcp_tmr() at index 0 is started on demand */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   for (i = (LWIP_TCP ? 1 : 0); i < LWIP_ARRAYSIZE(lwip_cyclic_timers); i++) {
     /* we have to cast via size_t to get rid of const warning
@@ -216,7 +216,7 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
   u32_t now, diff;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   timeout = (struct sys_timeo *)memp_malloc(MEMP_SYS_TIMEOUT);
   if (timeout == NULL) {
@@ -285,7 +285,7 @@ sys_untimeout(sys_timeout_handler handler, void *arg)
 {
   struct sys_timeo *prev_t, *t;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
     return;
@@ -326,7 +326,7 @@ void
 sys_check_timeouts(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if ((((LwipCntxt*)ctxt)->next_timeout)) {
     struct sys_timeo *tmptimeout;
@@ -385,7 +385,7 @@ void
 sys_restart_timeouts(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   (((LwipCntxt*)ctxt)->timeouts_last_time) = sys_now();
 }
@@ -400,7 +400,7 @@ u32_t
 sys_timeouts_sleeptime(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u32_t diff;
   if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
     return 0xffffffff;
@@ -427,7 +427,7 @@ sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
 {
   u32_t sleeptime;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 again:
   if (!(((LwipCntxt*)ctxt)->next_timeout)) {

@@ -113,7 +113,7 @@ tcp_input(struct pbuf *p, struct netif *inp)
   err_t err;
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_UNUSED_ARG(inp);
 
@@ -570,7 +570,7 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
   u32_t iss;
   err_t rc;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if ((((LwipCntxt*)ctxt)->flags) & TCP_RST) {
     /* An incoming RST should be ignored. Return. */
@@ -673,7 +673,7 @@ tcp_timewait_input(struct tcp_pcb *pcb)
    *   acceptable since we only send ACKs)
    * - second check the RST bit (... return) */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if ((((LwipCntxt*)ctxt)->flags) & TCP_RST) {
     return;
   }
@@ -722,7 +722,7 @@ tcp_process(struct tcp_pcb *pcb)
   err = ERR_OK;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   /* Process incoming RST segments. */
   if ((((LwipCntxt*)ctxt)->flags) & TCP_RST) {
@@ -981,7 +981,7 @@ tcp_oos_insert_segment(struct tcp_seg *cseg, struct tcp_seg *next)
 {
   struct tcp_seg *old_seg;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (TCPH_FLAGS(cseg->tcphdr) & TCP_FIN) {
     /* received segment overlaps all following segments */
@@ -1041,7 +1041,7 @@ tcp_receive(struct tcp_pcb *pcb)
   u16_t ooseq_qlen;
 #endif /* TCP_OOSEQ_MAX_BYTES || TCP_OOSEQ_MAX_PBUFS */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_ASSERT("tcp_receive: wrong state", pcb->state >= ESTABLISHED);
 
@@ -1723,7 +1723,7 @@ static u8_t
 tcp_getoptbyte(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if (((((LwipCntxt*)ctxt)->tcphdr_opt2) == NULL) || ((((LwipCntxt*)ctxt)->tcp_optidx) < (((LwipCntxt*)ctxt)->tcphdr_opt1len))) {
     u8_t* opts = (u8_t *)(((LwipCntxt*)ctxt)->tcphdr) + TCP_HLEN;
     return opts[(((LwipCntxt*)ctxt)->tcp_optidx)++];
@@ -1750,7 +1750,7 @@ tcp_parseopt(struct tcp_pcb *pcb)
   u32_t tsval;
 #endif
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* Parse the TCP MSS option, if present. */
   if ((((LwipCntxt*)ctxt)->tcphdr_optlen) != 0) {
     for ((((LwipCntxt*)ctxt)->tcp_optidx) = 0; (((LwipCntxt*)ctxt)->tcp_optidx) < (((LwipCntxt*)ctxt)->tcphdr_optlen); ) {
@@ -1849,7 +1849,7 @@ void
 tcp_trigger_input_pcb_close(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   (((LwipCntxt*)ctxt)->recv_flags) |= TF_CLOSED;
 }
 

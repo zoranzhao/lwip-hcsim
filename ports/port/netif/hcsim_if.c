@@ -30,8 +30,6 @@
  *
  */
 
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -58,9 +56,7 @@
 #define HCSIM_IF_DEBUG LWIP_DBG_OFF
 #endif
 #include <systemc>
-
-
-
+#include "os_ctxt.h"
 
 
 struct hcsim_if {
@@ -94,9 +90,9 @@ static int server_write(const void *buf, size_t len) {
     ipaddr_ntoa_r( &(((LwipCntxt* )(ctxt))->current_iphdr_dest), dest_str, 16);
     ipaddr_ntoa_r( &(((LwipCntxt* )(ctxt))->current_iphdr_src), src_str, 16);
 */
-    int taskID =  ( taskManager.getTaskID( sc_core::sc_get_current_process_handle() ));
-    ( taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetSize(len, taskID);
-    ( taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetData(len, (char*)buf, taskID);
+    int taskID =  ( sim_ctxt.getTaskID( sc_core::sc_get_current_process_handle() ));
+    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetSize(len, taskID);
+    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetData(len, (char*)buf, taskID);
     return err;
 
 }
@@ -106,9 +102,9 @@ static int server_read(void *buf, size_t len) {
     int pkt_size;
     int ii;
     int err=0;
-    int taskID = taskManager.getTaskID( sc_core::sc_get_current_process_handle() );
-    pkt_size =   ( taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetSize(taskID);
-     ( taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetData(pkt_size, (char*)buf, taskID);
+    int taskID = sim_ctxt.getTaskID( sc_core::sc_get_current_process_handle() );
+    pkt_size =   ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetSize(taskID);
+     ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetData(pkt_size, (char*)buf, taskID);
     err = pkt_size;
     return err;
 
@@ -330,7 +326,7 @@ hcsim_if_init(struct netif *netif)
 {
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
  
   struct hcsim_if *hcsim_if; // A holder for ethernet address and device number
@@ -373,7 +369,7 @@ hcsim_if_init_6lowpan(struct netif *netif)
 {
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
  
   struct hcsim_if *hcsim_if; // A holder for ethernet address and device number

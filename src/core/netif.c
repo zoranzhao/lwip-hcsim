@@ -249,7 +249,7 @@ netif_add(struct netif *netif,
 #endif
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   LWIP_ASSERT("No init function given", init != NULL);
 
@@ -384,7 +384,7 @@ netif_remove(struct netif *netif)
 #endif
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (netif == NULL) {
     return;
@@ -481,7 +481,7 @@ netif_find(const char *name)
   u8_t num;
 
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (name == NULL) {
     return NULL;
@@ -613,7 +613,7 @@ void
 netif_set_default(struct netif *netif)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   if (netif == NULL) {
     /* remove default route */
     mib2_remove_route_ip4(1, netif);
@@ -984,7 +984,7 @@ void
 netif_poll_all(void)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);//HCSim
   /* loop through netifs */
@@ -1008,7 +1008,7 @@ u8_t
 netif_alloc_client_data_id(void)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   u8_t result = (((LwipCntxt*)ctxt)->netif_client_id);//HCSim
   (((LwipCntxt*)ctxt)->netif_client_id)++;//HCSim
