@@ -367,7 +367,7 @@ autoip_tmr(void)
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
-  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
+  struct netif *netif = (((lwip_context*)ctxt)->netif_list);
   /* loop through netif's */
   while (netif != NULL) {
     struct autoip* autoip = netif_autoip_data(netif);

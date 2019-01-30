@@ -90,26 +90,26 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
 
   /* If single netif configuration, fast return. */
-  if (( (((LwipCntxt*)ctxt)->netif_list) != NULL) && ((((LwipCntxt*)ctxt)->netif_list)->next == NULL)) {
-    if (!netif_is_up((((LwipCntxt*)ctxt)->netif_list) ) || !netif_is_link_up((((LwipCntxt*)ctxt)->netif_list) )) {
+  if (( (((lwip_context*)ctxt)->netif_list) != NULL) && ((((lwip_context*)ctxt)->netif_list)->next == NULL)) {
+    if (!netif_is_up((((lwip_context*)ctxt)->netif_list) ) || !netif_is_link_up((((lwip_context*)ctxt)->netif_list) )) {
       return NULL;
     }
-    return (((LwipCntxt*)ctxt)->netif_list);
+    return (((lwip_context*)ctxt)->netif_list);
   }
 
   /* Special processing for link-local addresses. */
   if (ip6_addr_islinklocal(dest)) {
     if (ip6_addr_isany(src)) {
       /* Use default netif, if Up. */
-      if ((((LwipCntxt*)ctxt)->netif_default) == NULL || !netif_is_up((((LwipCntxt*)ctxt)->netif_default)) ||
-          !netif_is_link_up((((LwipCntxt*)ctxt)->netif_default))) {
+      if ((((lwip_context*)ctxt)->netif_default) == NULL || !netif_is_up((((lwip_context*)ctxt)->netif_default)) ||
+          !netif_is_link_up((((lwip_context*)ctxt)->netif_default))) {
         return NULL;
       }
-      return (((LwipCntxt*)ctxt)->netif_default);
+      return (((lwip_context*)ctxt)->netif_default);
     }
 
     /* Try to find the netif for the source address, checking that link is up. */
-    for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
+    for (netif = (((lwip_context*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
       if (!netif_is_up(netif) || !netif_is_link_up(netif)) {
         continue;
       }
@@ -122,11 +122,11 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
     }
 
     /* netif not found, use default netif, if up */
-    if ((((LwipCntxt*)ctxt)->netif_default) == NULL || !netif_is_up((((LwipCntxt*)ctxt)->netif_default)) ||
-        !netif_is_link_up((((LwipCntxt*)ctxt)->netif_default))) {
+    if ((((lwip_context*)ctxt)->netif_default) == NULL || !netif_is_up((((lwip_context*)ctxt)->netif_default)) ||
+        !netif_is_link_up((((lwip_context*)ctxt)->netif_default))) {
       return NULL;
     }
-    return (((LwipCntxt*)ctxt)->netif_default);
+    return (((lwip_context*)ctxt)->netif_default);
   }
 
   /* we come here for non-link-local addresses */
@@ -138,7 +138,7 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 #endif
 
   /* See if the destination subnet matches a configured address. */
-  for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
+  for (netif = (((lwip_context*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
     if (!netif_is_up(netif) || !netif_is_link_up(netif)) {
       continue;
     }
@@ -158,7 +158,7 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 
   /* try with the netif that matches the source address. */
   if (!ip6_addr_isany(src)) {
-    for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
+    for (netif = (((lwip_context*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
       if (!netif_is_up(netif) || !netif_is_link_up(netif)) {
         continue;
       }
@@ -175,11 +175,11 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
   /* loopif is disabled, loopback traffic is passed through any netif */
   if (ip6_addr_isloopback(dest)) {
     /* don't check for link on loopback traffic */
-    if ((((LwipCntxt*)ctxt)->netif_default) != NULL && netif_is_up((((LwipCntxt*)ctxt)->netif_default))) {
-      return (((LwipCntxt*)ctxt)->netif_default);
+    if ((((lwip_context*)ctxt)->netif_default) != NULL && netif_is_up((((lwip_context*)ctxt)->netif_default))) {
+      return (((lwip_context*)ctxt)->netif_default);
     }
     /* default netif is not up, just use any netif for loopback traffic */
-    for (netif = (((LwipCntxt*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
+    for (netif = (((lwip_context*)ctxt)->netif_list); netif != NULL; netif = netif->next) {
       if (netif_is_up(netif)) {
         return netif;
       }
@@ -189,10 +189,10 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
 #endif /* LWIP_NETIF_LOOPBACK && !LWIP_HAVE_LOOPIF */
 
   /* no matching netif found, use default netif, if up */
-  if (((((LwipCntxt*)ctxt)->netif_default) == NULL) || !netif_is_up((((LwipCntxt*)ctxt)->netif_default)) || !netif_is_link_up((((LwipCntxt*)ctxt)->netif_default))) {
+  if (((((lwip_context*)ctxt)->netif_default) == NULL) || !netif_is_up((((lwip_context*)ctxt)->netif_default)) || !netif_is_link_up((((lwip_context*)ctxt)->netif_default))) {
     return NULL;
   }
-  return (((LwipCntxt*)ctxt)->netif_default);
+  return (((lwip_context*)ctxt)->netif_default);
 }
 
 /**
@@ -449,25 +449,25 @@ ip6_input(struct pbuf *p, struct netif *inp)
   pbuf_realloc(p, IP6_HLEN + IP6H_PLEN(ip6hdr));
 
   /* copy IP addresses to aligned ip6_addr_t */
-  ip_addr_copy_from_ip6( (((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest, ip6hdr->dest);
-  ip_addr_copy_from_ip6( (((LwipCntxt*)ctxt)->ip_data).current_iphdr_src, ip6hdr->src);
+  ip_addr_copy_from_ip6( (((lwip_context*)ctxt)->ip_data).current_iphdr_dest, ip6hdr->dest);
+  ip_addr_copy_from_ip6( (((lwip_context*)ctxt)->ip_data).current_iphdr_src, ip6hdr->src);
 
   /* Don't accept virtual IPv4 mapped IPv6 addresses.
    * Don't accept multicast source addresses. */
-  if (ip6_addr_isipv4mappedipv6(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_dest)) ||
-     ip6_addr_isipv4mappedipv6(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src)) ||
-     ip6_addr_ismulticast(ip_2_ip6(&(((LwipCntxt*)ctxt)->ip_data).current_iphdr_src))) {
+  if (ip6_addr_isipv4mappedipv6(ip_2_ip6(&(((lwip_context*)ctxt)->ip_data).current_iphdr_dest)) ||
+     ip6_addr_isipv4mappedipv6(ip_2_ip6(&(((lwip_context*)ctxt)->ip_data).current_iphdr_src)) ||
+     ip6_addr_ismulticast(ip_2_ip6(&(((lwip_context*)ctxt)->ip_data).current_iphdr_src))) {
     IP6_STATS_INC(ip6.err);
     IP6_STATS_INC(ip6.drop);
     return ERR_OK;
   }
 
   /* current header pointer. */
-  (((LwipCntxt*)ctxt)->ip_data).current_ip6_header = ip6hdr;
+  (((lwip_context*)ctxt)->ip_data).current_ip6_header = ip6hdr;
 
   /* In netif, used in case we need to send ICMPv6 packets back. */
-  (((LwipCntxt*)ctxt)->ip_data).current_netif = inp;
-  (((LwipCntxt*)ctxt)->ip_data).current_input_netif = inp;
+  (((lwip_context*)ctxt)->ip_data).current_netif = inp;
+  (((lwip_context*)ctxt)->ip_data).current_input_netif = inp;
 
   /* match packet against an interface, i.e. is this packet for us? */
   if (ip6_addr_ismulticast(ip6_current_dest_addr())) {
@@ -533,7 +533,7 @@ ip6_input(struct pbuf *p, struct netif *inp)
           break;
         }
         first = 0;
-        netif = (((LwipCntxt*)ctxt)->netif_list);
+        netif = (((lwip_context*)ctxt)->netif_list);
       } else {
         netif = netif->next;
       }
@@ -573,13 +573,13 @@ netif_found:
   }
 
   /* current netif pointer. */
-  (((LwipCntxt*)ctxt)->ip_data).current_netif = netif;
+  (((lwip_context*)ctxt)->ip_data).current_netif = netif;
 
   /* Save next header type. */
   nexth = IP6H_NEXTH(ip6hdr);
 
   /* Init header length. */
-  hlen = (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len = IP6_HLEN;
+  hlen = (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len = IP6_HLEN;
 
   /* Move to payload. */
   pbuf_header(p, -IP6_HLEN);
@@ -595,7 +595,7 @@ netif_found:
 
       /* Get the header length. */
       hlen = 8 * (1 + *((u8_t *)p->payload + 1));
-      (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
+      (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
       if (hlen > p->len) {
@@ -618,7 +618,7 @@ netif_found:
 
       /* Get the header length. */
       hlen = 8 * (1 + *((u8_t *)p->payload + 1));
-      (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
+      (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
       if (hlen > p->len) {
@@ -641,7 +641,7 @@ netif_found:
 
       /* Get the header length. */
       hlen = 8 * (1 + *((u8_t *)p->payload + 1));
-      (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
+      (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
 
       /* Skip over this header. */
       if (hlen > p->len) {
@@ -670,7 +670,7 @@ netif_found:
 
       /* Fragment Header length. */
       hlen = 8;
-      (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
+      (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len += hlen;
 
       /* Make sure this header fits in current pbuf. */
       if (hlen > p->len) {
@@ -704,7 +704,7 @@ netif_found:
          * Update all our variables and pointers and continue. */
         ip6hdr = (struct ip6_hdr *)p->payload;
         nexth = IP6H_NEXTH(ip6hdr);
-        hlen = (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len = IP6_HLEN;
+        hlen = (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len = IP6_HLEN;
         pbuf_header(p, -IP6_HLEN);
 
 #else /* LWIP_IPV6_REASS */
@@ -726,7 +726,7 @@ netif_found:
 options_done:
 
   /* p points to IPv6 header again. */
-  pbuf_header_force(p, (s16_t)(((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len);
+  pbuf_header_force(p, (s16_t)(((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len);
 
   /* send to upper layers */
   LWIP_DEBUGF(IP6_DEBUG, ("ip6_input: \n"));
@@ -748,21 +748,21 @@ options_done:
     case IP6_NEXTH_UDPLITE:
 #endif /* LWIP_UDPLITE */
       /* Point to payload. */
-      pbuf_header(p, -(s16_t)(((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len);
+      pbuf_header(p, -(s16_t)(((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len);
       udp_input(p, inp);
       break;
 #endif /* LWIP_UDP */
 #if LWIP_TCP
     case IP6_NEXTH_TCP:
       /* Point to payload. */
-      pbuf_header(p, -(s16_t)(((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len);
+      pbuf_header(p, -(s16_t)(((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len);
       tcp_input(p, inp);
       break;
 #endif /* LWIP_TCP */
 #if LWIP_ICMP6
     case IP6_NEXTH_ICMP6:
       /* Point to payload. */
-      pbuf_header(p, -(s16_t)(((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len);
+      pbuf_header(p, -(s16_t)(((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len);
       icmp6_input(p, inp);
       break;
 #endif /* LWIP_ICMP */
@@ -771,7 +771,7 @@ options_done:
       /* send ICMP parameter problem unless it was a multicast or ICMPv6 */
       if ((!ip6_addr_ismulticast(ip6_current_dest_addr())) &&
           (IP6H_NEXTH(ip6hdr) != IP6_NEXTH_ICMP6)) {
-        icmp6_param_problem(p, ICMP6_PP_HEADER, (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len - hlen);
+        icmp6_param_problem(p, ICMP6_PP_HEADER, (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len - hlen);
       }
 #endif /* LWIP_ICMP */
       LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("ip6_input: Unsupported transport protocol %" U16_F"\n", (u16_t)IP6H_NEXTH(ip6hdr)));
@@ -783,10 +783,10 @@ options_done:
   }
 
 ip6_input_cleanup:
-  (((LwipCntxt*)ctxt)->ip_data).current_netif = NULL;
-  (((LwipCntxt*)ctxt)->ip_data).current_input_netif = NULL;
-  (((LwipCntxt*)ctxt)->ip_data).current_ip6_header = NULL;
-  (((LwipCntxt*)ctxt)->ip_data).current_ip_header_tot_len = 0;
+  (((lwip_context*)ctxt)->ip_data).current_netif = NULL;
+  (((lwip_context*)ctxt)->ip_data).current_input_netif = NULL;
+  (((lwip_context*)ctxt)->ip_data).current_ip6_header = NULL;
+  (((lwip_context*)ctxt)->ip_data).current_ip_header_tot_len = 0;
   ip6_addr_set_zero(ip6_current_src_addr());
   ip6_addr_set_zero(ip6_current_dest_addr());
 

@@ -126,13 +126,13 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
 
   thread = new sys_thread;
   if (thread != NULL) {
-    //((LwipCntxt*)ctxt)->threads_mutex.lock();
+    //((lwip_context*)ctxt)->threads_mutex.lock();
     threads_mutex.lock();
-    thread->next = ((LwipCntxt*)ctxt)->threads;
+    thread->next = ((lwip_context*)ctxt)->threads;
     thread->sc_thread = th_handle;
     threads = thread;
     threads_mutex.unlock();
-   // ((LwipCntxt*)ctxt)->threads_mutex.unlock();
+   // ((lwip_context*)ctxt)->threads_mutex.unlock();
   }
   //printf("/***************New thread name***************/: %s\n", name);
   //std::cout << "Thread ID in OS model is: " << child_id << std::endl; 
@@ -147,7 +147,7 @@ err_t
 sys_mbox_new(struct sys_mbox **mb, int size)
 {
   int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
-  //( (LwipCntxt*)(ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
+  //( (lwip_context*)(ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
 
   //std::cout << " ************ "<<taskID<<" ************Creating mbox task ID is: ... ... .." << taskID <<std::endl;
   //Debug mark: OS Model Integration
@@ -202,7 +202,7 @@ sys_mbox_trypost(struct sys_mbox **mb, void *msg)
   mbox = *mb;
 
   int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
-  //( (LwipCntxt*)(mbox->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
+  //( (lwip_context*)(mbox->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
   //if(mbox->id == 111)std::cout << " ************ "<<taskID<<"w************try writing mbox ID is: ... ... .." << mbox->id <<std::endl;
 
 
@@ -226,7 +226,7 @@ sys_mbox_trypost(struct sys_mbox **mb, void *msg)
   mbox->last++;
 
   if (first) {
-    //if(( (LwipCntxt*)((mbox->not_empty) -> ctxt) )-> NodeID == 1) printf("sys_sem_signal(&mbox->not_empty);%d sem %d mbox %p msg %p\n", ( (LwipCntxt*)((mbox->not_empty) -> ctxt) )-> NodeID ,(mbox->not_empty)->id,(void *)mbox, (void *)msg);
+    //if(( (lwip_context*)((mbox->not_empty) -> ctxt) )-> NodeID == 1) printf("sys_sem_signal(&mbox->not_empty);%d sem %d mbox %p msg %p\n", ( (lwip_context*)((mbox->not_empty) -> ctxt) )-> NodeID ,(mbox->not_empty)->id,(void *)mbox, (void *)msg);
     sys_sem_signal(&mbox->not_empty);
 
   }
@@ -321,7 +321,7 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
   }
 
   //sys_sem_signal(&mbox->mutex);
-  //if(( (LwipCntxt*)((mbox->not_empty) -> ctxt) )-> NodeID == 1) printf("return .. .... ..... sys_arch_mbox_fetch\n");
+  //if(( (lwip_context*)((mbox->not_empty) -> ctxt) )-> NodeID == 1) printf("return .. .... ..... sys_arch_mbox_fetch\n");
   return time_needed;
 }
 
@@ -398,15 +398,15 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
 	   	return SYS_ARCH_TIMEOUT;
            }
 	}else{
-	   //printf("sc_core::wait(sem->cond) ... ...%d \n\n", ((LwipCntxt*)(sem->ctxt)) -> NodeID);
+	   //printf("sc_core::wait(sem->cond) ... ...%d \n\n", ((lwip_context*)(sem->ctxt)) -> NodeID);
 	   sc_core::wait(sem->cond);	
-	   //printf("sc_core::wait(sem->cond) --- ---%d \n\n", ((LwipCntxt*)(sem->ctxt)) -> NodeID);
+	   //printf("sc_core::wait(sem->cond) --- ---%d \n\n", ((lwip_context*)(sem->ctxt)) -> NodeID);
 	}
 
         (  sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
     
   }
-  //printf("sys_arch_sem_wait after %d ... ...%d %d\n",timeout, ((LwipCntxt*)(sem->ctxt)) -> NodeID, taskID);
+  //printf("sys_arch_sem_wait after %d ... ...%d %d\n",timeout, ((lwip_context*)(sem->ctxt)) -> NodeID, taskID);
   sem->c--;
   //printf("Return timeout %ld\n", time_needed);
   return time_needed;
@@ -419,16 +419,16 @@ void sys_sem_signal(struct sys_sem **s)
   sem = *s;
 
   int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
-  //( (LwipCntxt*)(sem->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
+  //( (lwip_context*)(sem->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
   sem->blocking_task_id = taskID;
 
   sem->c++;
   if (sem->c > 1) {
     sem->c = 1;
   }
-  //( (LwipCntxt*)(sem->ctxt) ) -> os_port->preNotify(taskID, sem->blocked_task_id);
+  //( (lwip_context*)(sem->ctxt) ) -> os_port->preNotify(taskID, sem->blocked_task_id);
   sem->cond.notify(sc_core::SC_ZERO_TIME);
-  //( (LwipCntxt*)(sem->ctxt) ) -> os_port->postNotify(taskID, sem->blocked_task_id);
+  //( (lwip_context*)(sem->ctxt) ) -> os_port->postNotify(taskID, sem->blocked_task_id);
 
 }
 

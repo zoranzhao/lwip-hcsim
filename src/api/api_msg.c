@@ -492,7 +492,7 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
 
   if (newpcb == NULL) {
     /* out-of-pcbs during connect: pass on this error to the application */
-    if (sys_mbox_trypost(&conn->acceptmbox, &(((LwipCntxt*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
+    if (sys_mbox_trypost(&conn->acceptmbox, &(((lwip_context*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
       /* Register event with callback */
       API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
     }
@@ -506,7 +506,7 @@ accept_function(void *arg, struct tcp_pcb *newpcb, err_t err)
   newconn = netconn_alloc(conn->type, conn->callback);
   if (newconn == NULL) {
     /* outof netconns: pass on this error to the application */
-    if (sys_mbox_trypost(&conn->acceptmbox, &(((LwipCntxt*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
+    if (sys_mbox_trypost(&conn->acceptmbox, &(((lwip_context*)ctxt)->netconn_aborted)) == ERR_OK) {//HCSim
       /* Register event with callback */
       API_EVENT(conn, NETCONN_EVT_RCVPLUS, 0);
     }
@@ -800,7 +800,7 @@ netconn_drain(struct netconn *conn)
 #if LWIP_TCP
   if (sys_mbox_valid(&conn->acceptmbox)) {
     while (sys_mbox_tryfetch(&conn->acceptmbox, &mem) != SYS_MBOX_EMPTY) {
-      if (mem != &(((LwipCntxt*)ctxt)->netconn_aborted)) {//HCSim
+      if (mem != &(((lwip_context*)ctxt)->netconn_aborted)) {//HCSim
         struct netconn *newconn = (struct netconn *)mem;
         /* Only tcp pcbs have an acceptmbox, so no need to check conn->type */
         /* pcb might be set to NULL already by err_tcp() */

@@ -1010,7 +1010,7 @@ tcp_output(struct tcp_pcb *pcb)
      code. If so, we do not output anything. Instead, we rely on the
      input processing code to call us when input processing is done
      with. */
-  if ((((LwipCntxt*)ctxt)->tcp_input_pcb) == pcb) {
+  if ((((lwip_context*)ctxt)->tcp_input_pcb) == pcb) {
     return ERR_OK;
   }
 
@@ -1258,7 +1258,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
   }
 
   if (pcb->rttest == 0) {
-    pcb->rttest = (((LwipCntxt*)ctxt)->tcp_ticks);
+    pcb->rttest = (((lwip_context*)ctxt)->tcp_ticks);
     pcb->rtseq = lwip_ntohl(seg->tcphdr->seqno);
 
     LWIP_DEBUGF(TCP_RTO_DEBUG, ("tcp_output_segment: rtseq %" U32_F"\n", pcb->rtseq));
@@ -1548,7 +1548,7 @@ tcp_keepalive(struct tcp_pcb *pcb)
   LWIP_DEBUGF(TCP_DEBUG, ("\n"));
 
   LWIP_DEBUGF(TCP_DEBUG, ("tcp_keepalive: tcp_ticks %" U32_F"   pcb->tmr %" U32_F" pcb->keep_cnt_sent %" U16_F"\n",
-                          (((LwipCntxt*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
+                          (((lwip_context*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
 
   p = tcp_output_alloc_header(pcb, 0, 0, lwip_htonl(pcb->snd_nxt - 1));
   if (p == NULL) {
@@ -1612,7 +1612,7 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
   LWIP_DEBUGF(TCP_DEBUG,
               ("tcp_zero_window_probe: tcp_ticks %" U32_F
                "   pcb->tmr %" U32_F" pcb->keep_cnt_sent %" U16_F"\n",
-               (((LwipCntxt*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
+               (((lwip_context*)ctxt)->tcp_ticks), pcb->tmr, (u16_t)pcb->keep_cnt_sent));
 
   seg = pcb->unacked;
 

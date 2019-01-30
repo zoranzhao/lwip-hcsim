@@ -348,7 +348,7 @@ extern struct tcp_pcb ** const tcp_pcb_lists[NUM_TCP_PCB_LISTS];
         tcp_tmp_pcb = tcp_tmp_pcb->next) { \
                                 LWIP_ASSERT("TCP_REG: already registered\n", tcp_tmp_pcb != (npcb)); \
                             } \
-                            LWIP_ASSERT("TCP_REG: pcb->state != CLOSED", ((pcbs) == &(((LwipCntxt*)ctxt)->tcp_bound_pcbs)) || ((npcb)->state != CLOSED)); \
+                            LWIP_ASSERT("TCP_REG: pcb->state != CLOSED", ((pcbs) == &(((lwip_context*)ctxt)->tcp_bound_pcbs)) || ((npcb)->state != CLOSED)); \
                             (npcb)->next = *(pcbs); \
                             LWIP_ASSERT("TCP_REG: npcb->next != npcb", (npcb)->next != (npcb)); \
                             *(pcbs) = (npcb); \
@@ -404,20 +404,20 @@ extern struct tcp_pcb ** const tcp_pcb_lists[NUM_TCP_PCB_LISTS];
 
 #define TCP_REG_ACTIVE(npcb)                       \
   do {                                             \
-    TCP_REG(&(((LwipCntxt*)ctxt)->tcp_active_pcbs), npcb);               \
-    (((LwipCntxt*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
+    TCP_REG(&(((lwip_context*)ctxt)->tcp_active_pcbs), npcb);               \
+    (((lwip_context*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
   } while (0)
 
 #define TCP_RMV_ACTIVE(npcb)                       \
   do {                                             \
-    TCP_RMV(&(((LwipCntxt*)ctxt)->tcp_active_pcbs), npcb);               \
-    (((LwipCntxt*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
+    TCP_RMV(&(((lwip_context*)ctxt)->tcp_active_pcbs), npcb);               \
+    (((lwip_context*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
   } while (0)
 
 #define TCP_PCB_REMOVE_ACTIVE(pcb)                 \
   do {                                             \
-    tcp_pcb_remove(&(((LwipCntxt*)ctxt)->tcp_active_pcbs), pcb);         \
-    (((LwipCntxt*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
+    tcp_pcb_remove(&(((lwip_context*)ctxt)->tcp_active_pcbs), pcb);         \
+    (((lwip_context*)ctxt)->tcp_active_pcbs_changed) = 1;                   \
   } while (0)
 
 

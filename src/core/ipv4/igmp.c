@@ -459,7 +459,7 @@ igmp_joingroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
   LWIP_ERROR("igmp_joingroup: attempt to join allsystems address", (!ip4_addr_cmp(groupaddr, &allsystems)), return ERR_VAL;);
 
   /* loop through netif's */
-  netif =  (((LwipCntxt*)ctxt)->netif_list);
+  netif =  (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we join this interface ? */
     if ((netif->flags & NETIF_FLAG_IGMP) && ((ip4_addr_isany(ifaddr) || ip4_addr_cmp(netif_ip4_addr(netif), ifaddr)))) {
@@ -557,7 +557,7 @@ igmp_leavegroup(const ip4_addr_t *ifaddr, const ip4_addr_t *groupaddr)
   LWIP_ERROR("igmp_leavegroup: attempt to leave allsystems address", (!ip4_addr_cmp(groupaddr, &allsystems)), return ERR_VAL;);
 
   /* loop through netif's */
-  netif = (((LwipCntxt*)ctxt)->netif_list);
+  netif = (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we leave this interface ? */
     if ((netif->flags & NETIF_FLAG_IGMP) && ((ip4_addr_isany(ifaddr) || ip4_addr_cmp(netif_ip4_addr(netif), ifaddr)))) {
@@ -645,7 +645,7 @@ igmp_tmr(void)
 {
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
-  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
+  struct netif *netif = (((lwip_context*)ctxt)->netif_list);
 
   while (netif != NULL) {
     struct igmp_group *group = netif_igmp_data(netif);

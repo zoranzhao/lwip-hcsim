@@ -216,7 +216,7 @@ struct lowpan6_ieee802154_data {
 
 
 
-class LwipCntxt {
+class lwip_context {
   public:
 
    //The destination node ID for MAC address forwarding
@@ -383,7 +383,7 @@ class LwipCntxt {
 	//#include "lwip/priv/memp_std.h"
 	//};
 
-  LwipCntxt(): ip_data(), inseg(), netif(){
+  lwip_context(): ip_data(), inseg(), netif(){
 
         DestNodeID = -1;
    	CntxtID = 0;
@@ -506,7 +506,7 @@ class LwipCntxt {
 #endif
   }
 
-  ~LwipCntxt(){
+  ~lwip_context(){
 
 
   }

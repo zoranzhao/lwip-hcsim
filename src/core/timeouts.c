@@ -132,12 +132,12 @@ tcpip_tcp_timer(void *arg)
   /* call TCP timer handler */
   tcp_tmr();
   /* timer still needed? */
-  if ((((LwipCntxt*)ctxt)->tcp_active_pcbs) || (((LwipCntxt*)ctxt)->tcp_tw_pcbs)) {
+  if ((((lwip_context*)ctxt)->tcp_active_pcbs) || (((lwip_context*)ctxt)->tcp_tw_pcbs)) {
     /* restart timer */
     sys_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
   } else {
     /* disable timer */
-    (((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) = 0;
+    (((lwip_context*)ctxt)->tcpip_tcp_timer_active) = 0;
   }
 }
 
@@ -152,9 +152,9 @@ tcp_timer_needed(void)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* timer is off but needed again? */
-  if (!(((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) && ((((LwipCntxt*)ctxt)->tcp_active_pcbs) || (((LwipCntxt*)ctxt)->tcp_tw_pcbs))) {
+  if (!(((lwip_context*)ctxt)->tcpip_tcp_timer_active) && ((((lwip_context*)ctxt)->tcp_active_pcbs) || (((lwip_context*)ctxt)->tcp_tw_pcbs))) {
     /* enable and start timer */
-    (((LwipCntxt*)ctxt)->tcpip_tcp_timer_active) = 1;
+    (((lwip_context*)ctxt)->tcpip_tcp_timer_active) = 1;
     sys_timeout(TCP_TMR_INTERVAL, tcpip_tcp_timer, NULL);
   }
 }
@@ -191,7 +191,7 @@ void sys_timeouts_init(void)
   }
 
   /* Initialise timestamp for sys_check_timeouts */
-  (((LwipCntxt*)ctxt)->timeouts_last_time) = sys_now();
+  (((lwip_context*)ctxt)->timeouts_last_time) = sys_now();
 }
 
 /**
@@ -225,11 +225,11 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
   }
 
   now = sys_now();
-  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
+  if ((((lwip_context*)ctxt)->next_timeout) == NULL) {
     diff = 0;
-    (((LwipCntxt*)ctxt)->timeouts_last_time) = now;
+    (((lwip_context*)ctxt)->timeouts_last_time) = now;
   } else {
-    diff = now - (((LwipCntxt*)ctxt)->timeouts_last_time);
+    diff = now - (((lwip_context*)ctxt)->timeouts_last_time);
   }
 
   timeout->next = NULL;
@@ -242,17 +242,17 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
     (void *)timeout, msecs, handler_name, (void *)arg));
 #endif /* LWIP_DEBUG_TIMERNAMES */
 
-  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
-    (((LwipCntxt*)ctxt)->next_timeout) = timeout;
+  if ((((lwip_context*)ctxt)->next_timeout) == NULL) {
+    (((lwip_context*)ctxt)->next_timeout) = timeout;
     return;
   }
 
-  if ((((LwipCntxt*)ctxt)->next_timeout)->time > msecs) {
-    (((LwipCntxt*)ctxt)->next_timeout)->time -= msecs;
-    timeout->next = (((LwipCntxt*)ctxt)->next_timeout);
-    (((LwipCntxt*)ctxt)->next_timeout) = timeout;
+  if ((((lwip_context*)ctxt)->next_timeout)->time > msecs) {
+    (((lwip_context*)ctxt)->next_timeout)->time -= msecs;
+    timeout->next = (((lwip_context*)ctxt)->next_timeout);
+    (((lwip_context*)ctxt)->next_timeout) = timeout;
   } else {
-    for (t = (((LwipCntxt*)ctxt)->next_timeout); t != NULL; t = t->next) {
+    for (t = (((lwip_context*)ctxt)->next_timeout); t != NULL; t = t->next) {
       timeout->time -= t->time;
       if (t->next == NULL || t->next->time > timeout->time) {
         if (t->next != NULL) {
@@ -262,7 +262,7 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
              This can be due to sys_check_timeouts() not being called at the right
              times, but also when stopping in a breakpoint. Anyway, let's assume
              this is not wanted, so add the first timer's time instead of 'diff' */
-          timeout->time = msecs + (((LwipCntxt*)ctxt)->next_timeout)->time;
+          timeout->time = msecs + (((lwip_context*)ctxt)->next_timeout)->time;
         }
         timeout->next = t->next;
         t->next = timeout;
@@ -287,16 +287,16 @@ sys_untimeout(sys_timeout_handler handler, void *arg)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
-  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
+  if ((((lwip_context*)ctxt)->next_timeout) == NULL) {
     return;
   }
 
-  for (t = (((LwipCntxt*)ctxt)->next_timeout), prev_t = NULL; t != NULL; prev_t = t, t = t->next) {
+  for (t = (((lwip_context*)ctxt)->next_timeout), prev_t = NULL; t != NULL; prev_t = t, t = t->next) {
     if ((t->h == handler) && (t->arg == arg)) {
       /* We have a match */
       /* Unlink from previous in list */
       if (prev_t == NULL) {
-        (((LwipCntxt*)ctxt)->next_timeout) = t->next;
+        (((lwip_context*)ctxt)->next_timeout) = t->next;
       } else {
         prev_t->next = t->next;
       }
@@ -328,7 +328,7 @@ sys_check_timeouts(void)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
-  if ((((LwipCntxt*)ctxt)->next_timeout)) {
+  if ((((lwip_context*)ctxt)->next_timeout)) {
     struct sys_timeo *tmptimeout;
     u32_t diff;
     sys_timeout_handler handler;
@@ -338,17 +338,17 @@ sys_check_timeouts(void)
 
     now = sys_now();
     /* this cares for wraparounds */
-    diff = now - (((LwipCntxt*)ctxt)->timeouts_last_time);
+    diff = now - (((lwip_context*)ctxt)->timeouts_last_time);
     do {
       PBUF_CHECK_FREE_OOSEQ();
       had_one = 0;
-      tmptimeout = (((LwipCntxt*)ctxt)->next_timeout);
+      tmptimeout = (((lwip_context*)ctxt)->next_timeout);
       if (tmptimeout && (tmptimeout->time <= diff)) {
         /* timeout has expired */
         had_one = 1;
-        (((LwipCntxt*)ctxt)->timeouts_last_time) += tmptimeout->time;
+        (((lwip_context*)ctxt)->timeouts_last_time) += tmptimeout->time;
         diff -= tmptimeout->time;
-        (((LwipCntxt*)ctxt)->next_timeout) = tmptimeout->next;
+        (((lwip_context*)ctxt)->next_timeout) = tmptimeout->next;
         handler = tmptimeout->h;
         arg = tmptimeout->arg;
 #if LWIP_DEBUG_TIMERNAMES
@@ -387,7 +387,7 @@ sys_restart_timeouts(void)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
-  (((LwipCntxt*)ctxt)->timeouts_last_time) = sys_now();
+  (((lwip_context*)ctxt)->timeouts_last_time) = sys_now();
 }
 
 /** Return the time left before the next timeout is due. If no timeouts are
@@ -402,14 +402,14 @@ sys_timeouts_sleeptime(void)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   u32_t diff;
-  if ((((LwipCntxt*)ctxt)->next_timeout) == NULL) {
+  if ((((lwip_context*)ctxt)->next_timeout) == NULL) {
     return 0xffffffff;
   }
-  diff = sys_now() - (((LwipCntxt*)ctxt)->timeouts_last_time);
-  if (diff > (((LwipCntxt*)ctxt)->next_timeout)->time) {
+  diff = sys_now() - (((lwip_context*)ctxt)->timeouts_last_time);
+  if (diff > (((lwip_context*)ctxt)->next_timeout)->time) {
     return 0;
   } else {
-    return (((LwipCntxt*)ctxt)->next_timeout)->time - diff;
+    return (((lwip_context*)ctxt)->next_timeout)->time - diff;
   }
 }
 
@@ -430,7 +430,7 @@ sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
 again:
-  if (!(((LwipCntxt*)ctxt)->next_timeout)) {
+  if (!(((lwip_context*)ctxt)->next_timeout)) {
     sys_arch_mbox_fetch(mbox, msg, 0);
     return;
   }

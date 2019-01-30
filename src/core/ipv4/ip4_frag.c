@@ -130,7 +130,7 @@ ip_reass_tmr(void)
   struct ip_reassdata *r, *prev = NULL;
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
-  r = (((LwipCntxt*)ctxt)->reassdatagrams);
+  r = (((lwip_context*)ctxt)->reassdatagrams);
   while (r != NULL) {
     /* Decrement the timer. Once it reaches 0,
      * clean up the incomplete fragment assembly */
@@ -210,8 +210,8 @@ ip_reass_free_complete_datagram(struct ip_reassdata *ipr, struct ip_reassdata *p
   }
   /* Then, unchain the struct ip_reassdata from the list and free it. */
   ip_reass_dequeue_datagram(ipr, prev);
-  LWIP_ASSERT("ip_reass_pbufcount >= clen", (((LwipCntxt*)ctxt)->ip_reass_pbufcount) >= pbufs_freed);
-  (((LwipCntxt*)ctxt)->ip_reass_pbufcount) -= pbufs_freed;
+  LWIP_ASSERT("ip_reass_pbufcount >= clen", (((lwip_context*)ctxt)->ip_reass_pbufcount) >= pbufs_freed);
+  (((lwip_context*)ctxt)->ip_reass_pbufcount) -= pbufs_freed;
 
   return pbufs_freed;
 }
@@ -244,7 +244,7 @@ ip_reass_remove_oldest_datagram(struct ip_hdr *fraghdr, int pbufs_needed)
     prev = NULL;
     oldest_prev = NULL;
     other_datagrams = 0;
-    r = (((LwipCntxt*)ctxt)->reassdatagrams);
+    r = (((lwip_context*)ctxt)->reassdatagrams);
     while (r != NULL) {
       if (!IP_ADDRESSES_AND_ID_MATCH(&r->iphdr, fraghdr)) {
         /* Not the same datagram as fraghdr */
@@ -306,8 +306,8 @@ ip_reass_enqueue_new_datagram(struct ip_hdr *fraghdr, int clen)
   ipr->timer = IP_REASS_MAXAGE;
 
   /* enqueue the new structure to the front of the list */
-  ipr->next = (((LwipCntxt*)ctxt)->reassdatagrams);
-  (((LwipCntxt*)ctxt)->reassdatagrams) = ipr;
+  ipr->next = (((lwip_context*)ctxt)->reassdatagrams);
+  (((lwip_context*)ctxt)->reassdatagrams) = ipr;
   /* copy the ip header for later tests and input */
   /* @todo: no ip options supported? */
   SMEMCPY(&(ipr->iphdr), fraghdr, IP_HLEN);
@@ -324,9 +324,9 @@ ip_reass_dequeue_datagram(struct ip_reassdata *ipr, struct ip_reassdata *prev)
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   /* dequeue the reass struct  */
-  if ((((LwipCntxt*)ctxt)->reassdatagrams) == ipr) {
+  if ((((lwip_context*)ctxt)->reassdatagrams) == ipr) {
     /* it was the first in the list */
-    (((LwipCntxt*)ctxt)->reassdatagrams) = ipr->next;
+    (((lwip_context*)ctxt)->reassdatagrams) = ipr->next;
   } else {
     /* it wasn't the first, so it must have a valid 'prev' */
     LWIP_ASSERT("sanity check linked list", prev != NULL);
@@ -492,7 +492,7 @@ ip_reass_chain_frag_into_datagram_and_validate(struct ip_reassdata *ipr, struct 
   return IP_REASS_VALIDATE_PBUF_QUEUED; /* not yet valid! */
 #if IP_REASS_CHECK_OVERLAP
 freepbuf:
-  (((LwipCntxt*)ctxt)->ip_reass_pbufcount) -= pbuf_clen(new_p);
+  (((lwip_context*)ctxt)->ip_reass_pbufcount) -= pbuf_clen(new_p);
   pbuf_free(new_p);
   return IP_REASS_VALIDATE_PBUF_DROPPED;
 #endif /* IP_REASS_CHECK_OVERLAP */
@@ -533,15 +533,15 @@ ip4_reass(struct pbuf *p)
 
   /* Check if we are allowed to enqueue more datagrams. */
   clen = pbuf_clen(p);
-  if (((((LwipCntxt*)ctxt)->ip_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS) {
+  if (((((lwip_context*)ctxt)->ip_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS) {
 #if IP_REASS_FREE_OLDEST
     if (!ip_reass_remove_oldest_datagram(fraghdr, clen) ||
-        (((((LwipCntxt*)ctxt)->ip_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS))
+        (((((lwip_context*)ctxt)->ip_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS))
 #endif /* IP_REASS_FREE_OLDEST */
     {
       /* No datagram could be freed and still too many pbufs enqueued */
       LWIP_DEBUGF(IP_REASS_DEBUG,("ip4_reass: Overflow condition: pbufct=%d, clen=%d, MAX=%d\n",
-        (((LwipCntxt*)ctxt)->ip_reass_pbufcount), clen, IP_REASS_MAX_PBUFS));
+        (((lwip_context*)ctxt)->ip_reass_pbufcount), clen, IP_REASS_MAX_PBUFS));
       IPFRAG_STATS_INC(ip_frag.memerr);
       /* @todo: send ICMP time exceeded here? */
       /* drop this pbuf */
@@ -551,7 +551,7 @@ ip4_reass(struct pbuf *p)
 
   /* Look for the datagram the fragment belongs to in the current datagram queue,
    * remembering the previous in the queue for later dequeueing. */
-  for (ipr = (((LwipCntxt*)ctxt)->reassdatagrams); ipr != NULL; ipr = ipr->next) {
+  for (ipr = (((lwip_context*)ctxt)->reassdatagrams); ipr != NULL; ipr = ipr->next) {
     /* Check if the incoming fragment matches the one currently present
        in the reassembly buffer. If so, we proceed with copying the
        fragment into the buffer. */
@@ -604,7 +604,7 @@ ip4_reass(struct pbuf *p)
   /* Track the current number of pbufs current 'in-flight', in order to limit
      the number of fragments that may be enqueued at any one time
      (overflow checked by testing against IP_REASS_MAX_PBUFS) */
-  (((LwipCntxt*)ctxt)->ip_reass_pbufcount) = (u16_t)((((LwipCntxt*)ctxt)->ip_reass_pbufcount) + clen);
+  (((lwip_context*)ctxt)->ip_reass_pbufcount) = (u16_t)((((lwip_context*)ctxt)->ip_reass_pbufcount) + clen);
   if (is_last) {
     u16_t datagram_len = (u16_t)(offset + len);
     ipr->datagram_len = datagram_len;
@@ -649,10 +649,10 @@ ip4_reass(struct pbuf *p)
     }
 
     /* find the previous entry in the linked list */
-    if (ipr == (((LwipCntxt*)ctxt)->reassdatagrams)) {
+    if (ipr == (((lwip_context*)ctxt)->reassdatagrams)) {
       ipr_prev = NULL;
     } else {
-      for (ipr_prev = (((LwipCntxt*)ctxt)->reassdatagrams); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
+      for (ipr_prev = (((lwip_context*)ctxt)->reassdatagrams); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
         if (ipr_prev->next == ipr) {
           break;
         }
@@ -663,7 +663,7 @@ ip4_reass(struct pbuf *p)
     ip_reass_dequeue_datagram(ipr, ipr_prev);
 
     /* and adjust the number of pbufs currently queued for reassembly. */
-    (((LwipCntxt*)ctxt)->ip_reass_pbufcount) -= pbuf_clen(p);
+    (((lwip_context*)ctxt)->ip_reass_pbufcount) -= pbuf_clen(p);
 
     MIB2_STATS_INC(mib2.ipreasmoks);
 
@@ -671,7 +671,7 @@ ip4_reass(struct pbuf *p)
     return p;
   }
   /* the datagram is not (yet?) reassembled completely */
-  LWIP_DEBUGF(IP_REASS_DEBUG,("ip_reass_pbufcount: %d out\n", (((LwipCntxt*)ctxt)->ip_reass_pbufcount)));
+  LWIP_DEBUGF(IP_REASS_DEBUG,("ip_reass_pbufcount: %d out\n", (((lwip_context*)ctxt)->ip_reass_pbufcount)));
   return NULL;
 
 nullreturn:

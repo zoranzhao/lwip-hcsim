@@ -119,7 +119,7 @@ ip6_reass_tmr(void)
     sizeof(struct ip6_reass_helper) <= IP6_FRAG_HLEN);
 #endif /* !IPV6_FRAG_COPYHEADER */
 
-  r = (((LwipCntxt*)ctxt)->reassdatagrams6);
+  r = (((lwip_context*)ctxt)->reassdatagrams6);
   while (r != NULL) {
     /* Decrement the timer. Once it reaches 0,
      * clean up the incomplete fragment assembly */
@@ -192,10 +192,10 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   }
 
   /* Then, unchain the struct ip6_reassdata from the list and free it. */
-  if (ipr == (((LwipCntxt*)ctxt)->reassdatagrams6)) {
-    (((LwipCntxt*)ctxt)->reassdatagrams6) = ipr->next;
+  if (ipr == (((lwip_context*)ctxt)->reassdatagrams6)) {
+    (((lwip_context*)ctxt)->reassdatagrams6) = ipr->next;
   } else {
-    prev = (((LwipCntxt*)ctxt)->reassdatagrams6);
+    prev = (((lwip_context*)ctxt)->reassdatagrams6);
     while (prev != NULL) {
       if (prev->next == ipr) {
         break;
@@ -209,8 +209,8 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   memp_free(MEMP_IP6_REASSDATA, ipr);
 
   /* Finally, update number of pbufs in reassembly queue */
-  LWIP_ASSERT("ip_reass_pbufcount >= clen", (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) >= pbufs_freed);
-  (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) -= pbufs_freed;
+  LWIP_ASSERT("ip_reass_pbufcount >= clen", (((lwip_context*)ctxt)->ip6_reass_pbufcount) >= pbufs_freed);
+  (((lwip_context*)ctxt)->ip6_reass_pbufcount) -= pbufs_freed;
 }
 
 #if IP_REASS_FREE_OLDEST
@@ -231,7 +231,7 @@ ip6_reass_remove_oldest_datagram(struct ip6_reassdata *ipr, int pbufs_needed)
   /* Free datagrams until being allowed to enqueue 'pbufs_needed' pbufs,
    * but don't free the current datagram! */
   do {
-    r = oldest = (((LwipCntxt*)ctxt)->reassdatagrams6);
+    r = oldest = (((lwip_context*)ctxt)->reassdatagrams6);
     while (r != NULL) {
       if (r != ipr) {
         if (r->timer <= oldest->timer) {
@@ -248,7 +248,7 @@ ip6_reass_remove_oldest_datagram(struct ip6_reassdata *ipr, int pbufs_needed)
     if (oldest != NULL) {
       ip6_reass_free_complete_datagram(oldest);
     }
-  } while ((((((LwipCntxt*)ctxt)->ip6_reass_pbufcount) + pbufs_needed) > IP_REASS_MAX_PBUFS) && ((((LwipCntxt*)ctxt)->reassdatagrams6) != NULL));
+  } while ((((((lwip_context*)ctxt)->ip6_reass_pbufcount) + pbufs_needed) > IP_REASS_MAX_PBUFS) && ((((lwip_context*)ctxt)->reassdatagrams6) != NULL));
 }
 #endif /* IP_REASS_FREE_OLDEST */
 
@@ -297,7 +297,7 @@ ip6_reass(struct pbuf *p)
 
   /* Look for the datagram the fragment belongs to in the current datagram queue,
    * remembering the previous in the queue for later dequeueing. */
-  for (ipr = (((LwipCntxt*)ctxt)->reassdatagrams6), ipr_prev = NULL; ipr != NULL; ipr = ipr->next) {
+  for (ipr = (((lwip_context*)ctxt)->reassdatagrams6), ipr_prev = NULL; ipr != NULL; ipr = ipr->next) {
     /* Check if the incoming fragment matches the one currently present
        in the reassembly buffer. If so, we proceed with copying the
        fragment into the buffer. */
@@ -320,7 +320,7 @@ ip6_reass(struct pbuf *p)
       ipr = (struct ip6_reassdata *)memp_malloc(MEMP_IP6_REASSDATA);
       if (ipr != NULL) {
         /* re-search ipr_prev since it might have been removed */
-        for (ipr_prev = (((LwipCntxt*)ctxt)->reassdatagrams6); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
+        for (ipr_prev = (((lwip_context*)ctxt)->reassdatagrams6); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
           if (ipr_prev->next == ipr) {
             break;
           }
@@ -338,8 +338,8 @@ ip6_reass(struct pbuf *p)
     ipr->timer = IP_REASS_MAXAGE;
 
     /* enqueue the new structure to the front of the list */
-    ipr->next = (((LwipCntxt*)ctxt)->reassdatagrams6);
-    (((LwipCntxt*)ctxt)->reassdatagrams6) = ipr;
+    ipr->next = (((lwip_context*)ctxt)->reassdatagrams6);
+    (((lwip_context*)ctxt)->reassdatagrams6) = ipr;
 
     /* Use the current IPv6 header for src/dest address reference.
      * Eventually, we will replace it when we get the first fragment
@@ -348,7 +348,7 @@ ip6_reass(struct pbuf *p)
     MEMCPY(&ipr->iphdr, ip6_current_header(), IP6_HLEN);
 #else /* IPV6_FRAG_COPYHEADER */
     /* need to use the none-const pointer here: */
-    ipr->iphdr = (((LwipCntxt*)ctxt)->ip_data).current_ip6_header;
+    ipr->iphdr = (((lwip_context*)ctxt)->ip_data).current_ip6_header;
 #endif /* IPV6_FRAG_COPYHEADER */
 
     /* copy the fragmented packet id. */
@@ -359,12 +359,12 @@ ip6_reass(struct pbuf *p)
   }
 
   /* Check if we are allowed to enqueue more datagrams. */
-  if (((((LwipCntxt*)ctxt)->ip6_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS) {
+  if (((((lwip_context*)ctxt)->ip6_reass_pbufcount) + clen) > IP_REASS_MAX_PBUFS) {
 #if IP_REASS_FREE_OLDEST
     ip6_reass_remove_oldest_datagram(ipr, clen);
-    if (((((LwipCntxt*)ctxt)->ip6_reass_pbufcount) + clen) <= IP_REASS_MAX_PBUFS) {
+    if (((((lwip_context*)ctxt)->ip6_reass_pbufcount) + clen) <= IP_REASS_MAX_PBUFS) {
       /* re-search ipr_prev since it might have been removed */
-      for (ipr_prev = (((LwipCntxt*)ctxt)->reassdatagrams6); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
+      for (ipr_prev = (((lwip_context*)ctxt)->reassdatagrams6); ipr_prev != NULL; ipr_prev = ipr_prev->next) {
         if (ipr_prev->next == ipr) {
           break;
         }
@@ -479,7 +479,7 @@ ip6_reass(struct pbuf *p)
 
   /* Track the current number of pbufs current 'in-flight', in order to limit
   the number of fragments that may be enqueued at any one time */
-  (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) += clen;
+  (((lwip_context*)ctxt)->ip6_reass_pbufcount) += clen;
 
   /* Remember IPv6 header if this is the first fragment. */
   if (iprh->start == 0) {
@@ -489,7 +489,7 @@ ip6_reass(struct pbuf *p)
     }
 #else /* IPV6_FRAG_COPYHEADER */
     /* need to use the none-const pointer here: */
-    ipr->iphdr = (((LwipCntxt*)ctxt)->ip_data).current_ip6_header;
+    ipr->iphdr = (((lwip_context*)ctxt)->ip_data).current_ip6_header;
 #endif /* IPV6_FRAG_COPYHEADER */
   }
 
@@ -584,9 +584,9 @@ ip6_reass(struct pbuf *p)
     frag_hdr->_identification = 0;
 
     /* release the sources allocate for the fragment queue entry */
-    if ((((LwipCntxt*)ctxt)->reassdatagrams6) == ipr) {
+    if ((((lwip_context*)ctxt)->reassdatagrams6) == ipr) {
       /* it was the first in the list */
-      (((LwipCntxt*)ctxt)->reassdatagrams6) = ipr->next;
+      (((lwip_context*)ctxt)->reassdatagrams6) = ipr->next;
     } else {
       /* it wasn't the first, so it must have a valid 'prev' */
       LWIP_ASSERT("sanity check linked list", ipr_prev != NULL);
@@ -595,7 +595,7 @@ ip6_reass(struct pbuf *p)
     memp_free(MEMP_IP6_REASSDATA, ipr);
 
     /* adjust the number of pbufs currently queued for reassembly. */
-    (((LwipCntxt*)ctxt)->ip6_reass_pbufcount) -= pbuf_clen(p);
+    (((lwip_context*)ctxt)->ip6_reass_pbufcount) -= pbuf_clen(p);
 
     /* Move pbuf back to IPv6 header.
        This cannot fail since we already checked when receiving this fragment. */

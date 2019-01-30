@@ -360,7 +360,7 @@ get_socket(int s)
     return NULL;
   }
 
-  sock = &(((LwipCntxt*)ctxt)->sockets)[s];//HCSim
+  sock = &(((lwip_context*)ctxt)->sockets)[s];//HCSim
 
   if (!sock->conn) {
     LWIP_DEBUGF(SOCKETS_DEBUG, ("get_socket(%d): not active\n", s + LWIP_SOCKET_OFFSET));
@@ -386,10 +386,10 @@ tryget_socket(int s)
   if ((s < 0) || (s >= NUM_SOCKETS)) {
     return NULL;
   }
-  if (!(((LwipCntxt*)ctxt)->sockets)[s].conn) {//HCSim
+  if (!(((lwip_context*)ctxt)->sockets)[s].conn) {//HCSim
     return NULL;
   }
-  return &(((LwipCntxt*)ctxt)->sockets)[s];//HCSim
+  return &(((lwip_context*)ctxt)->sockets)[s];//HCSim
 }
 
 /**
@@ -411,19 +411,19 @@ alloc_socket(struct netconn *newconn, int accepted)
   for (i = 0; i < NUM_SOCKETS; ++i) {
     /* Protect socket array */
     SYS_ARCH_PROTECT(lev);
-    if (!(((LwipCntxt*)ctxt)->sockets)[i].conn && ((((LwipCntxt*)ctxt)->sockets)[i].select_waiting == 0)) {//HCSim
-      (((LwipCntxt*)ctxt)->sockets)[i].conn       = newconn;//HCSim
+    if (!(((lwip_context*)ctxt)->sockets)[i].conn && ((((lwip_context*)ctxt)->sockets)[i].select_waiting == 0)) {//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].conn       = newconn;//HCSim
       /* The socket is not yet known to anyone, so no need to protect
          after having marked it as used. */
       SYS_ARCH_UNPROTECT(lev);
-      (((LwipCntxt*)ctxt)->sockets)[i].lastdata   = NULL;//HCSim
-      (((LwipCntxt*)ctxt)->sockets)[i].lastoffset = 0;//HCSim
-      (((LwipCntxt*)ctxt)->sockets)[i].rcvevent   = 0;//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].lastdata   = NULL;//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].lastoffset = 0;//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].rcvevent   = 0;//HCSim
       /* TCP sendbuf is empty, but the socket is not yet writable until connected
        * (unless it has been created by accept()). */
-      (((LwipCntxt*)ctxt)->sockets)[i].sendevent  = (NETCONNTYPE_GROUP(newconn->type) == NETCONN_TCP ? (accepted != 0) : 1);//HCSim
-      (((LwipCntxt*)ctxt)->sockets)[i].errevent   = 0;//HCSim
-      (((LwipCntxt*)ctxt)->sockets)[i].err        = 0;//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].sendevent  = (NETCONNTYPE_GROUP(newconn->type) == NETCONN_TCP ? (accepted != 0) : 1);//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].errevent   = 0;//HCSim
+      (((lwip_context*)ctxt)->sockets)[i].err        = 0;//HCSim
       return i + LWIP_SOCKET_OFFSET;
     }
     SYS_ARCH_UNPROTECT(lev);
@@ -515,7 +515,7 @@ lwip_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
   }
   LWIP_ASSERT("invalid socket index", (newsock >= LWIP_SOCKET_OFFSET) && (newsock < NUM_SOCKETS + LWIP_SOCKET_OFFSET));
   LWIP_ASSERT("newconn->callback == event_callback", newconn->callback == event_callback);
-  nsock = &(((LwipCntxt*)ctxt)->sockets)[newsock - LWIP_SOCKET_OFFSET];//HCSim
+  nsock = &(((lwip_context*)ctxt)->sockets)[newsock - LWIP_SOCKET_OFFSET];//HCSim
 
   /* See event_callback: If data comes in right away after an accept, even
    * though the server task might not have created a new socket yet.
@@ -1436,13 +1436,13 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
     SYS_ARCH_PROTECT(lev);
 
     /* Put this select_cb on top of list */
-    select_cb.next = (((LwipCntxt*)ctxt)->select_cb_list);//HCSim
-    if ((((LwipCntxt*)ctxt)->select_cb_list) != NULL) {//HCSim
-      (((LwipCntxt*)ctxt)->select_cb_list)->prev = &select_cb;//HCSim
+    select_cb.next = (((lwip_context*)ctxt)->select_cb_list);//HCSim
+    if ((((lwip_context*)ctxt)->select_cb_list) != NULL) {//HCSim
+      (((lwip_context*)ctxt)->select_cb_list)->prev = &select_cb;//HCSim
     }
-    (((LwipCntxt*)ctxt)->select_cb_list) = &select_cb;//HCSim
+    (((lwip_context*)ctxt)->select_cb_list) = &select_cb;//HCSim
     /* Increasing this counter tells event_callback that the list has changed. */
-    (((LwipCntxt*)ctxt)->select_cb_ctr)++;//HCSim
+    (((lwip_context*)ctxt)->select_cb_ctr)++;//HCSim
 
     /* Now we can safely unprotect */
     SYS_ARCH_UNPROTECT(lev);
@@ -1520,15 +1520,15 @@ lwip_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
     if (select_cb.next != NULL) {
       select_cb.next->prev = select_cb.prev;
     }
-    if ((((LwipCntxt*)ctxt)->select_cb_list) == &select_cb) {//HCSim
+    if ((((lwip_context*)ctxt)->select_cb_list) == &select_cb) {//HCSim
       LWIP_ASSERT("select_cb.prev == NULL", select_cb.prev == NULL);
-      (((LwipCntxt*)ctxt)->select_cb_list) = select_cb.next;//HCSim
+      (((lwip_context*)ctxt)->select_cb_list) = select_cb.next;//HCSim
     } else {
       LWIP_ASSERT("select_cb.prev != NULL", select_cb.prev != NULL);
       select_cb.prev->next = select_cb.next;
     }
     /* Increasing this counter tells event_callback that the list has changed. */
-    (((LwipCntxt*)ctxt)->select_cb_ctr)++;//HCSim
+    (((lwip_context*)ctxt)->select_cb_ctr)++;//HCSim
     SYS_ARCH_UNPROTECT(lev);
 
 #if LWIP_NETCONN_SEM_PER_THREAD
@@ -1656,9 +1656,9 @@ event_callback(struct netconn *conn, enum netconn_evt evt, u16_t len)
 
   /* At this point, SYS_ARCH is still protected! */
 again:
-  for (scb = (((LwipCntxt*)ctxt)->select_cb_list); scb != NULL; scb = scb->next) {//HCSim
+  for (scb = (((lwip_context*)ctxt)->select_cb_list); scb != NULL; scb = scb->next) {//HCSim
     /* remember the state of select_cb_list to detect changes */
-    last_select_cb_ctr = (((LwipCntxt*)ctxt)->select_cb_ctr);//HCSim
+    last_select_cb_ctr = (((lwip_context*)ctxt)->select_cb_ctr);//HCSim
     if (scb->sem_signalled == 0) {
       /* semaphore not signalled yet */
       int do_signal = 0;
@@ -1689,7 +1689,7 @@ again:
     SYS_ARCH_UNPROTECT(lev);
     /* this makes sure interrupt protection time is short */
     SYS_ARCH_PROTECT(lev);
-    if (last_select_cb_ctr != (((LwipCntxt*)ctxt)->select_cb_ctr)) {//HCSim
+    if (last_select_cb_ctr != (((lwip_context*)ctxt)->select_cb_ctr)) {//HCSim
       /* someone has changed select_cb_list, restart at the beginning */
       goto again;
     }
@@ -2778,10 +2778,10 @@ lwip_socket_register_membership(int s, const ip4_addr_t *if_addr, const ip4_addr
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if ((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == NULL) {//HCSim
-      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = sock;//HCSim
-      ip4_addr_copy((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, *if_addr);//HCSim
-      ip4_addr_copy((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, *multi_addr);//HCSim
+    if ((((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == NULL) {//HCSim
+      (((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = sock;//HCSim
+      ip4_addr_copy((((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, *if_addr);//HCSim
+      ip4_addr_copy((((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, *multi_addr);//HCSim
       return 1;
     }
   }
@@ -2806,12 +2806,12 @@ lwip_socket_unregister_membership(int s, const ip4_addr_t *if_addr, const ip4_ad
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if (((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) &&//HCSim
-        ip4_addr_cmp(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, if_addr) &&//HCSim
-        ip4_addr_cmp(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, multi_addr)) {//HCSim
-      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
-      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
-      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
+    if (((((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) &&//HCSim
+        ip4_addr_cmp(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr, if_addr) &&//HCSim
+        ip4_addr_cmp(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr, multi_addr)) {//HCSim
+      (((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
+      ip4_addr_set_zero(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      ip4_addr_set_zero(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
       return;
     }
   }
@@ -2834,13 +2834,13 @@ lwip_socket_drop_registered_memberships(int s)
   }
 
   for (i = 0; i < LWIP_SOCKET_MAX_MEMBERSHIPS; i++) {
-    if ((((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) {//HCSim
+    if ((((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock == sock) {//HCSim
       ip_addr_t multi_addr, if_addr;
-      ip_addr_copy_from_ip4(multi_addr, (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
-      ip_addr_copy_from_ip4(if_addr, (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
-      (((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
-      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
-      ip4_addr_set_zero(&(((LwipCntxt*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
+      ip_addr_copy_from_ip4(multi_addr, (((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
+      ip_addr_copy_from_ip4(if_addr, (((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      (((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].sock = NULL;//HCSim
+      ip4_addr_set_zero(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].if_addr);//HCSim
+      ip4_addr_set_zero(&(((lwip_context*)ctxt)->socket_ipv4_multicast_memberships)[i].multi_addr);//HCSim
 
       netconn_join_leave_group(sock->conn, &multi_addr, &if_addr, NETCONN_LEAVE);
     }

@@ -83,12 +83,12 @@ static int server_write(const void *buf, size_t len) {
     int ii;
 /*
     static char this_str[16];
-    ipaddr_ntoa_r( &(((LwipCntxt* )(ctxt))->ipaddr_dest), this_str, 16);
+    ipaddr_ntoa_r( &(((lwip_context* )(ctxt))->ipaddr_dest), this_str, 16);
 
     static char dest_str[16];
     static char src_str[16];
-    ipaddr_ntoa_r( &(((LwipCntxt* )(ctxt))->current_iphdr_dest), dest_str, 16);
-    ipaddr_ntoa_r( &(((LwipCntxt* )(ctxt))->current_iphdr_src), src_str, 16);
+    ipaddr_ntoa_r( &(((lwip_context* )(ctxt))->current_iphdr_dest), dest_str, 16);
+    ipaddr_ntoa_r( &(((lwip_context* )(ctxt))->current_iphdr_src), src_str, 16);
 */
     int taskID =  ( sim_ctxt.getTaskID( sc_core::sc_get_current_process_handle() ));
     ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetSize(len, taskID);
@@ -188,7 +188,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
   char buf[1514];
   char *bufptr;
   struct hcsim_if *hcsim_if;
-//  ((LwipCntxt* )(ctxt));
+//  ((lwip_context* )(ctxt));
 
   hcsim_if = (struct hcsim_if *)netif->state;
 #if 0
@@ -351,7 +351,7 @@ hcsim_if_init(struct netif *netif)
   netif->hwaddr[2] = 0x00;
   netif->hwaddr[3] = 0x00;
   netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 +  (((LwipCntxt*)ctxt)->NodeID);;
+  netif->hwaddr[5] = 0x00 +  (((lwip_context*)ctxt)->NodeID);;
 
 
   netif->hwaddr_len = 6;
@@ -389,7 +389,7 @@ hcsim_if_init_6lowpan(struct netif *netif)
   netif->hwaddr[2] = 0x00;
   netif->hwaddr[3] = 0x00;
   netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 + (((LwipCntxt*)ctxt)->NodeID);;
+  netif->hwaddr[5] = 0x00 + (((lwip_context*)ctxt)->NodeID);;
   netif->hwaddr_len = 6;
   //netif->hwaddr_len = 6;
   //hcsim_if->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);

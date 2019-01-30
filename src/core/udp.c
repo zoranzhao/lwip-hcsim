@@ -89,7 +89,7 @@ udp_init(void)
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND)
-  (((LwipCntxt*)ctxt)->udp_port) = UDP_ENSURE_LOCAL_PORT_RANGE(LWIP_RAND());//HCSim
+  (((lwip_context*)ctxt)->udp_port) = UDP_ENSURE_LOCAL_PORT_RANGE(LWIP_RAND());//HCSim
 #endif /* LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND) */
 }
 
@@ -106,19 +106,19 @@ udp_new_port(void)
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 again:
-  if ((((LwipCntxt*)ctxt)->udp_port)++ == UDP_LOCAL_PORT_RANGE_END) {//HCSim
-    (((LwipCntxt*)ctxt)->udp_port) = UDP_LOCAL_PORT_RANGE_START;//HCSim
+  if ((((lwip_context*)ctxt)->udp_port)++ == UDP_LOCAL_PORT_RANGE_END) {//HCSim
+    (((lwip_context*)ctxt)->udp_port) = UDP_LOCAL_PORT_RANGE_START;//HCSim
   }
   /* Check all PCBs. */
-  for (pcb = (((LwipCntxt*)ctxt)->udp_pcbs); pcb != NULL; pcb = pcb->next) {//HCSim
-    if (pcb->local_port == (((LwipCntxt*)ctxt)->udp_port)) {//HCSim
+  for (pcb = (((lwip_context*)ctxt)->udp_pcbs); pcb != NULL; pcb = pcb->next) {//HCSim
+    if (pcb->local_port == (((lwip_context*)ctxt)->udp_port)) {//HCSim
       if (++n > (UDP_LOCAL_PORT_RANGE_END - UDP_LOCAL_PORT_RANGE_START)) {
         return 0;
       }
       goto again;
     }
   }
-  return (((LwipCntxt*)ctxt)->udp_port);//HCSim
+  return (((lwip_context*)ctxt)->udp_port);//HCSim
 }
 
 /** Common code to see if the current input packet matches the pcb
@@ -244,7 +244,7 @@ udp_input(struct pbuf *p, struct netif *inp)
    * 'Perfect match' pcbs (connected to the remote port & ip address) are
    * preferred. If no perfect match is found, the first unconnected pcb that
    * matches the local port and ip address gets the datagram. */
-  for (pcb = (((LwipCntxt*)ctxt)->udp_pcbs); pcb != NULL; pcb = pcb->next) {//HCSim
+  for (pcb = (((lwip_context*)ctxt)->udp_pcbs); pcb != NULL; pcb = pcb->next) {//HCSim
     /* print the PCB local and remote address */
     LWIP_DEBUGF(UDP_DEBUG, ("pcb ("));
     ip_addr_debug_print(UDP_DEBUG, &pcb->local_ip);
@@ -275,8 +275,8 @@ udp_input(struct pbuf *p, struct netif *inp)
           /* move the pcb to the front of udp_pcbs so that is
              found faster next time */
           prev->next = pcb->next;
-          pcb->next = (((LwipCntxt*)ctxt)->udp_pcbs);//HCSim
-          (((LwipCntxt*)ctxt)->udp_pcbs) = pcb;//HCSim
+          pcb->next = (((lwip_context*)ctxt)->udp_pcbs);//HCSim
+          (((lwip_context*)ctxt)->udp_pcbs) = pcb;//HCSim
         } else {
           UDP_STATS_INC(udp.cachehit);
         }
@@ -363,7 +363,7 @@ udp_input(struct pbuf *p, struct netif *inp)
         struct udp_pcb *mpcb;
         u8_t p_header_changed = 0;
         s16_t hdrs_len = (s16_t)(ip_current_header_tot_len() + UDP_HLEN);
-        for (mpcb = (((LwipCntxt*)ctxt)->udp_pcbs); mpcb != NULL; mpcb = mpcb->next) {//HCSim
+        for (mpcb = (((lwip_context*)ctxt)->udp_pcbs); mpcb != NULL; mpcb = mpcb->next) {//HCSim
           if (mpcb != pcb) {
             /* compare PCB local addr+port to UDP destination addr+port */
             if ((mpcb->local_port == dest) &&
@@ -912,7 +912,7 @@ udp_bind(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
 
   rebind = 0;
   /* Check for double bind and rebind of the same pcb */
-  for (ipcb = (((LwipCntxt*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
+  for (ipcb = (((lwip_context*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
     /* is this UDP PCB already on active list? */
     if (pcb == ipcb) {
       rebind = 1;
@@ -929,7 +929,7 @@ udp_bind(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
       return ERR_USE;
     }
   } else {
-    for (ipcb = (((LwipCntxt*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
+    for (ipcb = (((lwip_context*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
       if (pcb != ipcb) {
       /* By default, we don't allow to bind to a port that any other udp
          PCB is already bound to, unless *all* PCBs with that port have tha
@@ -960,8 +960,8 @@ udp_bind(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   /* pcb not active yet? */
   if (rebind == 0) {
     /* place the PCB on the active list if not already there */
-    pcb->next = (((LwipCntxt*)ctxt)->udp_pcbs);//HCSim
-    (((LwipCntxt*)ctxt)->udp_pcbs) = pcb;//HCSim
+    pcb->next = (((lwip_context*)ctxt)->udp_pcbs);//HCSim
+    (((lwip_context*)ctxt)->udp_pcbs) = pcb;//HCSim
   }
   LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, ("udp_bind: bound to "));
   ip_addr_debug_print(UDP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, &pcb->local_ip);
@@ -1016,15 +1016,15 @@ udp_connect(struct udp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   LWIP_DEBUGF(UDP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_STATE, (", port %" U16_F")\n", pcb->remote_port));
 
   /* Insert UDP PCB into the list of active UDP PCBs. */
-  for (ipcb = (((LwipCntxt*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
+  for (ipcb = (((lwip_context*)ctxt)->udp_pcbs); ipcb != NULL; ipcb = ipcb->next) {//HCSim
     if (pcb == ipcb) {
       /* already on the list, just return */
       return ERR_OK;
     }
   }
   /* PCB not yet on the list, add PCB now */
-  pcb->next = (((LwipCntxt*)ctxt)->udp_pcbs);//HCSim
-  (((LwipCntxt*)ctxt)->udp_pcbs) = pcb;//HCSim
+  pcb->next = (((lwip_context*)ctxt)->udp_pcbs);//HCSim
+  (((lwip_context*)ctxt)->udp_pcbs) = pcb;//HCSim
   return ERR_OK;
 }
 
@@ -1088,12 +1088,12 @@ udp_remove(struct udp_pcb *pcb)
 
   mib2_udp_unbind(pcb);
   /* pcb to be removed is first in list? */
-  if ((((LwipCntxt*)ctxt)->udp_pcbs) == pcb) {//HCSim
+  if ((((lwip_context*)ctxt)->udp_pcbs) == pcb) {//HCSim
     /* make list start at 2nd pcb */
-    (((LwipCntxt*)ctxt)->udp_pcbs) = (((LwipCntxt*)ctxt)->udp_pcbs)->next;//HCSim
+    (((lwip_context*)ctxt)->udp_pcbs) = (((lwip_context*)ctxt)->udp_pcbs)->next;//HCSim
     /* pcb not 1st in list */
   } else {
-    for (pcb2 = (((LwipCntxt*)ctxt)->udp_pcbs); pcb2 != NULL; pcb2 = pcb2->next) {//HCSim
+    for (pcb2 = (((lwip_context*)ctxt)->udp_pcbs); pcb2 != NULL; pcb2 = pcb2->next) {//HCSim
       /* find pcb in udp_pcbs list */
       if (pcb2->next != NULL && pcb2->next == pcb) {
         /* remove pcb from list */
@@ -1174,7 +1174,7 @@ void udp_netif_ip_addr_changed(const ip_addr_t* old_addr, const ip_addr_t* new_a
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 
   if (!ip_addr_isany(old_addr) && !ip_addr_isany(new_addr)) {
-    for (upcb = (((LwipCntxt*)ctxt)->udp_pcbs); upcb != NULL; upcb = upcb->next) {//HCSim
+    for (upcb = (((lwip_context*)ctxt)->udp_pcbs); upcb != NULL; upcb = upcb->next) {//HCSim
       /* PCB bound to current local interface address? */
       if (ip_addr_cmp(&upcb->local_ip, old_addr)) {
         /* The PCB is bound to the old ipaddr and

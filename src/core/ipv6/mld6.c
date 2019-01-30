@@ -310,7 +310,7 @@ mld6_joingroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* loop through netif's */
-  netif = (((LwipCntxt*)ctxt)->netif_list);
+  netif = (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we join this interface ? */
     if (ip6_addr_isany(srcaddr) ||
@@ -385,7 +385,7 @@ mld6_leavegroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
   /* loop through netif's */
-  netif = (((LwipCntxt*)ctxt)->netif_list);
+  netif = (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
     /* Should we leave this interface ? */
     if (ip6_addr_isany(srcaddr) ||
@@ -463,7 +463,7 @@ mld6_tmr(void)
 {
   void* ctxt;
   ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
-  struct netif *netif = (((LwipCntxt*)ctxt)->netif_list);
+  struct netif *netif = (((lwip_context*)ctxt)->netif_list);
 
   while (netif != NULL) {
     struct mld_group *group = netif_mld6_data(netif);
