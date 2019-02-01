@@ -95,7 +95,7 @@ typedef u8_t sys_mbox_t;
 #include "arch/sys_arch.h"
 
 /** Function prototype for thread functions */
-typedef void (*lwip_thread_fn)(void *arg);
+typedef void (*thread_fn)(void *arg);
 
 /* Function prototypes for functions to be implemented by platform ports
    (in sys_arch.c) */
@@ -328,7 +328,7 @@ void sys_mbox_set_invalid(sys_mbox_t *mbox);
  * @param arg parameter passed to 'thread'
  * @param stacksize stack size in bytes for the new thread (may be ignored by ports)
  * @param prio priority of the new thread (may be ignored by ports) */
-sys_thread_t sys_thread_new(const char *name, lwip_thread_fn thread, void *arg, int stacksize, int prio);
+sys_thread_t sys_thread_new(const char *name, thread_fn thread, void *arg, int stacksize, int prio);
 
 #endif /* NO_SYS */
 

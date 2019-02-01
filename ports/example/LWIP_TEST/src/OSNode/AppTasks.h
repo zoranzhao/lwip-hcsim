@@ -139,7 +139,7 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 	os_port->taskActivate(os_task_id);
 	os_port->timeWait(0, os_task_id);
 	os_port->syncGlobalTime(os_task_id);
-        sim_ctxt.registerTask(OSmodel, g_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
+        sim_ctxt.register_task(OSmodel, g_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, NodeID is %d %d\n", ((lwip_context* )g_ctxt)->NodeID, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
