@@ -212,7 +212,7 @@ void write_sock(int sock, char* buffer, unsigned int bytes_length){
 void send_dats(void *arg)
 {
   int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 1){return;}
   struct netconn *conn;
   err_t err;
@@ -258,7 +258,7 @@ void send_dats(void *arg)
 
 void recv_dats(void *arg)
 {
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 0){return;}
 
   struct netconn *conn, *newconn;
@@ -349,7 +349,7 @@ udpecho_thread(void *arg)
 void send_dats_udp(void *arg)
 {
   int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 1){return;}
   struct netconn *conn;
   err_t err;

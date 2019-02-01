@@ -72,14 +72,14 @@ static void sys_sem_free_internal(struct sys_sem *sem);
 
 
 /*Function wrapper for OS task model*/
-void wrapper(OSModelCtxt* os_ctxt, void *ctxt, lwip_thread_fn function, void *arg, int taskID){
+void wrapper(os_model_context* os_ctxt, void *ctxt, lwip_thread_fn function, void *arg, int taskID){
 	sim_ctxt.registerTask(os_ctxt, ctxt, taskID, sc_core::sc_get_current_process_handle());
 	os_ctxt->os_port->taskActivate(taskID);
 	function(arg);//All lwip thread args are converted to context object pointers.
  	os_ctxt->os_port->taskTerminate(taskID);
 }
 
-typedef void (*OS_wrapper_fn)(OSModelCtxt* os_ctxt, void *ctxt, lwip_thread_fn function, void* arg, int taskID);
+typedef void (*OS_wrapper_fn)(os_model_context* os_ctxt, void *ctxt, lwip_thread_fn function, void* arg, int taskID);
 
 
 sys_thread_t
@@ -95,7 +95,7 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
   //}
   int code;
   void* ctxt;
-  ctxt = sim_ctxt.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   sc_core::sc_process_handle th_handle;
   struct sys_thread *thread = NULL;
   LWIP_UNUSED_ARG(name);
@@ -108,7 +108,7 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
   const int init_core = core;
 
 
-  OSModelCtxt* os_ctxt = sim_ctxt.getTaskCtxt(sc_core::sc_get_current_process_handle());
+  os_model_context* os_ctxt = sim_ctxt.get_os_ctxt(sc_core::sc_get_current_process_handle());
   child_id = os_ctxt->os_port->taskCreate(
 				sc_core::sc_gen_unique_name("child_task"), 
 				HCSim::OS_RT_APERIODIC, priority, period, exe_cost, 
@@ -146,7 +146,7 @@ sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinit
 err_t
 sys_mbox_new(struct sys_mbox **mb, int size)
 {
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   //( (lwip_context*)(ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
 
   //std::cout << " ************ "<<taskID<<" ************Creating mbox task ID is: ... ... .." << taskID <<std::endl;
@@ -201,7 +201,7 @@ sys_mbox_trypost(struct sys_mbox **mb, void *msg)
 
   mbox = *mb;
 
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   //( (lwip_context*)(mbox->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
   //if(mbox->id == 111)std::cout << " ************ "<<taskID<<"w************try writing mbox ID is: ... ... .." << mbox->id <<std::endl;
 
@@ -243,7 +243,7 @@ sys_mbox_post(struct sys_mbox **mb, void *msg)
   struct sys_mbox *mbox;
   LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
   mbox = *mb;
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   LWIP_DEBUGF(SYS_DEBUG, ("sys_mbox_post: mbox %p msg %p\n", (void *)mbox, (void *)msg));
   while ((mbox->last + 1) >= (mbox->first + SYS_MBOX_SIZE)) {
     mbox->wait_send++;
@@ -268,7 +268,7 @@ sys_arch_mbox_tryfetch(struct sys_mbox **mb, void **msg)
   struct sys_mbox *mbox;
   LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
   mbox = *mb;
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   if (mbox->first == mbox->last) {
     return SYS_MBOX_EMPTY;
   }
@@ -295,7 +295,7 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, u32_t timeout)
   struct sys_mbox *mbox;
   LWIP_ASSERT("invalid mbox", (mb != NULL) && (*mb != NULL));
   mbox = *mb;
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   while (mbox->first == mbox->last) {
     if (timeout != 0) {
       time_needed = sys_arch_sem_wait(&mbox->not_empty, timeout);
@@ -377,13 +377,13 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
   struct sys_sem *sem;
   LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL)); 
   sem = *s;
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
 
   sem->blocked_task_id = taskID;
   while (sem->c <= 0) {
-        { ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ) ) -> os_port -> preWait(taskID, sem->blocking_task_id);}	
+        { ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ) ) -> os_port -> preWait(taskID, sem->blocking_task_id);}	
         if(sem->c > 0){
-                (  sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
+                (  sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
                 break;
         }
 
@@ -394,7 +394,7 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
            start_time = (sc_core::sc_time_stamp().value() - start_time);
 	   time_needed = (u32_t)(start_time/1000000000);
 	   if((time_needed == timeout) && (sem->c <= 0)){
-        	(  sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
+        	(  sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
 	   	return SYS_ARCH_TIMEOUT;
            }
 	}else{
@@ -403,7 +403,7 @@ u32_t sys_arch_sem_wait(struct sys_sem **s, u32_t timeout)
 	   //printf("sc_core::wait(sem->cond) --- ---%d \n\n", ((lwip_context*)(sem->ctxt)) -> NodeID);
 	}
 
-        (  sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
+        (  sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ) ) ->os_port->postWait(taskID);
     
   }
   //printf("sys_arch_sem_wait after %d ... ...%d %d\n",timeout, ((lwip_context*)(sem->ctxt)) -> NodeID, taskID);
@@ -418,7 +418,7 @@ void sys_sem_signal(struct sys_sem **s)
   LWIP_ASSERT("invalid sem", (s != NULL) && (*s != NULL));
   sem = *s;
 
-  int taskID = sim_ctxt.getTaskID(sc_core::sc_get_current_process_handle());
+  int taskID = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
   //( (lwip_context*)(sem->ctxt) ) -> getOSModelTaskID( sc_core::sc_get_current_process_handle());
   sem->blocking_task_id = taskID;
 

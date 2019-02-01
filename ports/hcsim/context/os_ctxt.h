@@ -165,7 +165,7 @@ public:
 
 
 
-class OSModelCtxt{
+class os_model_context{
   public:
 	int NodeID;
 
@@ -198,12 +198,12 @@ class GlobalRecorder {
   public:
 	std::vector< sc_core::sc_process_handle> taskHandlerList;  
 	std::vector< int > taskIDList;  
-	std::vector<OSModelCtxt* > ctxtIDList;  
+	std::vector<os_model_context* > ctxtIDList;  
 	std::vector<AnnotationCtxt* > annotList;
 	std::vector<void* > lwipList;
         std::vector<app_context* > app_context_list;
 
-	void registerTask(OSModelCtxt* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
+	void registerTask(os_model_context* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
                 
 
 		lwipList.push_back(lwipCtxt);
@@ -236,22 +236,7 @@ class GlobalRecorder {
 		return NULL;
         } 
 
-
-	void* getLwipCtxt(sc_core::sc_process_handle taskHandler){
-		//printf("Getting lwip context ... .... .....\n");
-
-		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
-		std::vector< void* >::iterator idIt = lwipList.begin();
-		for(; (handlerIt!=taskHandlerList.end() && idIt!= lwipList.end() ) ;handlerIt++, idIt++){
-			if(*handlerIt == taskHandler)
-				return *idIt;	
-		}
-
-		return NULL;
-	} 
-	
-
-	int getTaskID(sc_core::sc_process_handle taskHandler){
+	int get_task_id(sc_core::sc_process_handle taskHandler){
 		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
 		std::vector< int >::iterator idIt = taskIDList.begin();
 		for(; (handlerIt!=taskHandlerList.end() && idIt!=taskIDList.end() ) ;handlerIt++, idIt++){
@@ -275,11 +260,9 @@ class GlobalRecorder {
 	} 
 
 
-
-
-	OSModelCtxt* getTaskCtxt(sc_core::sc_process_handle taskHandler){
+	os_model_context* get_os_ctxt(sc_core::sc_process_handle taskHandler){
 		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
-		std::vector< OSModelCtxt* >::iterator idIt = ctxtIDList.begin();
+		std::vector< os_model_context* >::iterator idIt = ctxtIDList.begin();
 		for(; (handlerIt!=taskHandlerList.end() && idIt!=ctxtIDList.end() ) ;handlerIt++, idIt++)
 		{
 			if(*handlerIt == taskHandler)

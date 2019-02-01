@@ -263,7 +263,7 @@ void recv_data_tcp(int portno)
 void send_data_udp(char *blob_buffer, unsigned int bytes_length, const char *dest_ip, int portno)
 {
    int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
-   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+   OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
 
    int sockfd;
    struct sockaddr_in serv_addr;
@@ -283,7 +283,7 @@ void send_data_udp(char *blob_buffer, unsigned int bytes_length, const char *des
 void recv_data_udp(int portno)
 {
    int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
-   OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+   OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
 
    int sockfd, newsockfd;
    socklen_t clilen;
@@ -312,7 +312,7 @@ void recv_data_udp(int portno)
 
 void send_with_sock(void *arg)
 {
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 1){return;}
   lwip_context *ctxt = (lwip_context *)arg;
   char dest_ip[16];
@@ -328,7 +328,7 @@ void send_with_sock(void *arg)
 
 void recv_with_sock(void *arg)
 {
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 0){return;}
   lwip_context *ctxt = (lwip_context *)arg;
   recv_data_udp(7);
@@ -338,7 +338,7 @@ void recv_with_sock(void *arg)
 /*
 void recv_dats(void *arg)
 {
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 0){return;}
   char this_str[16];
   ipaddr_ntoa_r(&(((lwip_context* )arg)->ipaddr_dest), this_str, 16);
@@ -390,7 +390,7 @@ void recv_dats(void *arg)
 
 void send_dats(void *arg)
 {
-  OSModelCtxt* OSmodel = taskManager.getTaskCtxt( sc_core::sc_get_current_process_handle() );
+  OSModelCtxt* OSmodel = taskManager.get_os_ctxt( sc_core::sc_get_current_process_handle() );
   if(OSmodel->NodeID != 1){return;}
   struct netconn *conn;
   err_t err;

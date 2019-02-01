@@ -80,7 +80,7 @@ extern "C"{
 		(annotCtxt->TotalBBs) = 0;
 //		printf("Function alpha is %f\n", alpha);
 	#ifdef OS_MODEL_ANNOTATION
-		OSModelCtxt* OSmodel = taskManager.getTaskCtxt(sc_core::sc_get_current_process_handle());
+		OSModelCtxt* OSmodel = taskManager.get_os_ctxt(sc_core::sc_get_current_process_handle());
 		int taskID = taskManager.getTaskID(sc_core::sc_get_current_process_handle());
 
 
