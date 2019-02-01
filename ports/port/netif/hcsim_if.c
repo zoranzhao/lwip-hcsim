@@ -91,8 +91,8 @@ static int server_write(const void *buf, size_t len) {
     ipaddr_ntoa_r( &(((lwip_context* )(ctxt))->current_iphdr_src), src_str, 16);
 */
     int taskID =  ( sim_ctxt.getTaskID( sc_core::sc_get_current_process_handle() ));
-    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetSize(len, taskID);
-    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->SetData(len, (char*)buf, taskID);
+    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->set_size(len, taskID);
+    ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->set_data(len, (char*)buf, taskID);
     return err;
 
 }
@@ -103,8 +103,8 @@ static int server_read(void *buf, size_t len) {
     int ii;
     int err=0;
     int taskID = sim_ctxt.getTaskID( sc_core::sc_get_current_process_handle() );
-    pkt_size =   ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetSize(taskID);
-     ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->GetData(pkt_size, (char*)buf, taskID);
+    pkt_size =   ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_size(taskID);
+     ( sim_ctxt.getTaskCtxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_data(pkt_size, (char*)buf, taskID);
     err = pkt_size;
     return err;
 

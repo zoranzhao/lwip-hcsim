@@ -1,11 +1,114 @@
 #include <systemc>
 #include "HCSim.h"
-#include "lwipOS_if.h"
 #include <string>
 #include <unordered_map>
 
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
+
+class sys_call_recv_if: virtual public sc_core::sc_interface{
+public:
+   virtual int get_node(int os_task_id) = 0;
+   virtual int get_weight(int os_task_id) = 0;
+   virtual int get_size(int os_task_id) = 0;
+   virtual bool get_data(unsigned size, char* data, int os_task_id) = 0;
+};
+
+class sys_call_send_if: virtual public sc_core::sc_interface{
+public:
+   virtual void set_node(int NodeID, int os_task_id) = 0;
+   virtual void set_weight(int weight, int os_task_id) = 0;
+   virtual void set_size(int size, int os_task_id) = 0;
+   virtual void set_data(unsigned size, char* data, int os_task_id) = 0;
+};
+
+
+class sys_call_recv_driver
+    :public sc_core::sc_module
+     ,virtual public sys_call_recv_if
+{
+public:
+    /*---------------------------------------------------------
+       OS/HAL interface
+     ----------------------------------------------------------*/
+   sc_core::sc_port< HCSim::IAmbaAhbBusMasterMacLink > mac_link_port;
+   sc_core::sc_port< HCSim::receive_os_if > intr_ch;
+
+   sys_call_recv_driver(const sc_core::sc_module_name name, unsigned long long addr)
+    :sc_core::sc_module(name)
+   {
+      this->address = addr;
+   }
+   ~sys_call_recv_driver() { }
+
+   virtual int get_node(int os_task_id){
+      int tmp;
+      mac_link_port->masterRead(address+2, &tmp, sizeof(int));
+      return tmp;
+   }
+
+   virtual int get_weight(int os_task_id){
+      int tmp;
+      intr_ch->receive(os_task_id);
+      mac_link_port->masterRead(address+1, &tmp, sizeof(int));
+      return tmp;
+   }
+
+   virtual int get_size(int os_task_id){
+      int tmp;
+      intr_ch->receive(os_task_id);
+      mac_link_port->masterRead(address+1, &tmp, sizeof(int));
+      return tmp;
+    }
+
+   virtual bool get_data(unsigned size, char* data, int os_task_id){
+      intr_ch->receive(os_task_id);
+      mac_link_port->masterRead(address+1, data, size*sizeof(char));
+      return true;
+   }
+private:
+   unsigned long long address;
+};
+
+
+
+class sys_call_send_driver
+    :public sc_core::sc_module
+     ,virtual public sys_call_send_if
+{
+public:
+    /*---------------------------------------------------------
+       OS/HAL interface
+     ----------------------------------------------------------*/
+   sc_core::sc_port< HCSim::IAmbaAhbBusMasterMacLink > mac_link_port;
+   sc_core::sc_port< HCSim::receive_os_if > intr_ch;
+
+   sys_call_send_driver(const sc_core::sc_module_name name, unsigned long long addr)
+    :sc_core::sc_module(name)
+   {
+      this->address = addr;
+   }
+   ~sys_call_send_driver() { }
+
+   virtual void set_node(int NodeID, int os_task_id){
+      mac_link_port->masterWrite(address, &NodeID, sizeof(int));
+   }
+
+   virtual void set_weight(int weight, int os_task_id){
+      mac_link_port->masterWrite(address, &weight, sizeof(int));
+   }
+
+   virtual void set_size(int size, int os_task_id){
+      mac_link_port->masterWrite(address, &size, sizeof(int));
+   }
+
+   virtual void set_data(unsigned size, char* data, int os_task_id){
+      mac_link_port->masterWrite(address, data, size*sizeof(char));
+   }
+private:
+   unsigned long long address;
+};
+
 
 
 class app_context{
@@ -74,8 +177,8 @@ class OSModelCtxt{
 
     	//sc_core::sc_port< lwip_send_if > dataCH;
     	//sc_core::sc_port< lwip_recv_if > intrCH;
-	sc_core::sc_port<lwip_recv_if> recv_port[2];
-	sc_core::sc_port<lwip_send_if> send_port[2]; 
+	sc_core::sc_port<sys_call_recv_if> recv_port[2];
+	sc_core::sc_port<sys_call_send_if> send_port[2]; 
 	sc_core::sc_port< HCSim::OSAPI > os_port;
 
 	//System Node configuration parameters
@@ -191,7 +294,31 @@ class GlobalRecorder {
 
 
 extern GlobalRecorder sim_ctxt;
+
+
+
+#ifndef LWIP_HDR_SYS_H
+typedef void (*thread_fn)(void *arg);
+struct sys_thread;
+typedef struct sys_thread* sys_thread_t;
+/*multithreading APIs*/
+extern "C" sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int stacksize, int prio);
+extern "C" void sys_thread_join(sys_thread_t thread);
+
+/*Semaphore APIs*/
+struct sys_sem;
+typedef struct sys_sem* sys_sem_t;
+extern "C" void sys_sem_signal(sys_sem_t *s);
+extern "C" uint32_t sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout);
+extern "C" void sys_sem_free(sys_sem_t *sem);
+extern "C" void sys_sleep();
+extern "C" uint32_t sys_now(void);
+extern "C" double sys_now_in_sec(void);
 #endif
+
+
+#endif
+
 
 
 

@@ -11,131 +11,6 @@
 
 #ifndef SC_MCPROCESSOR__H
 #define SC_MCPROCESSOR__H
-/******************************************************************************
- * lwip package handling interface
- *
- ******************************************************************************/
-
-class lwip_recv_Driver
-    :public sc_core::sc_module
-     ,virtual public lwip_recv_if
-{
-public:
-    /*---------------------------------------------------------
-       OS/HAL interface
-     ----------------------------------------------------------*/
-    sc_core::sc_port< HCSim::IAmbaAhbBusMasterMacLink > mac_link_port;
-    sc_core::sc_port< HCSim::receive_os_if > intr_ch;
-
-    lwip_recv_Driver(const sc_core::sc_module_name name, unsigned long long addr)
-    :sc_core::sc_module(name)
-    {
-        this->address = addr;
-    }
-    ~lwip_recv_Driver() { }
-
-
-    virtual int GetNode(int os_task_id)
-    {
-        int tmp;
-        //intr_ch->receive(os_task_id);
-        mac_link_port->masterRead(address+2, &tmp, sizeof(int));
-        return tmp;
-    }
-
-
-
-    virtual int GetWeight(int os_task_id)
-    {
-        int tmp;
-        intr_ch->receive(os_task_id);
-        mac_link_port->masterRead(address+1, &tmp, sizeof(int));
-        return tmp;
-    }
-
-
-
-    virtual int GetSize(int os_task_id)
-    {
-        int tmp;
-
-        intr_ch->receive(os_task_id);
-        mac_link_port->masterRead(address+1, &tmp, sizeof(int));
-        return tmp;
-    }
-
-
-    virtual bool GetData(unsigned size, char* data, int os_task_id)
-    {
-        intr_ch->receive(os_task_id);
-        mac_link_port->masterRead(address+1, data, size*sizeof(char));
-        return true;
-    }
-
-private:
-    unsigned long long address;
-
-};
-
-
-
-class lwip_send_Driver
-    :public sc_core::sc_module
-     ,virtual public lwip_send_if
-{
-public:
-    /*---------------------------------------------------------
-       OS/HAL interface
-     ----------------------------------------------------------*/
-    sc_core::sc_port< HCSim::IAmbaAhbBusMasterMacLink > mac_link_port;
-    sc_core::sc_port< HCSim::receive_os_if > intr_ch;
-
-    lwip_send_Driver(const sc_core::sc_module_name name, unsigned long long addr)
-    :sc_core::sc_module(name)
-    {
-        this->address = addr;
-    }
-    ~lwip_send_Driver() { }
-
-    virtual void SetNode(int NodeID, int os_task_id)
-    {
-        //intr_ch->receive(os_task_id);
-        mac_link_port->masterWrite(address, &NodeID, sizeof(int));
-    }
-
-
-    virtual void SetWeight(int weight, int os_task_id)
-    {
-       //intr_ch->receive(os_task_id);
-	
-        mac_link_port->masterWrite(address, &weight, sizeof(int));
-    }
-
-
-    virtual void SetSize(int size, int os_task_id)
-    {
-        //std::cout<<"Writing into NIC"<<" addr: "<<address<<std::endl;
-        //std::cout<<"Writing size into NIC"<<" size: "<<size<<std::endl;
-        mac_link_port->masterWrite(address, &size, sizeof(int));
-        //std::cout<<"Writing into NIC"<<" size: "<<size<<std::endl;
-    }
-
-
-    virtual void SetData(unsigned size, char* data, int os_task_id)
-
-    {
-        //std::cout<<"Writing data into NIC"<<" size: "<<size<<std::endl;
-        mac_link_port->masterWrite(address, data, size*sizeof(char));
-
-    }
-
-
-
-private:
-    unsigned long long address;
-
-};
-
 
 /******************************************************************************
  * Application-specific interrupt handling interface
@@ -375,10 +250,10 @@ class MCProcessor_OS
     MacLink_Data_Out_Adapter intr_data_out_2;
     //MacLink_Data_Out_Adapter app_data_out_1;
     //MacLink_Data_Out_Adapter app_data_out_2;
-    lwip_recv_Driver *recv_adapter1;
-    lwip_recv_Driver *recv_adapter2;
-    lwip_send_Driver *send_adapter1;
-    lwip_send_Driver *send_adapter2;
+    sys_call_recv_driver *recv_adapter1;
+    sys_call_recv_driver *recv_adapter2;
+    sys_call_send_driver *send_adapter1;
+    sys_call_send_driver *send_adapter2;
 
     /*--------------------------------------------------------*/      
     
@@ -421,10 +296,10 @@ MCProcessor_OS< INTR_NUM, CPU_NUM >::MCProcessor_OS(const sc_core::sc_module_nam
     intr_task_2->data_ch(intr_data_out_2);
 
 
-    recv_adapter1 = new lwip_recv_Driver("app_lwip_recv0", const_intr1_address);
-    send_adapter1 = new lwip_send_Driver("app_lwip_send0", const_intr1_address);
-    recv_adapter2 = new lwip_recv_Driver("app_lwip_recv1", const_intr2_address);
-    send_adapter2 = new lwip_send_Driver("app_lwip_send1", const_intr2_address);
+    recv_adapter1 = new sys_call_recv_driver("app_lwip_recv0", const_intr1_address);
+    send_adapter1 = new sys_call_send_driver("app_lwip_send0", const_intr1_address);
+    recv_adapter2 = new sys_call_recv_driver("app_lwip_recv1", const_intr2_address);
+    send_adapter2 = new sys_call_send_driver("app_lwip_send1", const_intr2_address);
 
     send_adapter1-> mac_link_port(mac_link_port[0]);
     recv_adapter1-> mac_link_port(mac_link_port[0]);   

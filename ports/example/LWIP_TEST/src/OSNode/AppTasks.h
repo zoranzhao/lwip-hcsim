@@ -73,8 +73,8 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 {
  public:
 
-    sc_core::sc_vector< sc_core::sc_port< lwip_recv_if > > recv_port;
-    sc_core::sc_vector< sc_core::sc_port< lwip_send_if > > send_port;
+    sc_core::sc_vector< sc_core::sc_port< sys_call_recv_if > > recv_port;
+    sc_core::sc_vector< sc_core::sc_port< sys_call_send_if > > send_port;
     sc_core::sc_port< HCSim::OSAPI > os_port;
     void* g_ctxt;
     OSModelCtxt* OSmodel;
