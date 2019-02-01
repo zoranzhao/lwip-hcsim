@@ -30,8 +30,8 @@ void send_data_all(raw_data *blob, ctrl_proto proto, int portno){
    ip_addr_t dstaddr;
    int dest_id;   
    os_model_context* OSmodel = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
-   if(OSmodel->NodeID == 1){dest_id = 0;}
-   else if(OSmodel->NodeID == 0){dest_id = 1;}
+   if(OSmodel->node_id == 1){dest_id = 0;}
+   else if(OSmodel->node_id == 0){dest_id = 1;}
 #if IPV4_TASK
    IP_ADDR4(&dstaddr, 192, 168, 0, 2 + dest_id);
    send_data(blob, proto, ipaddr_ntoa(&dstaddr), portno);
@@ -43,7 +43,7 @@ void send_data_all(raw_data *blob, ctrl_proto proto, int portno){
 
 void send_task(void *arg){
    os_model_context* OSmodel = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
-   if(OSmodel->NodeID != 1){return;}
+   if(OSmodel->node_id != 1){return;}
    lwip_context *ctxt = (lwip_context *)arg;
 
    ctrl_proto proto=PROTO;
@@ -55,15 +55,15 @@ void send_task(void *arg){
 
 void recv_task(void *arg){
    os_model_context* OSmodel = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
-   if(OSmodel->NodeID != 0){return;}
+   if(OSmodel->node_id != 0){return;}
    lwip_context *ctxt = (lwip_context *)arg;
 
    ctrl_proto proto=PROTO;
    int sock1 = service_init(PORTNO, proto);
    raw_data* blob = recv_data(sock1, proto);
-   if(OSmodel->NodeID == 0){
+   if(OSmodel->node_id == 0){
      write_raw_data_to_file("OUT0.JPG", blob);
-   }else if(OSmodel->NodeID == 1){
+   }else if(OSmodel->node_id == 1){
      write_raw_data_to_file("OUT1.JPG", blob);
    }
    free_raw_data(blob);
@@ -83,7 +83,7 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
   	IntrDriven_Task(const sc_core::sc_module_name name, 
             sc_dt::uint64 exe_cost, sc_dt::uint64 period, 
             unsigned int priority, int id, uint8_t init_core,
-            sc_dt::uint64 end_sim_time, int NodeID)
+            sc_dt::uint64 end_sim_time, int node_id)
     :sc_core::sc_module(name)
     {
         this->exe_cost = exe_cost;
@@ -91,15 +91,14 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
         this->priority = priority;
         this->id = id;
         this->end_sim_time = end_sim_time;
-	this->NodeID = NodeID;
+	this->node_id = node_id;
         this->init_core = 1;
 	recv_port.init(2);
 	send_port.init(2);
         SC_THREAD(run_jobs);
         g_ctxt=new lwip_context();
         OSmodel = new os_model_context();
-	OSmodel->NodeID = NodeID;
-	OSmodel->flag_compute=0;
+	OSmodel->node_id = node_id;
 	OSmodel->os_port(this->os_port);
 	OSmodel->recv_port[0](this->recv_port[0]);
 	OSmodel->recv_port[1](this->recv_port[1]);
@@ -113,12 +112,12 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 #if IPV4_TASK
 	IP_ADDR4(&((lwip_context* )g_ctxt)->gw, 192,168,0,1);
 	IP_ADDR4(&((lwip_context* )g_ctxt)->netmask, 255,255,255,0);
-	IP_ADDR4(&((lwip_context* )g_ctxt)->ipaddr, 192,168,0,NodeID+2);
+	IP_ADDR4(&((lwip_context* )g_ctxt)->ipaddr, 192,168,0,node_id+2);
 #elif IPV6_TASK//IPV4_TASK
-	IP_ADDR6(&((lwip_context* )g_ctxt)->ipaddr,  1, 2, 3, (4 + NodeID));
+	IP_ADDR6(&((lwip_context* )g_ctxt)->ipaddr,  1, 2, 3, (4 + node_id));
 #endif//IPV4_TASK
-	printf("Setting up NodeID %d ...\n", NodeID);
-	((lwip_context* )g_ctxt)->NodeID = NodeID;
+	printf("Setting up node_id %d ...\n", node_id);
+	((lwip_context* )g_ctxt)->node_id = node_id;
         os_task_id = os_port->taskCreate(sc_core::sc_gen_unique_name("intrdriven_task"), 
                                 HCSim::OS_RT_APERIODIC, priority, period, exe_cost, 
                                 HCSim::DEFAULT_TS, HCSim::ALL_CORES, init_core);
@@ -132,16 +131,18 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
     unsigned int priority;
     sc_dt::uint64 end_sim_time;
     int os_task_id;
-    int NodeID;
+    int node_id;
 
     void run_jobs(void)
     {
 	os_port->taskActivate(os_task_id);
 	os_port->timeWait(0, os_task_id);
 	os_port->syncGlobalTime(os_task_id);
-        sim_ctxt.register_task(OSmodel, g_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
+        app_context* app_ctxt = new app_context(); 
+        app_ctxt -> add_context("lwIP", g_ctxt);
+        sim_ctxt.register_task(OSmodel, app_ctxt, os_task_id, sc_core::sc_get_current_process_handle());
 	tcpip_init(tcpip_init_done, g_ctxt);
-	printf("Applications started, NodeID is %d %d\n", ((lwip_context* )g_ctxt)->NodeID, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
+	printf("Applications started, node_id is %d %d\n", ((lwip_context* )g_ctxt)->node_id, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
 	sys_thread_new("send_with_sock", send_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 0);
 	sys_thread_new("recv_with_sock", recv_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);

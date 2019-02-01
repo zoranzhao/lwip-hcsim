@@ -351,7 +351,7 @@ hcsim_if_init(struct netif *netif)
   netif->hwaddr[2] = 0x00;
   netif->hwaddr[3] = 0x00;
   netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 +  (((lwip_context*)ctxt)->NodeID);;
+  netif->hwaddr[5] = 0x00 +  (((lwip_context*)ctxt)->node_id);;
 
 
   netif->hwaddr_len = 6;

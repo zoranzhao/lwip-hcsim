@@ -6,6 +6,8 @@
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
 
+#define MAX_CORE_NUM 2
+
 class sys_call_recv_if: virtual public sc_core::sc_interface{
 public:
    virtual int get_node(int os_task_id) = 0;
@@ -110,14 +112,42 @@ private:
 };
 
 
+class os_model_context{
+public:
+   int node_id;
 
+   sc_core::sc_port<sys_call_recv_if> recv_port[MAX_CORE_NUM];
+   sc_core::sc_port<sys_call_send_if> send_port[MAX_CORE_NUM]; 
+   sc_core::sc_port< HCSim::OSAPI > os_port;
+
+   int device_type;
+   int core_num;
+   os_model_context(){
+
+   }
+   os_model_context(int node_id,
+                    sc_core::sc_vector< sc_core::sc_port< sys_call_recv_if > >& recv_port,
+                    sc_core::sc_vector< sc_core::sc_port< sys_call_send_if > >& send_port,
+                    sc_core::sc_port< HCSim::OSAPI >& os_port){
+      core_num = 2;
+      device_type = 0;
+      this->node_id = node_id;
+      this->os_port(os_port);
+      for(int i = 0; i < core_num; i++){
+         this->recv_port[i](recv_port[i]);
+         this->send_port[i](send_port[i]);
+      }
+   }
+   ~os_model_context(){}
+};
+
+
+/*We also need a application context in order to capture app/lib-specific context data*/
 class app_context{
+   /*TODO, probably we need use class derivation instead of void pointer to implement the polymorphism*/
    std::unordered_map<std::string, void*> ctxt_list;  
 public:
    /*For example, here we can have global data defined to hold application states*/
-   app_context(void* ctxt){
-      ctxt_list["lwIP"] = ctxt;
-   }
    void add_context(std::string ctxt_name, void* ctxt){
       ctxt_list[ctxt_name] = ctxt;
    }
@@ -126,102 +156,52 @@ public:
    }
 };
 
+typedef struct sc_process_handler_context{
+   os_model_context* os_ctxt;  
+   app_context* app_ctxt;
+   int task_id;  
+} handler_context;
 
+class simulation_context{
+   std::vector< sc_core::sc_process_handle> handler_list;  
+   std::vector<handler_context> handler_context_list;
+   
+public:
+   simulation_context(){
+      std::cout << "Construct a new simulation context" << std::endl; 
+   }
+   void register_task(os_model_context* os_ctxt, app_context* app_ctxt, int task_id, sc_core::sc_process_handle handler){
+      handler_context ctxt;
+      ctxt.os_ctxt = os_ctxt;  
+      ctxt.app_ctxt = app_ctxt;
+      ctxt.task_id = task_id;
+      handler_list.push_back(handler);
+      handler_context_list.push_back(ctxt);
+   }
 
+   handler_context get_handler_context(sc_core::sc_process_handle handler){
+      auto key = handler_list.begin();
+      auto item =  handler_context_list.begin();
+      for(; key!=handler_list.end() && item!= handler_context_list.end(); key++, item++){
+         if(*key == handler) break;
+      }
+      return *item;
+   }
 
+   os_model_context* get_os_ctxt(sc_core::sc_process_handle handler){
+      handler_context ctxt = get_handler_context(handler);
+      return ctxt.os_ctxt;
+   } 
 
-class os_model_context{
-  public:
-	int NodeID;
-
-	//TODO Should be replaced by SystemC OS model channel
-	int flag_compute;
-        sc_core::sc_event comp_sig; // systemc channel
-        int Blocking_taskID;
-	//TODO Should be replaced by SystemC OS model channel
-
-    	//sc_core::sc_port< lwip_send_if > dataCH;
-    	//sc_core::sc_port< lwip_recv_if > intrCH;
-	sc_core::sc_port<sys_call_recv_if> recv_port[2];
-	sc_core::sc_port<sys_call_send_if> send_port[2]; 
-	sc_core::sc_port< HCSim::OSAPI > os_port;
-
-	//System Node configuration parameters
-  	int CLI_NUM;
-	int OFFLOAD_LEVEL;
-	int CLI_TYPE;
-	int SRV_TYPE;
-	int CLI_CORE_NUM;
-	int SRV_CORE_NUM;
-
-
-};
-
-
-
-class simulation_context {
-  public:
-	std::vector< sc_core::sc_process_handle> taskHandlerList;  
-	std::vector< int > taskIDList;  
-	std::vector<os_model_context* > ctxtIDList;  
-	std::vector<void* > lwipList;
-        std::vector<app_context* > app_context_list;
-
-	void register_task(os_model_context* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
-                
-
-		lwipList.push_back(lwipCtxt);
-		ctxtIDList.push_back(ctxt);
-		taskIDList.push_back(taskID);
-		taskHandlerList.push_back(taskHandler);
-  		app_context_list.push_back(new app_context(lwipCtxt));
-
-		for(size_t i = 0; i < taskIDList.size(); i++)
-			std::cout << taskIDList[i]  <<", ";
-		std::cout << std::endl;
-
-		for(size_t i = 0; i < ctxtIDList.size(); i++)
-			std::cout << (ctxtIDList[i])->NodeID  <<", ";
-		std::cout << std::endl;
-
-
-
-	}
-
-
-        app_context* get_app_ctxt(sc_core::sc_process_handle taskHandler){
-		auto handlerIt = taskHandlerList.begin();
-		auto idIt = app_context_list.begin();
-		for(; (handlerIt!=taskHandlerList.end() && idIt!= app_context_list.end() ) ;handlerIt++, idIt++){
-			if(*handlerIt == taskHandler)
-				return *idIt;	
-		}
-		return NULL;
-        } 
-
-	int get_task_id(sc_core::sc_process_handle taskHandler){
-		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
-		std::vector< int >::iterator idIt = taskIDList.begin();
-		for(; (handlerIt!=taskHandlerList.end() && idIt!=taskIDList.end() ) ;handlerIt++, idIt++){
-			if(*handlerIt == taskHandler)
-				return *idIt;	
-		}
-		return -1;
-	} 
-
-	os_model_context* get_os_ctxt(sc_core::sc_process_handle taskHandler){
-		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
-		std::vector< os_model_context* >::iterator idIt = ctxtIDList.begin();
-		for(; (handlerIt!=taskHandlerList.end() && idIt!=ctxtIDList.end() ) ;handlerIt++, idIt++)
-		{
-			if(*handlerIt == taskHandler)
-				return *idIt;	
-		}
-		//printf("Error: no task ctxt existing in the global recorder\n");
-		return NULL;
-	} 
-
-
+   app_context* get_app_ctxt(sc_core::sc_process_handle handler){
+      handler_context ctxt = get_handler_context(handler);
+      return ctxt.app_ctxt;
+   } 
+	
+   int get_task_id(sc_core::sc_process_handle handler){
+      handler_context ctxt = get_handler_context(handler);
+      return ctxt.task_id;
+   } 
 };
 
 

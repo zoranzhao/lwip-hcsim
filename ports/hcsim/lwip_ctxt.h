@@ -226,7 +226,7 @@ class lwip_context {
 
    //sys_arc.c context
         void* OmnetWrapper;
-        int NodeID;
+   int node_id;
 	int CntxtID;
 	int SetCond;
 	struct timeval starttime;
