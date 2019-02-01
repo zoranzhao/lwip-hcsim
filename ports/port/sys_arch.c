@@ -72,18 +72,18 @@ static void sys_sem_free_internal(struct sys_sem *sem);
 
 
 /*Function wrapper for OS task model*/
-void wrapper(os_model_context* os_ctxt, void *ctxt, lwip_thread_fn function, void *arg, int taskID){
-	sim_ctxt.registerTask(os_ctxt, ctxt, taskID, sc_core::sc_get_current_process_handle());
+void wrapper(os_model_context* os_ctxt, void *ctxt, thread_fn function, void *arg, int taskID){
+	sim_ctxt.register_task(os_ctxt, ctxt, taskID, sc_core::sc_get_current_process_handle());
 	os_ctxt->os_port->taskActivate(taskID);
 	function(arg);//All lwip thread args are converted to context object pointers.
  	os_ctxt->os_port->taskTerminate(taskID);
 }
 
-typedef void (*OS_wrapper_fn)(os_model_context* os_ctxt, void *ctxt, lwip_thread_fn function, void* arg, int taskID);
+typedef void (*OS_wrapper_fn)(os_model_context* os_ctxt, void *ctxt, thread_fn function, void* arg, int taskID);
 
 
 sys_thread_t
-sys_thread_new(const char *name, lwip_thread_fn function, void *arg, int affinity, int core)
+sys_thread_new(const char *name, thread_fn function, void *arg, int affinity, int core)
 {
 
   struct sys_thread *thread_p;
