@@ -203,7 +203,7 @@ class GlobalRecorder {
 	std::vector<void* > lwipList;
         std::vector<app_context* > app_context_list;
 
-	void registerTask(os_model_context* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
+	void register_task(os_model_context* ctxt, void* lwipCtxt, int taskID, sc_core::sc_process_handle taskHandler){
                 
 
 		lwipList.push_back(lwipCtxt);
