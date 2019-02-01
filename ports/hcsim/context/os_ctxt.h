@@ -128,41 +128,6 @@ public:
 
 
 
-typedef struct AnnotationTrackerStruct {
-  int FunID[10000];//depth of calling stack
-  int LibID[10000];//depth of calling stack
-  int NumFuncInExec;
-} AnnotTracker;
-
-
-
-class AnnotationCtxt{
-public:
-	long long cycles;
-	long TotalBBs;
-	long FuncBBs[100][10000];
-	int CurFunID;
-	int CurLibID;
-	AnnotTracker AnnotationTracker;
-
-	AnnotationCtxt(){
-		cycles = 0;
-		TotalBBs = 0;
-		CurFunID = 0;
-		CurLibID = 0;
-		int ii;
-		int jj;
-		for(ii=0;ii<100;ii++)
-		  for(jj=0;jj<10000;jj++){
-			FuncBBs[ii][jj] = 0;	
-		  }
-		TotalBBs = 0;
-		AnnotationTracker.NumFuncInExec=0;
-
-
-	}
-};
-
 
 
 class os_model_context{
@@ -194,12 +159,11 @@ class os_model_context{
 
 
 
-class GlobalRecorder {
+class simulation_context {
   public:
 	std::vector< sc_core::sc_process_handle> taskHandlerList;  
 	std::vector< int > taskIDList;  
 	std::vector<os_model_context* > ctxtIDList;  
-	std::vector<AnnotationCtxt* > annotList;
 	std::vector<void* > lwipList;
         std::vector<app_context* > app_context_list;
 
@@ -210,7 +174,6 @@ class GlobalRecorder {
 		ctxtIDList.push_back(ctxt);
 		taskIDList.push_back(taskID);
 		taskHandlerList.push_back(taskHandler);
-		annotList.push_back(new AnnotationCtxt());
   		app_context_list.push_back(new app_context(lwipCtxt));
 
 		for(size_t i = 0; i < taskIDList.size(); i++)
@@ -246,20 +209,6 @@ class GlobalRecorder {
 		return -1;
 	} 
 
-
-
-	AnnotationCtxt* getAnnotCtxt(sc_core::sc_process_handle taskHandler){
-		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
-		std::vector< AnnotationCtxt* >::iterator idIt = annotList.begin();
-		for(; (handlerIt!=taskHandlerList.end() && idIt!= annotList.end() ) ;handlerIt++, idIt++){
-			if(*handlerIt == taskHandler)
-				return *idIt;	
-		}
-		//printf("Error: no annotation ctxt existing in the global recorder\n");
-		return NULL;
-	} 
-
-
 	os_model_context* get_os_ctxt(sc_core::sc_process_handle taskHandler){
 		std::vector< sc_core::sc_process_handle >::iterator handlerIt = taskHandlerList.begin();
 		std::vector< os_model_context* >::iterator idIt = ctxtIDList.begin();
@@ -276,28 +225,9 @@ class GlobalRecorder {
 };
 
 
-extern GlobalRecorder sim_ctxt;
+extern simulation_context sim_ctxt;
 
 
-
-#ifndef LWIP_HDR_SYS_H
-typedef void (*thread_fn)(void *arg);
-struct sys_thread;
-typedef struct sys_thread* sys_thread_t;
-/*multithreading APIs*/
-extern "C" sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int stacksize, int prio);
-extern "C" void sys_thread_join(sys_thread_t thread);
-
-/*Semaphore APIs*/
-struct sys_sem;
-typedef struct sys_sem* sys_sem_t;
-extern "C" void sys_sem_signal(sys_sem_t *s);
-extern "C" uint32_t sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout);
-extern "C" void sys_sem_free(sys_sem_t *sem);
-extern "C" void sys_sleep();
-extern "C" uint32_t sys_now(void);
-extern "C" double sys_now_in_sec(void);
-#endif
 
 
 #endif

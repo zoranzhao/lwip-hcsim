@@ -14,7 +14,7 @@
 #include "os_ctxt.h"
 
 
-GlobalRecorder sim_ctxt;
+simulation_context sim_ctxt;
 // Global start time for all system nodes, used in sys_now to get the absolute execution time stamp
 static sc_dt::uint64 starttime;
 
