@@ -1,23 +1,68 @@
-#include "lwip/debug.h"
+#ifndef SYS_ARCH_TIMEOUT
+#define SYS_ARCH_TIMEOUT 0xffffffffUL
+#endif
 
-#include <string.h>
-#include <sys/time.h>
-#include <sys/types.h>
+#ifndef SYS_MBOX_EMPTY
+#define SYS_MBOX_EMPTY SYS_ARCH_TIMEOUT
+#endif
+
+#ifndef ERR_OK
+#define ERR_OK 0
+#endif
+
+#ifndef ERR_MEM
+#define ERR_MEM -1
+#endif
+
+#ifndef LWIP_UNUSED_ARG
+#define LWIP_UNUSED_ARG(x) (void)x
+#endif 
+
+#ifndef LWIP_PLATFORM_ASSERT
+#define LWIP_PLATFORM_ASSERT(x) do {printf("Assertion \"%s\" failed at line %d in %s\n", \
+                                     x, __LINE__, __FILE__); fflush(NULL); abort();} while(0)
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#endif
 
+#ifndef LWIP_ASSERT
+#define LWIP_ASSERT(message, assertion) do { if (!(assertion)) { \
+  LWIP_PLATFORM_ASSERT(message); }} while(0)
+#endif
 
-#include "lwip/sys.h"
-#include "lwip/opt.h"
-#include "lwip/stats.h"
-#include "lwip_ctxt.h"
 #include "os_ctxt.h"
-
 
 simulation_context sim_ctxt;
 static sc_dt::uint64 starttime;
 static struct sys_thread *threads = NULL;
 static sc_core::sc_mutex threads_mutex;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void (*thread_fn)(void *arg);
+struct sys_thread;
+typedef struct sys_thread* sys_thread_t;
+
+/*multithreading APIs*/
+sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int stacksize, int prio);
+void sys_thread_join(sys_thread_t thread);
+
+/*Semaphore APIs*/
+struct sys_sem;
+typedef struct sys_sem* sys_sem_t;
+int8_t sys_sem_new(sys_sem_t *sem, uint8_t count);
+void sys_sem_signal(sys_sem_t *s);
+uint32_t sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout);
+void sys_sem_free(sys_sem_t *sem);
+uint32_t sys_now(void);
+double sys_now_in_sec(void);
+
+void sys_init(void);
+
+void sys_sleep(uint32_t ms); /* only has a (close to) 1 ms resolution. */
 
 struct sys_thread {
   struct sys_thread *next;
@@ -201,7 +246,7 @@ double sys_now_in_sec(void){
 uint32_t sys_jiffies(void){
   sc_dt::uint64 msec;
   msec = (sc_core::sc_time_stamp().value()/1000000000) - starttime;
-  return (u32_t)(msec*1000000);
+  return (uint32_t)(msec*1000000);
 }
 
 /*Intialization function used*/
@@ -345,7 +390,7 @@ sys_arch_mbox_fetch(struct sys_mbox **mb, void **msg, uint32_t timeout)
   return time_needed;
 }
 
-#if SYS_LIGHTWEIGHT_PROT
+
 static sc_core::sc_mutex lwprot_mutex;
 static sc_core::sc_process_handle lwprot_thread;
 static sc_core::sc_process_handle SC_DEAD_PROCESS = sc_core::sc_process_handle();
@@ -372,7 +417,7 @@ sys_arch_protect(void)
     return 0;
 }
 void
-sys_arch_unprotect(sys_prot_t pval)
+sys_arch_unprotect(uint32_t pval)
 {
     LWIP_UNUSED_ARG(pval);
     if (lwprot_thread == sc_core::sc_get_current_process_handle())
@@ -384,5 +429,11 @@ sys_arch_unprotect(sys_prot_t pval)
         }
     }
 }
-#endif /* SYS_LIGHTWEIGHT_PROT */
+
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
