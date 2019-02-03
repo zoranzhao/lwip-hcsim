@@ -173,7 +173,7 @@ $(LWIPOBJ): $(LWIPFILES)
 
 #$(): 
 %.o:
-	$(CC) $(CFLAGS) -c $(<:.o=.c) $(LFLAGS)
+	$(LLVM_CC) $(CFLAGS) -c $(<:.o=.c) $(LFLAGS)
 
 $(APPLIB): $(APPOBJS)
 	$(AR) $(ARFLAGS) $(APPLIB) $?

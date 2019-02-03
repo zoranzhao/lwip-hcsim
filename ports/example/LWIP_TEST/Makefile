@@ -20,7 +20,7 @@ EXTRA_LIBDIR = -L$(LWIP_LIB)  -L$(HELPER)  -L$(OS_MODEL)/lib
 EXTRA_LIBDIR += -Wl,-rpath,$(LWIP_LIB) -Wl,-rpath,$(HELPER) -Wl,-rpath,$(OS_MODEL)/lib
 LIBDIR = -L. -L$(SYSTEMC)/lib-linux64 -Wl,-rpath,$(SYSTEMC)/lib-linux64 $(EXTRA_LIBDIR)
 
-EXTRA_LIBS = -llwipapps -llwip4 -lhelper  -lhcsim -lsystemc 
+EXTRA_LIBS = -ldistriot -llwipapps -llwip4  -lhcsim -lsystemc 
 LIBS   =  -lm $(EXTRA_LIBS)
 
 # --- Tools
