@@ -1,10 +1,10 @@
 SYSTEMC=/home/slam/OMNET/systemc-2.3.1
 
-
 OS_MODEL=/home/slam/OMNET/HCSim
 LWIP=/home/slam/OMNET/lwip-hcsim
 LWIP_LIB=/home/slam/OMNET/lwip-hcsim/ports
 HELPER=/home/slam/OMNET/lwip-hcsim/ports/hcsim/context
+DISTRIOT=/home/slam/OMNET/NoSSim_contrib/DeepThings/port/hcsim_lwip
 
 DEFINES	= -g -DNDEBUG -DSC_INCLUDE_DYNAMIC_PROCESSES
 # --- Package
@@ -14,10 +14,11 @@ EXE	= $(MODULE)
 
 # --- Macros
 INCDIR = -I. -I$(SYSTEMC)/include  -I./src/OSNode 
-INCDIR += -I$(OS_MODEL)/include -I$(LWIP)/src/include -I$(LWIP)/ports/port/include -I$(LWIP)/src/include/ipv4 -I$(LWIP)/lwip/src  -I$(LWIP)/ports/hcsim -I$(HELPER)
+INCDIR += -I$(OS_MODEL)/include -I$(LWIP)/src/include -I$(LWIP)/ports/port/include -I$(LWIP)/src/include/ipv4 -I$(LWIP)/lwip/src  -I$(LWIP)/ports/hcsim -I$(HELPER) -I$(DISTRIOT)/include
 
-EXTRA_LIBDIR = -L$(LWIP_LIB)  -L$(HELPER)  -L$(OS_MODEL)/lib 
-EXTRA_LIBDIR += -Wl,-rpath,$(LWIP_LIB) -Wl,-rpath,$(HELPER) -Wl,-rpath,$(OS_MODEL)/lib
+EXTRA_LIBDIR = -L$(LWIP_LIB)  -L$(HELPER)  -L$(OS_MODEL)/lib -L$(DISTRIOT)
+EXTRA_LIBDIR += -Wl,-rpath,$(LWIP_LIB) -Wl,-rpath,$(HELPER) -Wl,-rpath,$(OS_MODEL)/lib -Wl,-rpath,$(DISTRIOT)
+
 LIBDIR = -L. -L$(SYSTEMC)/lib-linux64 -Wl,-rpath,$(SYSTEMC)/lib-linux64 $(EXTRA_LIBDIR)
 
 EXTRA_LIBS = -ldistriot -llwipapps -llwip4  -lhcsim -lsystemc 
