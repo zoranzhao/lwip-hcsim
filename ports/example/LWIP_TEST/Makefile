@@ -14,7 +14,7 @@ EXE	= $(MODULE)
 
 # --- Macros
 INCDIR = -I. -I$(SYSTEMC)/include  -I./src/OSNode 
-INCDIR += -I$(OS_MODEL)/include -I$(LWIP)/src/include -I$(LWIP)/ports/port/include -I$(LWIP)/src/include/ipv4 -I$(LWIP)/lwip/src  -I$(LWIP)/ports/hcsim -I$(HELPER) -I$(DISTRIOT)/include
+INCDIR += -I$(OS_MODEL)/include -I$(LWIP)/src/include -I$(LWIP)/ports/port/include -I$(LWIP)/src/include/ipv4 -I$(LWIP)/lwip/src  -I$(LWIP)/ports/hcsim -I$(HELPER) -I$(DISTRIOT)/include -I$(DISTRIOT)/src -I$(DISTRIOT)/hcsim -I$(DISTRIOT)/lwip
 
 EXTRA_LIBDIR = -L$(LWIP_LIB)  -L$(HELPER)  -L$(OS_MODEL)/lib -L$(DISTRIOT)
 EXTRA_LIBDIR += -Wl,-rpath,$(LWIP_LIB) -Wl,-rpath,$(HELPER) -Wl,-rpath,$(OS_MODEL)/lib -Wl,-rpath,$(DISTRIOT)
