@@ -150,6 +150,7 @@
 #endif
 #define LWIP_DEBUGF(debug, message) do { \
                                if ( \
+			           (node_choice==sim_ctxt.get_os_ctxt(sc_core::sc_get_current_process_handle())->node_id) &&\
                                    ((debug) & LWIP_DBG_ON) && \
                                    ((debug) & LWIP_DBG_TYPES_ON) && \
                                    ((s16_t)((debug) & LWIP_DBG_MASK_LEVEL) >= LWIP_DBG_MIN_LEVEL)) { \
