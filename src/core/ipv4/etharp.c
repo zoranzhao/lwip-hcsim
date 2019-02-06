@@ -105,10 +105,10 @@ enum etharp_state {
 //};
 //Comment out to be included globally in the lwip_ctxt.h file
 
-static struct etharp_entry arp_table[ARP_TABLE_SIZE];
+//static struct etharp_entry arp_table[ARP_TABLE_SIZE];
 
 #if !LWIP_NETIF_HWADDRHINT
-static u8_t etharp_cached_entry;
+//static u8_t etharp_cached_entry;
 #endif /* !LWIP_NETIF_HWADDRHINT */
 
 /** Try hard to create a new entry - we want the IP address to appear in

@@ -6,13 +6,15 @@
 #ifndef _OMNETIF_PKT_H_ // _OMNETIF_PKT_H_
 #define _OMNETIF_PKT_H_ //_OMNETIF_PKT_H_
 
-
+static int seq_number = 0;
 class OmnetIf_pkt
 {
 
-
+    
 
   public:
+
+    int pkt_number;
     char *fileBuffer; // array ptr
     unsigned int fileBuffer_arraysize;
     int DestNode;
@@ -30,6 +32,7 @@ class OmnetIf_pkt
 
 OmnetIf_pkt::OmnetIf_pkt()
 {
+    pkt_number= seq_number++;
     fileBuffer_arraysize = 0;
     this->fileBuffer = NULL;
 }

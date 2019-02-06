@@ -93,6 +93,7 @@ static int server_write(const void *buf, size_t len) {
     int taskID =  ( sim_ctxt.get_task_id( sc_core::sc_get_current_process_handle() ));
     ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->set_size(len, taskID);
     ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->send_port[0]->set_data(len, (char*)buf, taskID);
+
     return err;
 
 }
@@ -106,6 +107,7 @@ static int server_read(void *buf, size_t len) {
     pkt_size =   ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_size(taskID);
      ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_data(pkt_size, (char*)buf, taskID);
     err = pkt_size;
+
     return err;
 
 }
@@ -305,7 +307,7 @@ hcsim_if_input(struct netif *netif)
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_input: low_level_input returned NULL\n"));
     return;
   }
-  printf("Input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
+  //printf("Input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
   if (netif->input(p, netif) != ERR_OK) {
     LWIP_DEBUGF(NETIF_DEBUG, ("tapif_input: netif input error\n"));
     pbuf_free(p);

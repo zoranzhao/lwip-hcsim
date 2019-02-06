@@ -1,7 +1,5 @@
-
-
-#ifndef __LWIPCPPWRAPPER_H__
-#define __LWIPCPPWRAPPER_H__
+#ifndef LWIP_CTXT_H
+#define LWIP_CTXT_H
 
 #include <string.h>
 #include <sys/time.h>
@@ -475,6 +473,17 @@ class lwip_context {
    //etharp.c //lwip/src/core/ipv4/etharp.c
 	etharp_cached_entry = 0;
 
+#if LWIP_IPV4
+        for(int i = 0; i < ARP_TABLE_SIZE; i++){
+	  arp_table[i].q = NULL;
+	  arp_table[i].state = 0;// ETHARP_STATE_EMPTY;
+          arp_table[i].ctime = 0;
+          arp_table[i].netif = NULL;
+	  ip4_addr_set_zero(&arp_table[i].ipaddr);
+          arp_table[i].ethaddr = ethzero;
+        }
+#endif
+
 #if LWIP_IPV6
    //ipv6
    //ip6_frag.c //lwip/src/core/ipv6/ip6_frag.c
@@ -520,4 +529,4 @@ class lwip_context {
 
 
 
-#endif /* __LWIPCPPWRAPPER_H__ */
+#endif /*LWIP_CTXT_H*/

@@ -11,7 +11,8 @@
 #include "annotation.h"
 #include "OmnetIf_pkt.h"
 #include "app_utils.h"
-#include "service_api.h"
+//#include "service_api.h"
+#include "work_stealing_runtime.h"
 
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
@@ -23,9 +24,11 @@
 #define START_CTRL 11113 //Control the start and stop of a service
 
 void tcpip_init_done(void *arg);
-void recv_with_sock(void *arg);
-void send_with_sock(void *arg);
 
+//void recv_with_sock(void *arg);
+//void send_with_sock(void *arg);
+
+/*
 void send_data_all(raw_data *blob, ctrl_proto proto, int portno){
    ip_addr_t dstaddr;
    int dest_id;   
@@ -68,7 +71,7 @@ void recv_task(void *arg){
    }
    free_raw_data(blob);
 }
-
+*/
 class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_INIT 
 {
  public:
@@ -110,9 +113,12 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 
     void OSTaskCreate(void){
 #if IPV4_TASK
-	IP_ADDR4(&((lwip_context* )g_ctxt)->gw, 192,168,0,1);
+	IP_ADDR4(&((lwip_context* )g_ctxt)->gw, 192,168,4,1);
 	IP_ADDR4(&((lwip_context* )g_ctxt)->netmask, 255,255,255,0);
-	IP_ADDR4(&((lwip_context* )g_ctxt)->ipaddr, 192,168,0,node_id+2);
+
+        int client_id[MAX_EDGE_NUM] = {9, 8, 4, 14, 15, 16};
+	IP_ADDR4(&((lwip_context* )g_ctxt)->ipaddr, 192,168,4, client_id[node_id]);
+
 #elif IPV6_TASK//IPV4_TASK
 	IP_ADDR6(&((lwip_context* )g_ctxt)->ipaddr,  1, 2, 3, (4 + node_id));
 #endif//IPV4_TASK
@@ -144,8 +150,11 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 	tcpip_init(tcpip_init_done, g_ctxt);
 	printf("Applications started, node_id is %d %d\n", ((lwip_context* )g_ctxt)->node_id, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 	printf("TCP/IP initialized.\n");
-	sys_thread_new("send_with_sock", send_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 0);
-	sys_thread_new("recv_with_sock", recv_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);
+	//sys_thread_new("send_with_sock", send_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 0);
+	//sys_thread_new("recv_with_sock", recv_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);
+        //if(node_id==0) test_victim_client(node_id);
+        if(node_id==0) test_server(node_id);
+        if(node_id==1) test_stealer_client(node_id);
         os_port->taskTerminate(os_task_id);
     }
 };

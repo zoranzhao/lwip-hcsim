@@ -95,14 +95,14 @@ struct sys_sem {
 } sems[GLOBAL_SEMS];
 
 /*Function wrapper for OS task model*/
-typedef void (*os_wrapper_fn)(os_model_context* os_model, app_context* app_ctxt, thread_fn function, void* arg, int task_id);
-void wrapper(os_model_context* os_model, app_context* app_ctxt, thread_fn function, void *arg, int task_id){
+typedef void (*os_wrapper_fn)(const char *name, os_model_context* os_model, app_context* app_ctxt, thread_fn function, void* arg, int task_id);
+void wrapper(const char *name, os_model_context* os_model, app_context* app_ctxt, thread_fn function, void *arg, int task_id){
    sim_ctxt.register_task(os_model, app_ctxt, task_id, sc_core::sc_get_current_process_handle());
    os_model->os_port->taskActivate(task_id);
-   std::cout << "taskActivate!" << std::endl;
+   std::cout << name << " taskActivate!" << std::endl;
    function(arg);
    os_model->os_port->taskTerminate(task_id);
-   std::cout << "taskTerminate!" << std::endl;
+   std::cout << name << " taskTerminate!" << std::endl;
 }
 
 sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int priority, int core){
@@ -120,7 +120,7 @@ sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int
    sc_core::sc_process_handle th_handle = sc_core::sc_spawn(     
                                          sc_bind(  
                                          os_fn,
-                                         os_model, app_ctxt, function, arg, child_id 
+                                         name, os_model, app_ctxt, function, arg, child_id 
                                          )         
                                 ); 
    struct sys_thread *thread = new sys_thread;

@@ -20,6 +20,7 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 
     int NodeID;
     artificial_example *System; 
+    int sent_count;
 
     SC_HAS_PROCESS(cSimpleModuleWrapper);
     cSimpleModuleWrapper(const sc_core::sc_module_name name, int NodeID)
@@ -30,7 +31,7 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 	System = new artificial_example ("mix_taskset_cli", NodeID); 
 	System -> NetworkInterfaceCard1 -> OmnetWrapper = this;
 	System -> NetworkInterfaceCard2 -> OmnetWrapper = this;
-
+        sent_count = 0;
         SC_THREAD(linkin);		
 
     }
@@ -38,8 +39,10 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
     ~cSimpleModuleWrapper() {}
 
     void get_pkt(OmnetIf_pkt* pkt){
-
+       
 	data_out -> write(pkt);
+        sent_count++;
+	std::cout << NodeID << " ------------- out >>>>>>>> size is: " << pkt->fileBuffer_arraysize<< " count is:"<< pkt->pkt_number   << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
 	//if(NodeID==1) {
 	//	        std::cout << NodeID << " ------------- out >>>>>>>> size is: " << pkt->fileBuffer_arraysize<< " count is:"   << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
 	//}
@@ -61,7 +64,7 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 		pkt = data_in -> read();
 		count++;
 		//if(NodeID==0) {
-		std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
+		std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " count is:" << pkt->pkt_number  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
 		//if(count == 2) continue;
 		//if(count == 5) continue;
 		//if(count == 30) continue;
