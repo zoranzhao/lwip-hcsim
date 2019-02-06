@@ -24,42 +24,6 @@ void test_gateway(uint32_t total_number){
 }
 */
 
-
-#ifndef UDP_TRANS_SIZE
-#define UDP_TRANS_SIZE 512
-#endif
-static inline void read_from_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, struct sockaddr *from, socklen_t *fromlen){
-   uint32_t bytes_read = 0;
-   int32_t n = 0;
-   while (bytes_read < bytes_length){
-      if(proto == TCP){
-         n = lwip_recv(sock, buffer + bytes_read, bytes_length - bytes_read, 0);
-         if( n < 0 ) printf("ERROR reading socket\n");
-      }else if(proto == UDP){
-         if((bytes_length - bytes_read) < UDP_TRANS_SIZE) { n = bytes_length - bytes_read; }
-         else { n = UDP_TRANS_SIZE; }
-         if( lwip_recvfrom(sock, buffer + bytes_read, n, 0, from, fromlen) < 0) printf("ERROR reading socket\n");
-      }else{printf("Protocol is not supported\n");}
-      bytes_read += n;
-   }
-}
-static inline void write_to_sock(int sock, ctrl_proto proto, uint8_t* buffer, uint32_t bytes_length, const struct sockaddr *to, socklen_t tolen){
-   uint32_t bytes_written = 0;
-   int32_t n = 0;
-   while (bytes_written < bytes_length) {
-      if(proto == TCP){
-         n = lwip_send(sock, buffer + bytes_written, bytes_length - bytes_written, 0);
-         if( n < 0 ) printf("ERROR writing socket\n");
-      }else if(proto == UDP){
-         if((bytes_length - bytes_written) < UDP_TRANS_SIZE) { n = bytes_length - bytes_written; }
-         else { n = UDP_TRANS_SIZE; }
-         if(lwip_sendto(sock, buffer + bytes_written, n, 0, to, tolen)< 0) 
-	   printf("ERROR writing socket\n");
-      }else{printf("Protocol is not supported\n"); return;}
-      bytes_written += n;
-   }
-}
-
 static void process_task(blob* temp, device_ctxt* ctxt){
    blob* result;
    char data[20] = "output_data";
@@ -90,34 +54,16 @@ void generate_and_process_thread_no_gateway(void *arg){
          enqueue(ctxt->task_queue, temp);
          free_blob(temp);
       }
+
       while(1){
          temp = try_dequeue(ctxt->task_queue);
          if(temp == NULL) break;
          process_task(temp, ctxt);
-         printf("Process task locally, frame %d, task is %d\n", frame_num, temp->id);
+         printf("Process task locally, frame %d, task is %d\n", get_blob_frame_seq(temp), get_blob_task_id(temp));
          free_blob(temp);
       }
+
    }
-}
-
-
-void send_data_without_conn(int sockfd, blob *temp){
-   void* data;
-   uint32_t bytes_length;
-   void* meta;
-   uint32_t meta_size;
-   int32_t id;
-   data = temp->data;
-   bytes_length = temp->size;
-   meta = temp->meta;
-   meta_size = temp->meta_size;
-   id = temp->id;
-   write_to_sock(sockfd, TCP, (uint8_t*)&meta_size, sizeof(meta_size), NULL, NULL);
-   if(meta_size > 0)
-      write_to_sock(sockfd, TCP, (uint8_t*)meta, meta_size, NULL, NULL);
-   write_to_sock(sockfd, TCP, (uint8_t*)&id, sizeof(id), NULL, NULL);
-   write_to_sock(sockfd, TCP, (uint8_t*)&bytes_length, sizeof(bytes_length), NULL, NULL);
-   write_to_sock(sockfd, TCP, (uint8_t*)data, bytes_length, NULL, NULL);
 }
 
 void steal_and_process_thread_no_gateway(void *arg){
@@ -125,37 +71,24 @@ void steal_and_process_thread_no_gateway(void *arg){
    device_ctxt* ctxt = (device_ctxt*)arg;
    service_conn* conn;
    blob* temp;
-   uint32_t dest_id = 0;
-   while(1){
-      conn = connect_service(TCP, addr_list[dest_id], WORK_STEAL_PORT);
-      char* a = "Okay, it is a pure test case, first...";
-
+   while(1){      
+      conn = connect_service(TCP, (const char *)addr_list[0], WORK_STEAL_PORT);
       int flags =1;
       lwip_setsockopt(conn->sockfd, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
-
-      write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-      write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-
-      char buffer[60];
-      read_from_sock(conn->sockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-
-      printf("Recv 1 piece of data on client side, %s\n", buffer);
-      write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-      write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-      write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-
-
-
+      send_request("steal_client", 20, conn);
+      temp = recv_data(conn);
       close_service_connection(conn);
-      //if(temp->id == -1){
-      //   free_blob(temp);
-      //   sys_sleep(100);
-      //   continue;
-      //}
-      //process_task(temp, ctxt);
-      //free_blob(temp);
-      break;
+      if(temp->id == -1){
+         free_blob(temp);
+         printf("Nothing is available in victim device!\n");
+         sys_sleep(100);
+         continue;
+      }
+      printf("Process task remotely, frame %d, task is %d\n", get_blob_frame_seq(temp), get_blob_task_id(temp));
+      process_task(temp, ctxt);
+      free_blob(temp);
    }
+
 }
 
 void test_stealer_client(uint32_t edge_id){
@@ -186,7 +119,7 @@ void test_victim_client(uint32_t edge_id){
    /*exec_barrier(START_CTRL, TCP, ctxt);*/
    /*TODO some sort of barrier must exist here*/
    sys_thread_t t3 = sys_thread_new("serve_stealing_thread", serve_stealing_thread, ctxt, 0, 0);
-   //sys_thread_t t1 = sys_thread_new("generate_and_process_thread_no_gateway", generate_and_process_thread_no_gateway, ctxt, 0, 0);
+   sys_thread_t t1 = sys_thread_new("generate_and_process_thread_no_gateway", generate_and_process_thread_no_gateway, ctxt, 20, 0);
    /*sys_thread_t t2 = sys_thread_new("send_result_thread", send_result_thread, ctxt, 0, 0);*/
 
    //sys_thread_join(t1);
@@ -223,74 +156,6 @@ void test_wst(int argc, char **argv)
 
 */
 //sock is generated through service_init()
-
-
-
-
-blob* recv_data_without_conn_tcp(int sockfd){
-   uint32_t bytes_length;
-   uint8_t* meta = NULL;
-   uint32_t meta_size = 0;
-   int32_t id;
-
-   socklen_t clilen;
-
-#if IPV4_TASK
-   struct sockaddr_in cli_addr;
-#elif IPV6_TASK//IPV4_TASK
-   struct sockaddr_in6 cli_addr;
-#endif//IPV4_TASK
-
-   int newsockfd;
-   clilen = sizeof(cli_addr);
-
-
-   newsockfd = lwip_accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-   if (newsockfd < 0) printf("ERROR on accept");
-
-
-   int flags =1;
-   lwip_setsockopt(newsockfd, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
-
-   char buffer[60];
-   read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-   printf("Recv 1 piece of data on server side, %s\n", buffer);
-   read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-   printf("Recv 2 piece of data on server side, %s\n", buffer);
-
-   char* a = "Okay, it is a pure test case...";
-   write_to_sock(newsockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-
-   read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-   printf("Recv 3 piece of data on server side, %s\n", buffer);
-   read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-   printf("Recv 4 piece of data on server side, %s\n", buffer);
-   read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-   printf("Recv 5 piece of data on server side, %s\n", buffer);
-
-
-   lwip_close(newsockfd);    
-   lwip_close(sockfd);    
- 
-   blob* tmp = new_blob_and_copy_data(id, 60, (uint8_t*)buffer);
-   return tmp;
-}
-
-void test_server_thread(void *arg){
-   int wst_service = service_init(WORK_STEAL_PORT, TCP);
-   blob* temp = recv_data_without_conn_tcp(wst_service);
-   printf("Received request %s\n!", temp->data);
-}
-
-void test_server(uint32_t edge_id){
-   device_ctxt* ctxt = init_client(edge_id);
-   set_gateway_local_addr(ctxt, GATEWAY_LOCAL_ADDR);
-   set_gateway_public_addr(ctxt, GATEWAY_PUBLIC_ADDR);
-   set_total_frames(ctxt, FRAME_NUM);
-   set_batch_size(ctxt, BATCH_SIZE);
-   sys_thread_t t0 = sys_thread_new("test_server_thread", test_server_thread, ctxt, 0, 0);
-   sys_thread_join(t0);
-}
 
 
 
