@@ -226,9 +226,9 @@ void sys_sem_free(sys_sem_t *sem){
 void sys_sleep(uint32_t milliseconds){
    os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
    int task_id = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
-   os_model->os_port->taskSleep(task_id);	
+   os_model->os_port->preWait(task_id, task_id);	
    sc_core::wait(milliseconds, sc_core::SC_MS);
-   os_model->os_port->taskResume(task_id);	   
+   os_model->os_port->postWait(task_id);	   
 }
 
 uint32_t sys_now(void){
