@@ -129,16 +129,15 @@ void steal_and_process_thread_no_gateway(void *arg){
    while(1){
       conn = connect_service(TCP, addr_list[dest_id], WORK_STEAL_PORT);
       char* a = "Okay, it is a pure test case, first...";
+
+      int flags =1;
+      lwip_setsockopt(conn->sockfd, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
+
       write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
       write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-   os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
-   os_model->os_port->timeWait(3000000000000, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
-   os_model->os_port->syncGlobalTime(sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
+
       char buffer[60];
       read_from_sock(conn->sockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
-
-   os_model->os_port->timeWait(3000000000000, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
-   os_model->os_port->syncGlobalTime(sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 
       printf("Recv 1 piece of data on client side, %s\n", buffer);
       write_to_sock(conn->sockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
@@ -250,20 +249,17 @@ blob* recv_data_without_conn_tcp(int sockfd){
    if (newsockfd < 0) printf("ERROR on accept");
 
 
+   int flags =1;
+   lwip_setsockopt(newsockfd, IPPROTO_TCP, TCP_NODELAY, (void *)&flags, sizeof(flags));
+
    char buffer[60];
    read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
    printf("Recv 1 piece of data on server side, %s\n", buffer);
    read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
    printf("Recv 2 piece of data on server side, %s\n", buffer);
-   os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
-   os_model->os_port->timeWait(3000000000000, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
-   os_model->os_port->syncGlobalTime(sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 
    char* a = "Okay, it is a pure test case...";
    write_to_sock(newsockfd, TCP, (uint8_t*)a, 60, NULL, NULL);
-
-   os_model->os_port->timeWait(3000000000000, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
-   os_model->os_port->syncGlobalTime(sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
 
    read_from_sock(newsockfd, TCP, (uint8_t*)buffer, 60, NULL, NULL);
    printf("Recv 3 piece of data on server side, %s\n", buffer);
