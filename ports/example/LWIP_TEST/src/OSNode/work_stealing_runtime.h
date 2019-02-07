@@ -4,6 +4,10 @@
 #ifndef WORK_STEALING_RUNTIME_H
 #define WORK_STEALING_RUNTIME_H
 
+#ifndef BATCH_SIZE
+#define BATCH_SIZE 16
+#endif
+
 extern const char* addr_list[MAX_EDGE_NUM];
 /*
 void test_gateway(uint32_t total_number){

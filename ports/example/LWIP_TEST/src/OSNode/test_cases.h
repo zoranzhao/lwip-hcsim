@@ -4,8 +4,11 @@
 #ifndef TEST_CASES_H
 #define TEST_CASES_H
 
-extern const char* addr_list[MAX_EDGE_NUM];
+#ifndef BATCH_SIZE
+#define BATCH_SIZE 16
+#endif
 
+extern const char* addr_list[MAX_EDGE_NUM];
 
 #ifndef UDP_TRANS_SIZE
 #define UDP_TRANS_SIZE 512
