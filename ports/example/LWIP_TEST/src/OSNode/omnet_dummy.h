@@ -43,9 +43,6 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 	data_out -> write(pkt);
         sent_count++;
 	//std::cout << NodeID << " ------------- out >>>>>>>> size is: " << pkt->fileBuffer_arraysize<< " count is:"<< pkt->pkt_number   << " time is: " << sc_core::sc_time_stamp().to_seconds() << std::endl;
-	//if(NodeID==1) {
-	//	        std::cout << NodeID << " ------------- out >>>>>>>> size is: " << pkt->fileBuffer_arraysize<< " count is:"   << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
-	//}
 	System -> NetworkInterfaceCard1 -> notify_sending();
 
     }
@@ -63,21 +60,8 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 	while(1){
 		pkt = data_in -> read();
 		count++;
-		//if(NodeID==0) {
-		//std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " count is:" << pkt->pkt_number  << " time is: " << sc_core::sc_time_stamp().to_seconds() << std::endl;
-		//if(count == 2) continue;
-		//if(count == 5) continue;
-		//if(count == 30) continue;
-		//if(count == 31) continue;
-
-		//}
-
-		//if(NodeID==1) {
 		//        std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " 
-			//count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
-
-		//}
-
+		//count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
       		System -> NetworkInterfaceCard1 -> notify_receiving(pkt->fileBuffer, pkt->fileBuffer_arraysize);
 	}
     }
