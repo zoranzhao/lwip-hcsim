@@ -1,9 +1,3 @@
-/*********************************************                                                       
- * ECG Tasks Based on Interrupt-Driven Task Model                                                                     
- * Zhuoran Zhao, UT Austin, zhuoran@utexas.edu                                                    
- * Last update: July 2018                                                                         
- ********************************************/
-
 #include "HCSim.h"
 #include "lwip_ctxt.h"
 
@@ -12,8 +6,8 @@
 #include "OmnetIf_pkt.h"
 #include "app_utils.h"
 //#include "service_api.h"
-#include "work_stealing_runtime.h"
-//#include "test_cases.h"
+//#include "work_stealing_runtime.h"
+#include "test_cases.h"
 
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
@@ -153,10 +147,13 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 	printf("TCP/IP initialized.\n");
 	//sys_thread_new("send_with_sock", send_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 0);
 	//sys_thread_new("recv_with_sock", recv_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);
-        if(node_id==0) test_victim_client(node_id);
-        if(node_id==1) test_stealer_client(node_id);
-        //if(node_id==0) test_socket_server(node_id);
-        //if(node_id==1) test_socket_client(node_id);
+        //if(node_id==0) test_victim_client(node_id);
+        //if(node_id==1) test_stealer_client(node_id);
+        //if(node_id==0) test_deepthings_victim_edge(node_id);
+        //if(node_id==1) test_deepthings_stealer_edge(node_id);
+
+        if(node_id==0) test_socket_server(node_id);
+        if(node_id==1) test_socket_client(node_id);
         os_port->taskTerminate(os_task_id);
     }
 };
