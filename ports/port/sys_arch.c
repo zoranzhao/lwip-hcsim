@@ -85,6 +85,7 @@ struct sys_mbox {
 #define GLOBAL_SEMS 200
 struct sys_sem {
    bool free;
+   bool wait_flag;
    int id;
    unsigned int c;
    sc_core::sc_event cond;
@@ -111,7 +112,7 @@ sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int
    int child_id = os_model->os_port->taskCreate(
 				sc_core::sc_gen_unique_name("child_task"), 
 				HCSim::OS_RT_APERIODIC, priority, 0, 0, 
-				HCSim::DEFAULT_TS, HCSim::ALL_CORES, core);
+				HCSim::DEFAULT_TS, core, core);//HCSim::ALL_CORES
    std::cout << "taskCreate!" << std::endl;
    os_model->os_port->dynamicStart(core);
    std::cout << "dynamicStart!" << std::endl;
@@ -171,12 +172,18 @@ sys_sem_signal(sys_sem_t *s)
    struct sys_sem *sem;
    sem = *s;
    int task_id = sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle());
+   os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
    sem->blocking_task_id = task_id;
    sem->c++;
    if (sem->c > 1) {
       sem->c = 1;
    }
-   sem->cond.notify(sc_core::SC_ZERO_TIME);
+   os_model->os_port->syncGlobalTime(task_id);
+   if(sem->wait_flag){
+      os_model->os_port->preNotify(task_id, sem->blocked_task_id);	
+      sem->cond.notify();
+      os_model->os_port->postNotify(task_id, sem->blocked_task_id);	
+   }
 }
 
 uint32_t
@@ -190,11 +197,13 @@ sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout){
    sem->blocked_task_id = task_id;
 
    while(sem->c <= 0){
+      os_model->os_port->syncGlobalTime(task_id);
       os_model->os_port->preWait(task_id, sem->blocking_task_id);	
       if(sem->c > 0){
          os_model->os_port->postWait(task_id);
          break;
       }
+      sem->wait_flag = true; 
       if (timeout > 0) {
          start_time = sc_core::sc_time_stamp().value();
          sc_core::wait(timeout, sc_core::SC_MS, sem->cond);
@@ -207,6 +216,7 @@ sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout){
       }else{
          sc_core::wait(sem->cond);	
       }
+      sem->wait_flag = false; 
       os_model->os_port->postWait(task_id);
    }
    sem->c--;
@@ -256,8 +266,10 @@ void sys_init(void){
    starttime = (sc_dt::uint64) (sc_core::sc_time_stamp().value()/1000000000);
    int i = 0;
    if(init == 0){
-      for(i = 0; i<GLOBAL_SEMS; i++)
+      for(i = 0; i<GLOBAL_SEMS; i++){
          sems[i].free = 1;
+         sems[i].wait_flag = false;
+      }
       init = 1;
    }
 }
