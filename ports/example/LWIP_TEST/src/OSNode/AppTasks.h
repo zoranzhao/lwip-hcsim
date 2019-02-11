@@ -6,8 +6,8 @@
 #include "OmnetIf_pkt.h"
 #include "app_utils.h"
 //#include "service_api.h"
-//#include "work_stealing_runtime.h"
-#include "test_cases.h"
+#include "work_stealing_runtime.h"
+//#include "test_cases.h"
 
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
@@ -90,7 +90,7 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
         this->id = id;
         this->end_sim_time = end_sim_time;
 	this->node_id = node_id;
-        this->init_core = 1;
+        this->init_core = 0;
 	recv_port.init(2);
 	send_port.init(2);
         SC_THREAD(run_jobs);
@@ -149,11 +149,11 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 	//sys_thread_new("recv_with_sock", recv_task, ((lwip_context* )g_ctxt), DEFAULT_THREAD_STACKSIZE, 1);
         //if(node_id==0) test_victim_client(node_id);
         //if(node_id==1) test_stealer_client(node_id);
-        //if(node_id==0) test_deepthings_victim_edge(node_id);
-        //if(node_id==1) test_deepthings_stealer_edge(node_id);
+        if(node_id==0) test_deepthings_victim_edge(node_id);
+        if(node_id==1) test_deepthings_stealer_edge(node_id);
 
-        if(node_id==0) test_socket_server(node_id);
-        if(node_id==1) test_socket_client(node_id);
+        //if(node_id==0) test_socket_server(node_id);
+        //if(node_id==1) test_socket_client(node_id);
         os_port->taskTerminate(os_task_id);
     }
 };
