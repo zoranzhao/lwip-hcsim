@@ -210,6 +210,7 @@ sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout){
          start_time = (sc_core::sc_time_stamp().value() - start_time);
          time_needed = (uint32_t)(start_time/1000000000);
          if((time_needed == timeout) && (sem->c <= 0)){
+            sem->wait_flag = false; 
             os_model->os_port->postWait(task_id);
 	    return SYS_ARCH_TIMEOUT;
          }
@@ -225,6 +226,7 @@ sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout){
 
 static void sys_sem_free_internal(struct sys_sem *sem){
    sem->free=1;
+   sem->wait_flag = false; 
 }
 
 void sys_sem_free(sys_sem_t *sem){

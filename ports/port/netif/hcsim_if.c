@@ -107,7 +107,6 @@ static int server_read(void *buf, size_t len) {
     pkt_size =   ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_size(taskID);
      ( sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() ))->recv_port[0]->get_data(pkt_size, (char*)buf, taskID);
     err = pkt_size;
-
     return err;
 
 }
@@ -138,7 +137,7 @@ low_level_init(struct netif *netif)
   netif->hwaddr_len = 6;
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
   netif_set_link_up(netif);
-  sys_thread_new("hcsim_if_thread", hcsim_if_thread, netif, DEFAULT_THREAD_STACKSIZE, 0);
+  sys_thread_new("hcsim_if_thread", hcsim_if_thread, netif, 100, 0);
 
   //Necessary steps of initializing a IPv6 interface.
   //Pre-defined variables needed for IPv6 initialization
@@ -307,7 +306,6 @@ hcsim_if_input(struct netif *netif)
     LWIP_DEBUGF(TAPIF_DEBUG, ("tapif_input: low_level_input returned NULL\n"));
     return;
   }
-  //printf("Input tcpip in node, p->len: %d, p->tot_len: %d\n", p->len, p->tot_len);
   if (netif->input(p, netif) != ERR_OK) {
     LWIP_DEBUGF(NETIF_DEBUG, ("tapif_input: netif input error\n"));
     pbuf_free(p);
