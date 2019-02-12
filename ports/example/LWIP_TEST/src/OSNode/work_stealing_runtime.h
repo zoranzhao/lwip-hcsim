@@ -126,7 +126,7 @@ void test_deepthings_stealer_edge(uint32_t edge_id){
 
    device_ctxt* ctxt = deepthings_edge_init(N, M, fused_layers, network, weights, edge_id);
 
-   sys_thread_t t1 = sys_thread_new("steal_partition_and_perform_inference_thread_no_reuse_no_gateway", steal_partition_and_perform_inference_thread_no_reuse_no_gateway, ctxt, 0, 0);
+   sys_thread_t t1 = sys_thread_new("steal_partition_and_perform_inference_thread_no_reuse_no_gateway", steal_partition_and_perform_inference_thread_no_reuse_no_gateway, ctxt, 101, 0);
 
    sys_thread_join(t1);
 }
@@ -141,8 +141,8 @@ void test_deepthings_victim_edge(uint32_t edge_id){//edge_id == 0;
 
    device_ctxt* ctxt = deepthings_edge_init(N, M, fused_layers, network, weights, edge_id);
 
-   sys_thread_t t1 = sys_thread_new("partition_frame_and_perform_inference_thread_no_reuse_no_gateway", partition_frame_and_perform_inference_thread_no_reuse_no_gateway, ctxt, 20, 0);
-   sys_thread_t t3 = sys_thread_new("serve_stealing_thread", serve_stealing_thread, ctxt, 0, 1);
+   sys_thread_t t1 = sys_thread_new("partition_frame_and_perform_inference_thread_no_reuse_no_gateway", partition_frame_and_perform_inference_thread_no_reuse_no_gateway, ctxt, 102, 0);
+   sys_thread_t t3 = sys_thread_new("serve_stealing_thread", serve_stealing_thread, ctxt, 101, 0);
 
    sys_thread_join(t1);
    sys_thread_join(t3);
