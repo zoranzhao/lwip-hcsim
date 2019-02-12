@@ -238,7 +238,7 @@ sys_timeout(u32_t msecs, sys_timeout_handler handler, void *arg)
   timeout->time = msecs + diff;
 #if LWIP_DEBUG_TIMERNAMES
   timeout->handler_name = handler_name;
-  LWIP_DEBUGF(TIMERS_DEBUG, ("sys_timeout: %p msecs=%"U32_F" handler=%s arg=%p\n",
+  LWIP_DEBUGF(TIMERS_DEBUG, ("sys_timeout: %p msecs=%" U32_F" handler=%s arg=%p\n",
     (void *)timeout, msecs, handler_name, (void *)arg));
 #endif /* LWIP_DEBUG_TIMERNAMES */
 

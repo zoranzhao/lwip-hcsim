@@ -211,7 +211,8 @@ sys_arch_sem_wait(sys_sem_t *s, uint32_t timeout){
          time_needed = (uint32_t)(start_time/1000000000);
          if((time_needed == timeout) && (sem->c <= 0)){
             sem->wait_flag = false; 
-            os_model->os_port->postWait(task_id);
+            //if(os_model->node_id==0) std::cout << "Time out is reached at " << sc_core::sc_time_stamp().to_seconds() << " waiting period is: " << time_needed << "\n";
+            os_model->os_port->postWaitWithSWIntr(task_id);
 	    return SYS_ARCH_TIMEOUT;
          }
       }else{
