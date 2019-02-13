@@ -6,7 +6,9 @@ double CliEnergy[10];
 int node_choice = 0;
 unsigned char debug_flags=LWIP_DBG_OFF;
 
-const char* addr_list[MAX_EDGE_NUM] = EDGE_ADDR_LIST;
+//const char* addr_list[MAX_EDGE_NUM] = EDGE_ADDR_LIST;
+
+const char* addr_list[MAX_EDGE_NUM] = {"100:0:200:0:300:0:400:", "100:0:200:0:300:0:500:", "100:0:200:0:300:0:600:", "100:0:200:0:300:0:700:", "100:0:200:0:300:0:800:", "100:0:200:0:300:0:900:"};
 
 class top : public sc_module
 {
