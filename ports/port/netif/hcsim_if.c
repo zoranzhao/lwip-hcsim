@@ -137,7 +137,7 @@ low_level_init(struct netif *netif)
   netif->hwaddr_len = 6;
   netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
   netif_set_link_up(netif);
-  sys_thread_new("hcsim_if_thread", hcsim_if_thread, netif, 100, 0);
+  sys_thread_new("hcsim_if_thread", hcsim_if_thread, netif, 99, 0);
 
   //Necessary steps of initializing a IPv6 interface.
   //Pre-defined variables needed for IPv6 initialization
@@ -184,7 +184,10 @@ low_level_init(struct netif *netif)
 static err_t
 low_level_output(struct netif *netif, struct pbuf *p)
 {
-
+  struct eth_hdr* ethhdr = (struct eth_hdr *)p->payload;
+  //printf("Dest eth address is %d:%d:%d:%d:%d:%d\n", (unsigned)ethhdr->dest.addr[0], (unsigned)ethhdr->dest.addr[1], (unsigned)ethhdr->dest.addr[2],
+    //(unsigned)ethhdr->dest.addr[3], (unsigned)ethhdr->dest.addr[4], (unsigned)ethhdr->dest.addr[5]);
+   
   struct pbuf *q;
   char buf[1514];
   char *bufptr;
@@ -215,6 +218,7 @@ low_level_output(struct netif *netif, struct pbuf *p)
   //if(server_write(buf, p->tot_len) == -1) {
     //perror("hcsim_if: write");
   //}
+
   server_write(buf, p->tot_len);
 
   return ERR_OK;
@@ -237,7 +241,6 @@ low_level_input(struct netif *netif)
   char *bufptr;
 
   len = server_read(buf, sizeof(buf));
-
 
   /* We allocate a pbuf chain of pbufs from the pool. */
   p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
@@ -262,6 +265,33 @@ low_level_input(struct netif *netif)
 
   return p;
 }
+
+
+unsigned int get_dest_device_id(char* buf, int len)
+{
+  struct pbuf* p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
+  struct pbuf* q;
+  char* bufptr;
+  if(p != NULL) {
+    bufptr = buf;
+    for(q = p; q != NULL; q = q->next) {
+      memcpy(q->payload, bufptr, q->len);
+      bufptr += q->len;
+    }
+  } else {
+    printf("Could not allocate pbufs, or nothing is read out of the device\n");
+
+  }
+
+  struct eth_hdr* ethhdr = (struct eth_hdr *)p->payload;
+  return (unsigned)ethhdr->dest.addr[5];
+
+}
+
+
+
+
+
 /*-----------------------------------------------------------------------------------*/
 static void
 hcsim_if_thread(void *arg)
