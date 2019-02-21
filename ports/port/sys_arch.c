@@ -115,6 +115,8 @@ sys_thread_t sys_thread_new(const char *name, thread_fn function, void *arg, int
 				HCSim::DEFAULT_TS, core, core);//HCSim::ALL_CORES
    std::cout << "taskCreate!" << std::endl;
    os_model->os_port->dynamicStart(core);
+   std::cout << "Name is: " << name << std::endl; 
+   std::cout << "ID is: " << child_id << std::endl; 
    std::cout << "dynamicStart!" << std::endl;
    os_wrapper_fn os_fn = NULL;
    os_fn = &wrapper;
