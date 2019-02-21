@@ -224,7 +224,7 @@ mld6_input(struct pbuf *p, struct netif *inp)
   struct mld_header *mld_hdr;
   struct mld_group *group;
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   MLD6_STATS_INC(mld6.recv);
 
   /* Check that mld header fits in packet. */
@@ -308,7 +308,7 @@ mld6_joingroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   struct netif *netif;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* loop through netif's */
   netif = (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
@@ -383,7 +383,7 @@ mld6_leavegroup(const ip6_addr_t *srcaddr, const ip6_addr_t *groupaddr)
   struct netif *netif;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* loop through netif's */
   netif = (((lwip_context*)ctxt)->netif_list);
   while (netif != NULL) {
@@ -462,7 +462,7 @@ void
 mld6_tmr(void)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   struct netif *netif = (((lwip_context*)ctxt)->netif_list);
 
   while (netif != NULL) {

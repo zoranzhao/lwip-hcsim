@@ -81,7 +81,7 @@ void
 icmp6_input(struct pbuf *p, struct netif *inp)
 {
   void* ctxt;//HCSim
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );//HCSim
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   struct icmp6_hdr *icmp6hdr;
   struct pbuf *r;
   const ip6_addr_t *reply_src;
@@ -281,7 +281,7 @@ icmp6_send_response(struct pbuf *p, u8_t code, u32_t data, u8_t type)
   struct ip6_hdr *ip6hdr;
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* ICMPv6 header + IPv6 header + data */
   q = pbuf_alloc(PBUF_IP, sizeof(struct icmp6_hdr) + IP6_HLEN + LWIP_ICMP6_DATASIZE,
                  PBUF_RAM);

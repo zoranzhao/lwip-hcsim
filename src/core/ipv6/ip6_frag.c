@@ -112,7 +112,7 @@ ip6_reass_tmr(void)
 {
   struct ip6_reassdata *r, *tmp;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
 #if !IPV6_FRAG_COPYHEADER
   LWIP_ASSERT("sizeof(struct ip6_reass_helper) <= IP6_FRAG_HLEN, set IPV6_FRAG_COPYHEADER to 1",
@@ -153,7 +153,7 @@ ip6_reass_free_complete_datagram(struct ip6_reassdata *ipr)
   struct pbuf *p;
   struct ip6_reass_helper *iprh;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 #if LWIP_ICMP6
   iprh = (struct ip6_reass_helper *)ipr->p->payload;
   if (iprh->start == 0) {
@@ -227,7 +227,7 @@ ip6_reass_remove_oldest_datagram(struct ip6_reassdata *ipr, int pbufs_needed)
 {
   struct ip6_reassdata *r, *oldest;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Free datagrams until being allowed to enqueue 'pbufs_needed' pbufs,
    * but don't free the current datagram! */
   do {
@@ -271,7 +271,7 @@ ip6_reass(struct pbuf *p)
   struct pbuf *q;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   IP6_FRAG_STATS_INC(ip6_frag.recv);
 

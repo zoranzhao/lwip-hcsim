@@ -87,7 +87,7 @@ ip6_route(const ip6_addr_t *src, const ip6_addr_t *dest)
   s8_t i;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   /* If single netif configuration, fast return. */
   if (( (((lwip_context*)ctxt)->netif_list) != NULL) && ((((lwip_context*)ctxt)->netif_list)->next == NULL)) {
@@ -403,7 +403,7 @@ ip6_input(struct pbuf *p, struct netif *inp)
   int check_ip_src=1;
 #endif /* IP_ACCEPT_LINK_LAYER_ADDRESSING */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   IP6_STATS_INC(ip6.recv);
 

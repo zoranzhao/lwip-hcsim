@@ -137,7 +137,7 @@ nd6_input(struct pbuf *p, struct netif *inp)
   u8_t msg_type;
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   ND6_STATS_INC(nd6.recv);
 
   msg_type = *((u8_t *)p->payload);
@@ -720,7 +720,7 @@ nd6_tmr(void)
   s8_t i;
   struct netif *netif;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Process neighbor entries. */
   for (i = 0; i < LWIP_ND6_NUM_NEIGHBORS; i++) {
     switch ((((lwip_context*)ctxt)->neighbor_cache)[i].state) {
@@ -924,7 +924,7 @@ nd6_send_ns(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   u16_t lladdr_opt_len;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   if (ip6_addr_isvalid(netif_ip6_addr_state(netif,0))) {
     /* Use link-local address as source address. */
@@ -998,7 +998,7 @@ nd6_send_na(struct netif *netif, const ip6_addr_t *target_addr, u8_t flags)
   u16_t lladdr_opt_len;
 
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Use link-local address as source address. */
   /* src_addr = netif_ip6_addr(netif, 0); */
   /* Use target address as source address. */
@@ -1070,7 +1070,7 @@ nd6_send_rs(struct netif *netif)
   err_t err;
   u16_t lladdr_opt_len = 0;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Link-local source address, or unspecified address? */
   if (ip6_addr_isvalid(netif_ip6_addr_state(netif, 0))) {
     src_addr = netif_ip6_addr(netif, 0);
@@ -1136,7 +1136,7 @@ nd6_find_neighbor_cache_entry(const ip6_addr_t *ip6addr)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   for (i = 0; i < LWIP_ND6_NUM_NEIGHBORS; i++) {
     if (ip6_addr_cmp(ip6addr, &((((lwip_context*)ctxt)->neighbor_cache)[i].next_hop_address))) {
       return i;
@@ -1161,7 +1161,7 @@ nd6_new_neighbor_cache_entry(void)
   s8_t j;
   u32_t time;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   /* First, try to find an empty entry. */
   for (i = 0; i < LWIP_ND6_NUM_NEIGHBORS; i++) {
@@ -1266,7 +1266,7 @@ static void
 nd6_free_neighbor_cache_entry(s8_t i)
 {
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   if ((i < 0) || (i >= LWIP_ND6_NUM_NEIGHBORS)) {
     return;
   }
@@ -1300,7 +1300,7 @@ nd6_find_destination_cache_entry(const ip6_addr_t *ip6addr)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   for (i = 0; i < LWIP_ND6_NUM_DESTINATIONS; i++) {
     if (ip6_addr_cmp(ip6addr, &((((lwip_context*)ctxt)->destination_cache)[i].destination_addr))) {
       return i;
@@ -1322,7 +1322,7 @@ nd6_new_destination_cache_entry(void)
   s8_t i, j;
   u32_t age;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Find an empty entry. */
   for (i = 0; i < LWIP_ND6_NUM_DESTINATIONS; i++) {
     if (ip6_addr_isany(&((((lwip_context*)ctxt)->destination_cache)[i].destination_addr))) {
@@ -1353,7 +1353,7 @@ nd6_clear_destination_cache(void)
 {
   int i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   for (i = 0; i < LWIP_ND6_NUM_DESTINATIONS; i++) {
     ip6_addr_set_any(&(((lwip_context*)ctxt)->destination_cache)[i].destination_addr);
   }
@@ -1370,7 +1370,7 @@ nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; i++) {
     if (((((lwip_context*)ctxt)->prefix_list)[i].netif == netif) &&
         ((((lwip_context*)ctxt)->prefix_list)[i].invalidation_timer > 0) &&
@@ -1401,7 +1401,7 @@ nd6_select_router(const ip6_addr_t *ip6addr, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* last_router is used for round-robin router selection (as recommended
    * in RFC). This is more robust in case one router is not reachable,
    * we are not stuck trying to resolve it. */
@@ -1464,7 +1464,7 @@ nd6_find_route(const ip6_addr_t *ip6addr)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   i = nd6_select_router(ip6addr, NULL);
   if (i >= 0) {
     if ((((lwip_context*)ctxt)->default_router_list)[i].neighbor_entry != NULL) {
@@ -1487,7 +1487,7 @@ nd6_get_router(const ip6_addr_t *router_addr, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Look for router. */
   for (i = 0; i < LWIP_ND6_NUM_ROUTERS; i++) {
     if (((((lwip_context*)ctxt)->default_router_list)[i].neighbor_entry != NULL) &&
@@ -1515,7 +1515,7 @@ nd6_new_router(const ip6_addr_t *router_addr, struct netif *netif)
   s8_t free_router_index;
   s8_t neighbor_index;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Do we have a neighbor entry for this router? */
   neighbor_index = nd6_find_neighbor_cache_entry(router_addr);
   if (neighbor_index < 0) {
@@ -1575,7 +1575,7 @@ nd6_get_onlink_prefix(ip6_addr_t *prefix, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Look for prefix in list. */
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; ++i) {
     if ((ip6_addr_netcmp(&((((lwip_context*)ctxt)->prefix_list)[i].prefix), prefix)) &&
@@ -1600,7 +1600,7 @@ nd6_new_onlink_prefix(ip6_addr_t *prefix, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Create new entry. */
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; ++i) {
     if (((((lwip_context*)ctxt)->prefix_list)[i].netif == NULL) ||
@@ -1639,7 +1639,7 @@ nd6_get_next_hop_entry(const ip6_addr_t *ip6addr, struct netif *netif)
 #endif /* LWIP_HOOK_ND6_GET_GW */
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 #if LWIP_NETIF_HWADDRHINT
   if (netif->addr_hint != NULL) {
     /* per-pcb cached entry was given */
@@ -1764,7 +1764,7 @@ nd6_queue_packet(s8_t neighbor_index, struct pbuf *q)
   struct nd6_q_entry *new_entry, *r;
 #endif /* LWIP_ND6_QUEUEING */
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   if ((neighbor_index < 0) || (neighbor_index >= LWIP_ND6_NUM_NEIGHBORS)) {
     return ERR_ARG;
   }
@@ -1893,7 +1893,7 @@ nd6_send_q(s8_t i)
   struct ip6_hdr *ip6hdr;
   ip6_addr_t dest;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 #if LWIP_ND6_QUEUEING
   struct nd6_q_entry *q;
 #endif /* LWIP_ND6_QUEUEING */
@@ -1961,7 +1961,7 @@ nd6_get_next_hop_addr_or_queue(struct netif *netif, struct pbuf *q, const ip6_ad
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Get next hop record. */
   i = nd6_get_next_hop_entry(ip6addr, netif);
   if (i < 0) {
@@ -2003,7 +2003,7 @@ nd6_get_destination_mtu(const ip6_addr_t *ip6addr, struct netif *netif)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   i = nd6_find_destination_cache_entry(ip6addr);
   if (i >= 0) {
     if ((((lwip_context*)ctxt)->destination_cache)[i].pmtu > 0) {
@@ -2034,7 +2034,7 @@ nd6_reachability_hint(const ip6_addr_t *ip6addr)
 {
   s8_t i;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
   /* Find destination in cache. */
   if (ip6_addr_cmp(ip6addr, &((((lwip_context*)ctxt)->destination_cache)[(((lwip_context*)ctxt)->nd6_cached_destination_index)].destination_addr))) {
     i = (((lwip_context*)ctxt)->nd6_cached_destination_index);
@@ -2079,7 +2079,7 @@ nd6_cleanup_netif(struct netif *netif)
   u8_t i;
   s8_t router_index;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   for (i = 0; i < LWIP_ND6_NUM_PREFIXES; i++) {
     if ((((lwip_context*)ctxt)->prefix_list)[i].netif == netif) {
@@ -2115,7 +2115,7 @@ nd6_adjust_mld_membership(struct netif *netif, s8_t addr_idx, u8_t new_state)
 {
   u8_t old_state, old_member, new_member;
   void* ctxt;
-  ctxt = taskManager.getLwipCtxt( sc_core::sc_get_current_process_handle() );
+  ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");
 
   old_state = netif_ip6_addr_state(netif, addr_idx);
 
