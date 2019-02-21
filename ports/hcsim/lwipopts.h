@@ -36,7 +36,7 @@
 
 #define LWIP_IPV4          1
 #define LWIP_IPV6          0
-#define LWIP_IPV6_MLD      0
+#define LWIP_IPV6_MLD      LWIP_IPV6
 
 #define LWIP_DBG_MIN_LEVEL 0
 #define LWIP_COMPAT_SOCKETS 0
@@ -48,7 +48,7 @@
 #define SIO_FIFO_DEBUG LWIP_DBG_OFF
 #define TCPDUMP_DEBUG LWIP_DBG_ON
 
-#define ETHARP_DEBUG     LWIP_DBG_ON
+#define ETHARP_DEBUG     LWIP_DBG_OFF
 #define IP6_DEBUG        LWIP_DBG_OFF
 #define SLIP_DEBUG       LWIP_DBG_OFF
 #define PPP_DEBUG        LWIP_DBG_OFF
@@ -66,9 +66,9 @@
 #define RAW_DEBUG        LWIP_DBG_OFF
 #define ICMP_DEBUG       LWIP_DBG_OFF
 #define UDP_DEBUG        LWIP_DBG_OFF
-#define TCP_DEBUG        LWIP_DBG_ON
-#define TCP_INPUT_DEBUG  LWIP_DBG_ON
-#define TCP_OUTPUT_DEBUG LWIP_DBG_OFF
+#define TCP_DEBUG        LWIP_DBG_OFF
+#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
+#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
 #define TCP_RTO_DEBUG    LWIP_DBG_OFF
 #define TCP_CWND_DEBUG   LWIP_DBG_OFF
 #define TCP_WND_DEBUG    LWIP_DBG_OFF
@@ -175,13 +175,13 @@ a lot of data that needs to be copied, this should be set high. */
 
 /* Controls if TCP should queue segments that arrive out of
    order. Define to 0 if your device is low on memory. */
-#define TCP_QUEUE_OOSEQ         4
+#define TCP_QUEUE_OOSEQ         1
 
 /* TCP Maximum segment size. */
-#define TCP_MSS                 1024
+#define TCP_MSS                 (1500-40)
 
 /* TCP sender buffer space (bytes). */
-#define TCP_SND_BUF             2048
+#define TCP_SND_BUF             (32*TCP_MSS)
 
 /* TCP sender buffer space (pbufs). This must be at least = 2 *
    TCP_SND_BUF/TCP_MSS for things to work. */
@@ -193,7 +193,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_SNDLOWAT		(TCP_SND_BUF/2)
 
 /* TCP receive window. */
-#define TCP_WND                 8096
+#define TCP_WND                 (32*TCP_MSS)
 
 /* Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX              12
