@@ -60,8 +60,8 @@ class cSimpleModuleWrapper:public sc_core::sc_module,virtual public cSimpleModul
 	while(1){
 		pkt = data_in -> read();
 		count++;
-		//        std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize<< " 
-		//count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
+		std::cout << NodeID << " ------------- in <<<<<<<< size is: " << pkt->fileBuffer_arraysize
+                          << "count is:" <<count  << " time is: " << sc_core::sc_time_stamp().value() << std::endl;
       		System -> NetworkInterfaceCard1 -> notify_receiving(pkt->fileBuffer, pkt->fileBuffer_arraysize);
 	}
     }

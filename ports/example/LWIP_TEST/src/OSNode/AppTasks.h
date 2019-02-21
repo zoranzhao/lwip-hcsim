@@ -12,6 +12,7 @@
 #ifndef SC_TASK_MODEL__H
 #define SC_TASK_MODEL__H
 
+#define LOWPAN6_TASK IPV6_TASK
 #define PROTO TCP
 
 #define PORTNO 11111 //Service for job stealing and sharing
@@ -116,6 +117,7 @@ class IntrDriven_Task :public sc_core::sc_module,virtual public HCSim::OS_TASK_I
 
 #elif IPV6_TASK//IPV4_TASK
 	IP_ADDR6(&((lwip_context* )g_ctxt)->ipaddr,  1, 2, 3, (4 + node_id));
+        std::cout << "The IPv6 address string is: " << inet6_ntoa( ((lwip_context* )g_ctxt)->ipaddr ) << "|||||\n";
 #endif//IPV4_TASK
 	printf("Setting up node_id %d ...\n", node_id);
 	((lwip_context* )g_ctxt)->node_id = node_id;
