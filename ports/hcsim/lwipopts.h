@@ -181,7 +181,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_MSS                 (1500-40)
 
 /* TCP sender buffer space (bytes). */
-#define TCP_SND_BUF             (32*TCP_MSS)
+#define TCP_SND_BUF             (40*TCP_MSS)
 
 /* TCP sender buffer space (pbufs). This must be at least = 2 *
    TCP_SND_BUF/TCP_MSS for things to work. */
@@ -193,7 +193,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_SNDLOWAT		(TCP_SND_BUF/2)
 
 /* TCP receive window. */
-#define TCP_WND                 (32*TCP_MSS)
+#define TCP_WND                 (40*TCP_MSS)
 
 /* Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX              12
