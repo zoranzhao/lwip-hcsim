@@ -116,6 +116,9 @@ class os_model_context{
 public:
    int node_id;
 
+   sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out1; 
+   sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out2; 
+
    sc_core::sc_port<sys_call_recv_if> recv_port[MAX_CORE_NUM];
    sc_core::sc_port<sys_call_send_if> send_port[MAX_CORE_NUM]; 
    sc_core::sc_port< HCSim::OSAPI > os_port;
