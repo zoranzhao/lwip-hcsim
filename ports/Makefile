@@ -152,7 +152,8 @@ LWIPOBJ=$(LWIPALL).o
 LWIPOBJS=$(notdir $(LWIPFILESW:.c=.o))
 ARCHOBJS=$(notdir $(ARCHFILESW:.c=.o))
 
-
+%.o:
+	$(LLVM_CC) $(CFLAGS) -c $(<:.o=.c)
 
 all: $(LWIPLIB) $(APPLIB)
 .PHONY: all
@@ -164,22 +165,17 @@ depend dep: .depend
 
 include .depend
 
-$(LWIPOBJ): $(LWIPFILES)
-	$(LLVM_CC) $(COPTS) $(CFLAGS) -c $(LWIPFILES) 
-	$(LLVM_LINK) $(LWIPBCFILES) -o $(LWIPALL).all.bc 
+#$(LWIPOBJ): $(LWIPFILES)
+	#$(LLVM_CC) $(COPTS) $(CFLAGS) -c $(LWIPFILES) 
+	#$(LLVM_LINK) $(LWIPBCFILES) -o $(LWIPALL).all.bc 
 	#opt -load $(INS_LIB) $(LLVM_INSTR_PASS) -libname=12 -InstruProf=$(INS_STAGE) < $(LWIPALL).all.bc > $(LWIPALL).instru.bc
 	#llc -filetype=obj $(LWIPALL).instru.bc -o $(LWIPALL).o
-	$(LLVM_LLC) -filetype=obj $(LWIPALL).all.bc -o $(LWIPALL).o
-
-#$(): 
-%.o:
-	$(LLVM_CC) $(CFLAGS) -c $(<:.o=.c) $(LFLAGS)
+	#$(LLVM_LLC) -filetype=obj $(LWIPALL).all.bc -o $(LWIPALL).o
 
 $(APPLIB): $(APPOBJS)
 	$(AR) $(ARFLAGS) $(APPLIB) $?
 
-$(LWIPLIB): $(LWIPOBJ) $(ARCHOBJS)
-	echo $(AR) $(ARFLAGS) $(LWIPLIB) $?
+$(LWIPLIB): $(LWIPOBJS) $(ARCHOBJS)
 	$(AR) $(ARFLAGS) $(LWIPLIB) $?
 
 .depend: $(LWIPFILES) $(ARCHFILES) $(APPFILES)
