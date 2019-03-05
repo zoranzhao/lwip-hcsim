@@ -1218,6 +1218,7 @@ lwip_netconn_do_connected(void *arg, struct tcp_pcb *pcb, err_t err)
 void
 lwip_netconn_do_connect(void *m)
 {
+  sys_time_wait("lwip_netconn_do_connect", "null");
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct api_msg *msg = (struct api_msg*)m;

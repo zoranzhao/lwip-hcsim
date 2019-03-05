@@ -425,6 +425,7 @@ sys_timeouts_sleeptime(void)
 void
 sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
 {
+  sys_time_wait("sys_timeouts_mbox_fetch", "null");
   u32_t sleeptime;
   void* ctxt;
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim

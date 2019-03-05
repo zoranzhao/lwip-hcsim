@@ -70,7 +70,7 @@ struct sys_thread {
 };
 
 /*Definition for thread-safe mailboxes*/
-#define SYS_MBOX_SIZE 128
+#define SYS_MBOX_SIZE 1280
 struct sys_mbox {
   int id;
   int first, last;
@@ -445,6 +445,22 @@ sys_arch_unprotect(uint32_t pval)
             lwprot_mutex.unlock();
         }
     }
+}
+
+void
+sys_time_wait(char* function_name, char* input)
+{
+   os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
+   long long psec = os_model->profile->get_latency_in_psec(std::string(function_name), std::string(input));
+   if(psec == 0){
+      //std::cout << "In device " << os_model->node_id << " , function name:" << function_name << " with input:" << input << ", no profile data!" << std::endl;
+      return;
+   }
+   os_model->os_port->timeWait(psec, sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
+   os_model->os_port->syncGlobalTime(sim_ctxt.get_task_id(sc_core::sc_get_current_process_handle()));
+
+   double sec = os_model->profile->get_latency_in_sec(std::string(function_name), std::string(input));
+   //std::cout << "In device " << os_model->node_id << " , function name:" << function_name << " with input:" << input << ", latency is:" << sec << "s" << std::endl;
 }
 
 

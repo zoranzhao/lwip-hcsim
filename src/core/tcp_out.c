@@ -367,6 +367,7 @@ tcp_write_checks(struct tcp_pcb *pcb, u16_t len)
 err_t
 tcp_write(struct tcp_pcb *pcb, const void *arg, u16_t len, u8_t apiflags)
 {
+  sys_time_wait("tcp_write", "null");
   struct pbuf *concat_p = NULL;
   struct tcp_seg *last_unsent = NULL, *seg = NULL, *prev_seg = NULL, *queue = NULL;
   u16_t pos = 0; /* position in 'arg' data */

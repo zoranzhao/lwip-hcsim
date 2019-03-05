@@ -103,6 +103,7 @@ static int tcp_input_delayed_close(struct tcp_pcb *pcb);
 void
 tcp_input(struct pbuf *p, struct netif *inp)
 {
+  sys_time_wait("tcp_input", "null");
   struct tcp_pcb *pcb, *prev;
   struct tcp_pcb_listen *lpcb;
 #if SO_REUSE

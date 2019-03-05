@@ -57,18 +57,18 @@
 #define PBUF_DEBUG       LWIP_DBG_OFF
 #define API_LIB_DEBUG    LWIP_DBG_OFF
 #define API_MSG_DEBUG    LWIP_DBG_OFF
-#define TCPIP_DEBUG      LWIP_DBG_OFF
+#define TCPIP_DEBUG      LWIP_DBG_ON
 #define NETIF_DEBUG      LWIP_DBG_OFF
-#define SOCKETS_DEBUG    LWIP_DBG_OFF
+#define SOCKETS_DEBUG    LWIP_DBG_ON
 #define DEMO_DEBUG       LWIP_DBG_OFF
 #define IP_DEBUG         LWIP_DBG_OFF
 #define IP_REASS_DEBUG   LWIP_DBG_OFF
 #define RAW_DEBUG        LWIP_DBG_OFF
 #define ICMP_DEBUG       LWIP_DBG_OFF
 #define UDP_DEBUG        LWIP_DBG_OFF
-#define TCP_DEBUG        LWIP_DBG_OFF
-#define TCP_INPUT_DEBUG  LWIP_DBG_OFF
-#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
+#define TCP_DEBUG        LWIP_DBG_ON
+#define TCP_INPUT_DEBUG  LWIP_DBG_ON
+#define TCP_OUTPUT_DEBUG LWIP_DBG_OFF
 #define TCP_RTO_DEBUG    LWIP_DBG_OFF
 #define TCP_CWND_DEBUG   LWIP_DBG_OFF
 #define TCP_WND_DEBUG    LWIP_DBG_OFF
@@ -113,22 +113,22 @@ a lot of data that needs to be copied, this should be set high. */
 /* MEMP_NUM_PBUF: the number of memp struct pbufs. If the application
    sends a lot of data out of ROM (or other static memory), this
    should be set high. */
-#define MEMP_NUM_PBUF           16
+#define MEMP_NUM_PBUF           2048
 /* MEMP_NUM_RAW_PCB: the number of UDP protocol control blocks. One
    per active RAW "connection". */
-#define MEMP_NUM_RAW_PCB        3
+#define MEMP_NUM_RAW_PCB        32
 /* MEMP_NUM_UDP_PCB: the number of UDP protocol control blocks. One
    per active UDP "connection". */
-#define MEMP_NUM_UDP_PCB        6
+#define MEMP_NUM_UDP_PCB        32
 /* MEMP_NUM_TCP_PCB: the number of simulatenously active TCP
    connections. */
-#define MEMP_NUM_TCP_PCB        5
+#define MEMP_NUM_TCP_PCB        128
 /* MEMP_NUM_TCP_PCB_LISTEN: the number of listening TCP
    connections. */
-#define MEMP_NUM_TCP_PCB_LISTEN 8
+#define MEMP_NUM_TCP_PCB_LISTEN 128
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
    segments. */
-#define MEMP_NUM_TCP_SEG        16
+#define MEMP_NUM_TCP_SEG        128
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    12
@@ -136,14 +136,14 @@ a lot of data that needs to be copied, this should be set high. */
 /* The following four are used only with the sequential API and can be
    set to 0 if the application only will use the raw API. */
 /* MEMP_NUM_NETBUF: the number of struct netbufs. */
-#define MEMP_NUM_NETBUF         2
+#define MEMP_NUM_NETBUF         128
 /* MEMP_NUM_NETCONN: the number of struct netconns. */
-#define MEMP_NUM_NETCONN        10
+#define MEMP_NUM_NETCONN        128
 /* MEMP_NUM_TCPIP_MSG_*: the number of struct tcpip_msg, which is used
    for sequential API communication and incoming packets. Used in
    src/api/tcpip.c. */
-#define MEMP_NUM_TCPIP_MSG_API   16
-#define MEMP_NUM_TCPIP_MSG_INPKT 16
+#define MEMP_NUM_TCPIP_MSG_API   1600
+#define MEMP_NUM_TCPIP_MSG_INPKT 1600
 
 #define MEMP_OVERFLOW_CHECK      1
 
@@ -181,19 +181,21 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_MSS                 (1500-40)
 
 /* TCP sender buffer space (bytes). */
-#define TCP_SND_BUF             (40*TCP_MSS)
+#define TCP_SND_BUF             (32000*TCP_MSS)
 
 /* TCP sender buffer space (pbufs). This must be at least = 2 *
    TCP_SND_BUF/TCP_MSS for things to work. */
-#define TCP_SND_QUEUELEN        (4 * TCP_SND_BUF/TCP_MSS)
+#define TCP_SND_QUEUELEN        (2 * TCP_SND_BUF/TCP_MSS)
 
 /* TCP writable space (bytes). This must be less than or equal
    to TCP_SND_BUF. It is the amount of space which must be
    available in the tcp snd_buf for select to return writable */
-#define TCP_SNDLOWAT		(TCP_SND_BUF/2)
+#define TCP_SNDLOWAT		0xff
 
 /* TCP receive window. */
-#define TCP_WND                 (40*TCP_MSS)
+#define LWIP_WND_SCALE          1
+#define TCP_RCV_SCALE           12
+#define TCP_WND                 (32000*TCP_MSS)
 
 /* Maximum number of retransmissions of data segments. */
 #define TCP_MAXRTX              12

@@ -270,6 +270,7 @@ memp_init_pool(const struct memp_desc *desc)
 void
 memp_init(void)
 {
+  sys_time_wait("memp_init", "null");
   u16_t i;
 
   /* for every pool: */

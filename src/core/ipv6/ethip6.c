@@ -78,6 +78,7 @@
 err_t
 ethip6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
 {
+  sys_time_wait("ethip6_output", "null");
   struct eth_addr dest;
   const u8_t *hwaddr;
   err_t result;

@@ -803,6 +803,7 @@ etharp_output_to_arp_index(struct netif *netif, struct pbuf *q, u8_t arp_idx)
 err_t
 etharp_output(struct netif *netif, struct pbuf *q, const ip4_addr_t *ipaddr)
 {
+  sys_time_wait("etharp_output", "null");
   const struct eth_addr *dest;
   struct eth_addr mcastaddr;
   const ip4_addr_t *dst_addr = ipaddr;
@@ -1218,6 +1219,7 @@ etharp_request_dst(struct netif *netif, const ip4_addr_t *ipaddr, const struct e
 err_t
 etharp_request(struct netif *netif, const ip4_addr_t *ipaddr)
 {
+  sys_time_wait("etharp_request", "null");
   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("etharp_request: sending ARP request.\n"));
   return etharp_request_dst(netif, ipaddr, &ethbroadcast);
 }

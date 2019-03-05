@@ -144,6 +144,7 @@ static err_t tcp_close_shutdown_fin(struct tcp_pcb *pcb);
 void
 tcp_init(void)
 {
+  sys_time_wait("tcp_init", "null");
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
 #if LWIP_RANDOMIZE_INITIAL_LOCAL_PORTS && defined(LWIP_RAND)

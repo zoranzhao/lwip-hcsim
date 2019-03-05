@@ -1,7 +1,7 @@
 #include <systemc>
 #include "HCSim.h"
 #include <string>
-#include <unordered_map>
+#include "profile_data.h"
 
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
@@ -115,6 +115,7 @@ private:
 class os_model_context{
 public:
    int node_id;
+   profile_data *profile;
 
    sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out1; 
    sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out2; 
@@ -126,7 +127,7 @@ public:
    int device_type;
    int core_num;
    os_model_context(){
-
+      profile = new profile_data();
    }
    os_model_context(int node_id,
                     sc_core::sc_vector< sc_core::sc_port< sys_call_recv_if > >& recv_port,
@@ -140,8 +141,11 @@ public:
          this->recv_port[i](recv_port[i]);
          this->send_port[i](send_port[i]);
       }
+      profile = new profile_data();
    }
-   ~os_model_context(){}
+   ~os_model_context(){
+      delete profile;
+   }
 };
 
 
