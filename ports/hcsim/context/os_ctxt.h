@@ -2,6 +2,7 @@
 #include "HCSim.h"
 #include <string>
 #include "profile_data.h"
+#include "cluster_config.h"
 
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
@@ -117,6 +118,7 @@ public:
    int node_id;
    profile_data *profile;
 
+
    sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out1; 
    sc_core::sc_port< sc_core::sc_fifo_out_if<int> > ctrl_out2; 
 
@@ -124,8 +126,6 @@ public:
    sc_core::sc_port<sys_call_send_if> send_port[MAX_CORE_NUM]; 
    sc_core::sc_port< HCSim::OSAPI > os_port;
 
-   int device_type;
-   int core_num;
    os_model_context(){
       profile = new profile_data();
    }
@@ -133,11 +133,9 @@ public:
                     sc_core::sc_vector< sc_core::sc_port< sys_call_recv_if > >& recv_port,
                     sc_core::sc_vector< sc_core::sc_port< sys_call_send_if > >& send_port,
                     sc_core::sc_port< HCSim::OSAPI >& os_port){
-      core_num = 2;
-      device_type = 0;
       this->node_id = node_id;
       this->os_port(os_port);
-      for(int i = 0; i < core_num; i++){
+      for(int i = 0; i < MAX_CORE_NUM; i++){
          this->recv_port[i](recv_port[i]);
          this->send_port[i](send_port[i]);
       }
@@ -172,8 +170,8 @@ typedef struct sc_process_handler_context{
 class simulation_context{
    std::vector< sc_core::sc_process_handle> handler_list;  
    std::vector<handler_context> handler_context_list;
-   
 public:
+   cluster_config* cluster;
    simulation_context(){
       std::cout << "Construct a new simulation context" << std::endl; 
    }
@@ -209,6 +207,8 @@ public:
       handler_context ctxt = get_handler_context(handler);
       return ctxt.task_id;
    } 
+   ~simulation_context(){
+   }
 };
 
 

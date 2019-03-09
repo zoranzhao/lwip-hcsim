@@ -284,7 +284,21 @@ unsigned int get_dest_device_id(char* buf, int len)
   }
 
   struct eth_hdr* ethhdr = (struct eth_hdr *)p->payload;
-  return (unsigned)ethhdr->dest.addr[5];
+
+  char mac_addr[64];
+  sprintf(mac_addr, "%02X:%02X:%02X:%02X:%02X:%02X",
+          (unsigned)ethhdr->dest.addr[0],
+          (unsigned)ethhdr->dest.addr[1],
+          (unsigned)ethhdr->dest.addr[2],
+          (unsigned)ethhdr->dest.addr[3],
+          (unsigned)ethhdr->dest.addr[4],
+          (unsigned)ethhdr->dest.addr[5]
+          );
+  //printf("Dest device mac addr is %s, dest device ID %d\n",
+  //   mac_addr,
+  //   (sim_ctxt.cluster)->get_device_id_from_mac_address(mac_addr)    
+  //);
+  return (sim_ctxt.cluster)->get_device_id_from_mac_address(mac_addr);
 
 }
 
@@ -376,13 +390,12 @@ hcsim_if_init(struct netif *netif)
   netif->mtu = 1500;
   /* hardware address length */
 
-  netif->hwaddr[0] = 0x00;
-  netif->hwaddr[1] = 0x00;
-  netif->hwaddr[2] = 0x00;
-  netif->hwaddr[3] = 0x00;
-  netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 +  (((lwip_context*)ctxt)->node_id);;
-
+  netif->hwaddr[0] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 0);
+  netif->hwaddr[1] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 1);
+  netif->hwaddr[2] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 2);
+  netif->hwaddr[3] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 3);
+  netif->hwaddr[4] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 4);
+  netif->hwaddr[5] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 5);
 
   netif->hwaddr_len = 6;
   //netif->hwaddr_len = 6;
@@ -414,12 +427,13 @@ hcsim_if_init_6lowpan(struct netif *netif)
 
   /* hardware address length */
 
-  netif->hwaddr[0] = 0x00;
-  netif->hwaddr[1] = 0x00;
-  netif->hwaddr[2] = 0x00;
-  netif->hwaddr[3] = 0x00;
-  netif->hwaddr[4] = 0x00;
-  netif->hwaddr[5] = 0x00 + (((lwip_context*)ctxt)->node_id);;
+  netif->hwaddr[0] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 0);
+  netif->hwaddr[1] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 1);
+  netif->hwaddr[2] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 2);
+  netif->hwaddr[3] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 3);
+  netif->hwaddr[4] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 4);
+  netif->hwaddr[5] = (sim_ctxt.cluster)->get_mac_address_byte(((lwip_context*)ctxt)->node_id, 5);
+
   netif->hwaddr_len = 6;
   //netif->hwaddr_len = 6;
   //hcsim_if->ethaddr = (struct eth_addr *)&(netif->hwaddr[0]);
