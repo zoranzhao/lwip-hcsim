@@ -3,6 +3,7 @@
 #include <string>
 #include "profile_data.h"
 #include "cluster_config.h"
+#include "sim_results.h"
 
 #ifndef OS_CTXT__H
 #define OS_CTXT__H
@@ -172,6 +173,7 @@ class simulation_context{
    std::vector<handler_context> handler_context_list;
 public:
    cluster_config* cluster;
+   sim_results* result;
    simulation_context(){
       std::cout << "Construct a new simulation context" << std::endl; 
    }
