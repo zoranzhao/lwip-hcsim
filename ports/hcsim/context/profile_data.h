@@ -31,9 +31,9 @@ public:
    }
    void load_profile(std::string profile_file){
       std::string function_name;	
-      int frame;
-      int partition;
-      int reuse;
+      int arg1;
+      int arg2;
+      int arg3;
       int calling_times;
       double avg_time;
       std::ifstream infile(profile_file);
@@ -41,11 +41,11 @@ public:
       getline(infile, line);//skip the first line
       while (getline(infile, line)){
          std::istringstream iss(line);
-         if (!(iss >> function_name >> frame >> partition >> reuse >> calling_times >> avg_time)) break;
-         std::cout << function_name << "	" << frame << "	" << partition << "	" << reuse << "	" << calling_times << "	" << avg_time << std::endl;
-	 std::string function_input = std::to_string(frame) + "_" + std::to_string(partition) + "_" + std::to_string(reuse);
+         if (!(iss >> function_name >> arg1 >> arg2 >> arg3 >> calling_times >> avg_time)) break;
+         std::cout << function_name << "	" << arg1 << "	" << arg2 << "	" << arg3 << "	" << calling_times << "	" << avg_time << std::endl;
+	 std::string function_input = std::to_string(arg1) + "_" + std::to_string(arg2) + "_" + std::to_string(arg3);
          profile[function_name][function_input] = avg_time;
-         if(frame==0 && partition==0 && reuse==0) profile[function_name]["null"] = avg_time;
+         if(arg1==0 && arg2==0 && arg3==0) profile[function_name]["null"] = avg_time;
       }
    }
 };

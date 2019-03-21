@@ -347,6 +347,31 @@ lowpan6_tmr(void)
 static err_t
 lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr *src, const struct lowpan6_link_addr *dst)
 {
+/*
+  printf("lowpan6_frag dst... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X\n",
+          dst->addr_len,
+          (unsigned)dst->addr[0],
+          (unsigned)dst->addr[1],
+          (unsigned)dst->addr[2],
+          (unsigned)dst->addr[3],
+          (unsigned)dst->addr[4],
+          (unsigned)dst->addr[5],
+          (unsigned)dst->addr[6],
+          (unsigned)dst->addr[7]
+          );
+  printf("lowpan6_frag src... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X\n",
+          src->addr_len,
+          (unsigned)src->addr[0],
+          (unsigned)src->addr[1],
+          (unsigned)src->addr[2],
+          (unsigned)src->addr[3],
+          (unsigned)src->addr[4],
+          (unsigned)src->addr[5],
+          (unsigned)src->addr[6],
+          (unsigned)src->addr[7]
+          );
+*/
+  
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
   struct pbuf *p_frag;
@@ -573,8 +598,17 @@ lowpan6_hwaddr_to_addr(struct netif *netif, struct lowpan6_link_addr *addr)
 err_t
 lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
 {
+
   void* ctxt;//HCSim
   ctxt = sim_ctxt.get_app_ctxt(sc_core::sc_get_current_process_handle())->get_context("lwIP");//HCSim
+/*
+  std::cout << "In device lowpan6_output: " << ((lwip_context*)ctxt)->node_id  << std::endl;   
+  printf("lowpan6_output: %s\n", ip6addr_ntoa(ip6addr));
+  std::cout << "Dest device ID is: " << (sim_ctxt.cluster) -> get_device_id_from_ipv6_address(ip6addr_ntoa(ip6addr)) << std::endl;
+*/
+  (sim_ctxt.cluster)->set_dest_id( ((lwip_context*)ctxt)->node_id,
+                                (sim_ctxt.cluster) -> get_device_id_from_ipv6_address(ip6addr_ntoa(ip6addr)) );
+
   err_t result;
   const u8_t *hwaddr;
   struct lowpan6_link_addr src, dest;
@@ -626,7 +660,6 @@ lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
     }
   }
 #endif /* LWIP_6LOWPAN_INFER_SHORT_ADDRESS */
-
   /* Ask ND6 what to do with the packet. */
   result = nd6_get_next_hop_addr_or_queue(netif, q, ip6addr, &hwaddr);
   if (result != ERR_OK) {
@@ -646,6 +679,7 @@ lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
     return result;
   }
   MIB2_STATS_NETIF_INC(netif, ifoutucastpkts);
+
   return lowpan6_frag(netif, q, &src, &dest);
 }
 /**

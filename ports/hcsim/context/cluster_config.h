@@ -44,6 +44,8 @@ public:
    std::unordered_map<int, std::string> edge_ipv6_address;
    std::unordered_map<int, std::string> edge_mac_address;
    std::unordered_map<std::string,  int> edge_mac_address_to_id;
+   std::unordered_map<std::string,  int> ipv6_address_to_id;
+   std::unordered_map<int,  int> dest_id_map;
 
    int gateway_id;
    int gateway_core_number;
@@ -75,6 +77,7 @@ public:
       }
       for(int& it : edge_id){
          std::cout << "edge_ipv6_address is: " << edge_ipv6_address[it] << std::endl;
+         std::cout << "Device ID is: " << ipv6_address_to_id[edge_ipv6_address[it]] << ", ipv6 address is: " << edge_ipv6_address[it] << std::endl; 
       }
       for(int& it : edge_id){
          std::cout << "edge_mac_address is: " << edge_mac_address[it] << std::endl;
@@ -93,7 +96,7 @@ public:
                  get_mac_address_byte(it, 4) , 
                  get_mac_address_byte(it, 5) 
                 );
-         std::cout << "Device ID is: " << edge_mac_address_to_id[std::string(mac_addr)] << ", address is: " << std::string(mac_addr) << std::endl; 
+         std::cout << "Device ID is: " << edge_mac_address_to_id[std::string(mac_addr)] << ", mac address is: " << std::string(mac_addr) << std::endl; 
 
       }
       std::cout << "gateway_id:" << gateway_id << std::endl;
@@ -110,6 +113,12 @@ public:
       if(edge_mac_address_to_id.find(std::string(mac_address)) != edge_mac_address_to_id.end()) return edge_mac_address_to_id[std::string(mac_address)];
       if(std::string(mac_address) == "FF:FF:FF:FF:FF:FF") return BROAD_CAST_MAC_ADDR;
       return UNKNOWN_MAC_ADDR;
+   }
+
+   int get_device_id_from_ipv6_address(char* ip_address){
+      if(std::string(ip_address) == gateway_ipv6_address) return gateway_id;
+      if(ipv6_address_to_id.find(std::string(ip_address)) != ipv6_address_to_id.end()) return ipv6_address_to_id[std::string(ip_address)];
+      return BROAD_CAST_MAC_ADDR;
    }
 
    char* get_mac_address_from_device_id(int device_id){
@@ -135,6 +144,15 @@ public:
             count++;
          }
          return std::stoi("0x"+s, NULL, 0);
+   }
+
+   int get_dest_id(int this_id){
+      if(dest_id_map.find(this_id) != dest_id_map.end()) return dest_id_map[this_id];
+      else return BROAD_CAST_MAC_ADDR;
+   }
+
+   void set_dest_id(int this_id, int dest_id){
+      dest_id_map[this_id] = dest_id;
    }
 
 };
