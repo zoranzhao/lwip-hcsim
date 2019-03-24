@@ -5,6 +5,7 @@
 #include <thread>
 #include <mutex>
 #include <unordered_map>
+#include <list>
 #ifndef CLUSTER_CONFIG_H
 #define CLUSTER_CONFIG_H
 /*
@@ -46,6 +47,7 @@ public:
    std::unordered_map<std::string,  int> edge_mac_address_to_id;
    std::unordered_map<std::string,  int> ipv6_address_to_id;
    std::unordered_map<int,  int> dest_id_map;
+   std::unordered_map<int,  std::list<int>> dest_id_queues;
 
    int gateway_id;
    int gateway_core_number;
@@ -153,6 +155,17 @@ public:
 
    void set_dest_id(int this_id, int dest_id){
       dest_id_map[this_id] = dest_id;
+   }
+
+   int dequeue_dest_id(int this_id){
+      int front = dest_id_queues[this_id].front();
+      dest_id_queues[this_id].pop_front();
+      return front;
+   }
+
+   void enqueue_dest_id(int this_id){
+      int dest_id = get_dest_id(this_id);
+      dest_id_queues[this_id].push_back(dest_id);
    }
 
 };

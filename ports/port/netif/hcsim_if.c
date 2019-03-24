@@ -267,8 +267,12 @@ low_level_input(struct netif *netif)
 }
 
 
-unsigned int get_dest_device_id(char* buf, int len)
+unsigned int get_dest_device_id(char* buf, int len, int this_id)
 {
+#if LWIP_IPV6 && LWIP_6LOWPAN
+  //return (sim_ctxt.cluster)->get_dest_id(this_id);
+  return (sim_ctxt.cluster)->dequeue_dest_id(this_id);
+#else
   struct pbuf* p = pbuf_alloc(PBUF_RAW, len, PBUF_POOL);
   struct pbuf* q;
   char* bufptr;
@@ -299,7 +303,7 @@ unsigned int get_dest_device_id(char* buf, int len)
   //   (sim_ctxt.cluster)->get_device_id_from_mac_address(mac_addr)    
   //);
   return (sim_ctxt.cluster)->get_device_id_from_mac_address(mac_addr);
-
+#endif
 }
 
 

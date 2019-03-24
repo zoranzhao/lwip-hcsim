@@ -348,7 +348,7 @@ static err_t
 lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr *src, const struct lowpan6_link_addr *dst)
 {
 /*
-  printf("lowpan6_frag dst... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X\n",
+  printf("lowpan6_frag dst... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n",
           dst->addr_len,
           (unsigned)dst->addr[0],
           (unsigned)dst->addr[1],
@@ -359,7 +359,7 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr
           (unsigned)dst->addr[6],
           (unsigned)dst->addr[7]
           );
-  printf("lowpan6_frag src... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X\n",
+  printf("lowpan6_frag src... ... , length is %d: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n",
           src->addr_len,
           (unsigned)src->addr[0],
           (unsigned)src->addr[1],
@@ -464,6 +464,10 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr
     /* send the packet */
     MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p_frag->tot_len);
     LWIP_DEBUGF(LWIP_LOWPAN6_DEBUG | LWIP_DBG_TRACE, ("lowpan6_send: sending packet %p\n", (void *)p));
+
+
+    (sim_ctxt.cluster)->enqueue_dest_id( ((lwip_context*)ctxt)->node_id );
+    //std::cout << "enqueue_dest_id"<< std::endl;
     err = netif->linkoutput(netif, p_frag);
 
     while ((remaining_len > 0) && (err == ERR_OK)) {
@@ -495,6 +499,8 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr
       /* send the packet */
       MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p_frag->tot_len);
       LWIP_DEBUGF(LWIP_LOWPAN6_DEBUG | LWIP_DBG_TRACE, ("lowpan6_send: sending packet %p\n", (void *)p));
+      (sim_ctxt.cluster)->enqueue_dest_id( ((lwip_context*)ctxt)->node_id );
+      //std::cout << "enqueue_dest_id"<< std::endl;
       err = netif->linkoutput(netif, p_frag);
     }
   } else {
@@ -514,6 +520,8 @@ lowpan6_frag(struct netif *netif, struct pbuf *p, const struct lowpan6_link_addr
     /* send the packet */
     MIB2_STATS_NETIF_ADD(netif, ifoutoctets, p_frag->tot_len);
     LWIP_DEBUGF(LWIP_LOWPAN6_DEBUG | LWIP_DBG_TRACE, ("lowpan6_send: sending packet %p\n", (void *)p));
+    (sim_ctxt.cluster)->enqueue_dest_id( ((lwip_context*)ctxt)->node_id );
+    //std::cout << "enqueue_dest_id"<< std::endl;
     err = netif->linkoutput(netif, p_frag);
   }
 
@@ -673,11 +681,8 @@ lowpan6_output(struct netif *netif, struct pbuf *q, const ip6_addr_t *ip6addr)
   }
 
   /* Send out the packet using the returned hardware address. */
-  result = lowpan6_hwaddr_to_addr(netif, &dest);
-  if (result != ERR_OK) {
-    MIB2_STATS_NETIF_INC(netif, ifoutdiscards);
-    return result;
-  }
+  dest.addr_len = 8;
+  SMEMCPY(dest.addr, hwaddr, netif->hwaddr_len);
   MIB2_STATS_NETIF_INC(netif, ifoutucastpkts);
 
   return lowpan6_frag(netif, q, &src, &dest);
