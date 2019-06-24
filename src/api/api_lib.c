@@ -293,6 +293,7 @@ netconn_bind(struct netconn *conn, const ip_addr_t *addr, u16_t port)
 err_t
 netconn_connect(struct netconn *conn, const ip_addr_t *addr, u16_t port)
 {
+  record_static("netconn_connect", "null", "lwip");
   sys_time_wait("netconn_connect", "null");
   API_MSG_VAR_DECLARE(msg);
   err_t err;
@@ -388,6 +389,7 @@ netconn_listen_with_backlog(struct netconn *conn, u8_t backlog)
 err_t
 netconn_accept(struct netconn *conn, struct netconn **new_conn)
 {
+  record_static("netconn_accept", "null", "lwip");
   sys_time_wait("netconn_accept", "null");
 #if LWIP_TCP
   void *accept_ptr;
@@ -622,6 +624,7 @@ netconn_recv_tcp_pbuf(struct netconn *conn, struct pbuf **new_buf)
 err_t
 netconn_recv(struct netconn *conn, struct netbuf **new_buf)
 {
+  record_static("netconn_recv", "null", "lwip");
   sys_time_wait("netconn_recv", "null");
 #if LWIP_TCP
   struct netbuf *buf = NULL;

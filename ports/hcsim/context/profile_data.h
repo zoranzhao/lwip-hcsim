@@ -53,6 +53,7 @@ public:
 extern "C" {
 #endif
 void sys_time_wait(char* function_name, char* input);
+void record_static(char* function_name, char* input, char* record_name);
 #ifdef __cplusplus
 }
 #endif

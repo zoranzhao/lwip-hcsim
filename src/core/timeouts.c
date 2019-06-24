@@ -425,6 +425,7 @@ sys_timeouts_sleeptime(void)
 void
 sys_timeouts_mbox_fetch(sys_mbox_t *mbox, void **msg)
 {
+  record_static("sys_timeouts_mbox_fetch", "null", "lwip");
   sys_time_wait("sys_timeouts_mbox_fetch", "null");
   u32_t sleeptime;
   void* ctxt;

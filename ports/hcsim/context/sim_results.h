@@ -48,6 +48,27 @@ public:
       assert(device_id<(edges.size()));
       edges[device_id][key] = value;
    }
+   void accumulate_edge_result(int device_id, std::string key, double value){
+      assert(device_id<(edges.size()));
+      if(edges[device_id].find(key) != edges[device_id].end()){
+          double new_value = edges[device_id][key] + value;
+          edges[device_id][key] = new_value;
+      }else{
+          edges[device_id][key] = value;
+      } 
+      //std::cout<<"update value: "<< edges[device_id][key] << std::endl;
+   }
+
+   void accumulate_gateway_result(std::string key, double value){
+      if(gateway.find(key) != gateway.end()){
+          double new_value = gateway[key] + value;
+          gateway[key] = new_value;
+      }else{
+          gateway[key] = value;
+      } 
+      //std::cout<<"update value gateway: "<< gateway[key] << std::endl;
+   }
+
    std::unordered_map<std::string, double> get_gateway_result(){
       return gateway;
    }
@@ -59,5 +80,11 @@ public:
       
    }
 };
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+void record_static(char* function_name, char* input, char* record_name);
+#ifdef __cplusplus
+}
+#endif
 #endif

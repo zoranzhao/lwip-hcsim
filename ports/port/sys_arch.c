@@ -82,7 +82,7 @@ struct sys_mbox {
   void * ctxt;
 };
 
-#define GLOBAL_SEMS 200
+#define GLOBAL_SEMS 2000
 struct sys_sem {
    bool free;
    bool wait_flag;
@@ -461,6 +461,23 @@ sys_time_wait(char* function_name, char* input)
 
    double sec = os_model->profile->get_latency_in_sec(std::string(function_name), std::string(input));
    //std::cout << "In device " << os_model->node_id << " , function name:" << function_name << " with input:" << input << ", latency is:" << sec << "s" << std::endl;
+}
+
+void
+record_static(char* function_name, char* input, char* record_name)
+{
+   os_model_context* os_model = sim_ctxt.get_os_ctxt( sc_core::sc_get_current_process_handle() );
+   double sec = os_model->profile->get_latency_in_sec(std::string(function_name), std::string(input));
+   //if(std::string(record_name) == "application")
+   //   std::cout << "In device " << os_model->node_id << " , function name:" << function_name << " with input:" << input << ", latency is:" << sec << "s" << std::endl;
+
+   if(os_model->node_id != (sim_ctxt.cluster)->gateway_id) {
+         (sim_ctxt.result)->accumulate_edge_result(os_model->node_id, std::string(record_name), sec);
+   } else {
+         (sim_ctxt.result)->accumulate_gateway_result(std::string(record_name), sec);
+   }
+
+
 }
 
 
