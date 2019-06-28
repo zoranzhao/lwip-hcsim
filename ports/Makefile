@@ -30,9 +30,11 @@
 #
 
 # Include SystemC lib.
-SYSTEMC_LIB=/home/slam/OMNET/systemc-2.3.1/lib-linux64
-SYSTEMC_INC=/home/slam/OMNET/systemc-2.3.1
-HCSIM_DIR=/home/slam/OMNET/HCSim
+HCSIM_DIR=../../HCSim
+include ../../HCSim/Makefile.macros
+SYSTEMC_LIB=$(SYSTEMC_DIR)/lib-linux64
+SYSTEMC_INC=$(SYSTEMC_DIR)
+
 
 #INS_LIB = ../InstrumentLLVM/build/FunctionInstr/libLLVMFunctionInstr.so
 #LLVM_INSTR_PASS = -functionInstr
