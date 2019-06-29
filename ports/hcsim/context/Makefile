@@ -9,8 +9,8 @@ HELPER_INC =  -Wno-c++11-compat-deprecated-writable-strings -Wno-write-strings  
 # SystemC Options
 #################################################################
 # SystemC path
-SYSTEMC_DIR=/home/slam/OMNET/systemc-2.3.1
-HCSIM=/home/slam/OMNET/HCSim
+include ../../../../HCSim/Makefile.macros
+HCSIM=../../../../HCSim
 
 
 LFLAGS=-L$(SYSTEMC_DIR)/lib-linux64 -Wl,-rpath=$(SYSTEMC_DIR)/lib-linux64  -lsystemc -L$(HCSIM)/lib -lhcsim 
